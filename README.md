@@ -114,6 +114,8 @@ The agent runs a **typed state machine** driving the LLM and tools. It uses **La
     <img src="img/arch.png" alt="Agentic AI Graph" width="100%">
 </p>
 
+Dynamic Mermaid graph of the agent's architecture:
+
 ```mermaid
 flowchart LR
 
