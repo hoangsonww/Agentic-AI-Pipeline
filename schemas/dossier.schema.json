@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dossier",
+  "type": "object",
+  "properties": {
+    "topic": { "type": "string" },
+    "summary": { "type": "string" },
+    "bullets": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 3
+    },
+    "citations": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^(https?://|file://).+" }
+    },
+    "next_steps": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "dossier_path": { "type": "string" },
+        "email_path": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["topic", "summary", "bullets", "citations"],
+  "additionalProperties": false
+}

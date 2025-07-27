@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OutreachEmail",
+  "type": "object",
+  "properties": {
+    "to": { "type": "string" },
+    "subject": { "type": "string" },
+    "body": { "type": "string" },
+    "cta": { "type": "string" }
+  },
+  "required": ["to", "subject", "body"],
+  "additionalProperties": false
+}

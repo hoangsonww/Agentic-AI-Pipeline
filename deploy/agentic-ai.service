@@ -1,0 +1,14 @@
+[Unit]
+Description=Agentic AI (FastAPI + SSE)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/agentic-ai
+Environment="APP_HOST=0.0.0.0" "APP_PORT=8000"
+ExecStart=/usr/bin/env python -m uvicorn agentic_ai.app:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    image: agentic-ai:dev
+    container_name: agentic-ai
+    env_file:
+      - .env
+    environment:
+      - CHROMA_DIR=/data/chroma
+      - SQLITE_PATH=/data/sqlite/agent.db
+    volumes:
+      - ./.logs:/app/.logs
+      - ./data/seed:/app/data/seed:ro
+      - ./data/agent_output:/app/data/agent_output
+      - ./data/emails:/app/data/emails
+      - ./web:/app/web:ro
+      - chroma:/data/chroma
+      - sqlite:/data/sqlite
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL","curl -fsS http://127.0.0.1:8000/api/new_chat || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+volumes:
+  chroma: {}
+  sqlite: {}

@@ -1,0 +1,8 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "Run API", "type": "shell", "command": "uvicorn agentic_ai.app:app --reload --port 8000", "group": "build", "problemMatcher": [] },
+    { "label": "Ingest Seed", "type": "shell", "command": "python -m agentic_ai.cli ingest ./data/seed", "group": "none" },
+    { "label": "Tests", "type": "shell", "command": "pytest -q", "group": "test" }
+  ]
+}

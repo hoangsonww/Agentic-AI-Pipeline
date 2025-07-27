@@ -1,0 +1,33 @@
+{
+  "info": {
+    "name": "Agentic AI",
+    "_postman_id": "00000000-0000-0000-0000-000000000000",
+    "description": "Basic endpoints for Agentic AI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "New Chat",
+      "request": { "method": "GET", "url": "{{base_url}}/api/new_chat" }
+    },
+    {
+      "name": "Ingest",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"text\": \"kb doc from Postman\", \"metadata\": {\"postman\": true} }" },
+        "url": "{{base_url}}/api/ingest"
+      }
+    },
+    {
+      "name": "Feedback",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"chat_id\": \"demo\", \"rating\": 1, \"comment\": \"ok\" }" },
+        "url": "{{base_url}}/api/feedback"
+      }
+    }
+  ],
+  "variable": [ { "key": "base_url", "value": "http://localhost:8000" } ]
+}

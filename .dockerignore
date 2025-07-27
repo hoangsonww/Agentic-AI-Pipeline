@@ -1,0 +1,10 @@
+.venv
+.git
+__pycache__
+*.pyc
+.logs
+.sqlite
+.chroma
+.env
+tests
+tooling/postman

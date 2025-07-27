@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentic-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: agentic-ai }
+  template:
+    metadata:
+      labels: { app: agentic-ai }
+    spec:
+      containers:
+        - name: app
+          image: agentic-ai:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MODEL_PROVIDER
+              valueFrom: { secretKeyRef: { name: agentic-ai-secrets, key: MODEL_PROVIDER } }
+            - name: OPENAI_API_KEY
+              valueFrom: { secretKeyRef: { name: agentic-ai-secrets, key: OPENAI_API_KEY } }
+            - name: CHROMA_DIR
+              value: /data/chroma
+            - name: SQLITE_PATH
+              value: /data/sqlite/agent.db
+            - name: APP_HOST
+              value: 0.0.0.0
+            - name: APP_PORT
+              value: "8000"
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: chroma
+              mountPath: /data/chroma
+            - name: sqlite
+              mountPath: /data/sqlite
+          readinessProbe:
+            httpGet: { path: /api/new_chat, port: 8000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: chroma
+          emptyDir: { }
+        - name: sqlite
+          emptyDir: { }
