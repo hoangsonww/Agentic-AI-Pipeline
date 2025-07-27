@@ -1,0 +1,26 @@
+{
+  "info": {
+    "name": "Agentic AI (with tests)",
+    "_postman_id": "11111111-1111-1111-1111-111111111111",
+    "description": "Smoke tests for Agentic AI endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "New Chat",
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"status 200\", ()=> pm.response.code === 200);","pm.test(\"has chat_id\", ()=> pm.response.json().chat_id);"] } }],
+      "request": { "method": "GET", "url": "{{base_url}}/api/new_chat" }
+    },
+    {
+      "name": "Ingest",
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"status 200\", ()=> pm.response.code === 200);","pm.test(\"ok true\", ()=> pm.response.json().ok === true);"] } }],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"text\": \"kb doc from Postman tests\", \"metadata\": {\"postman\": true} }" },
+        "url": "{{base_url}}/api/ingest"
+      }
+    }
+  ],
+  "variable": [ { "key": "base_url", "value": "http://127.0.0.1:8000" } ]
+}

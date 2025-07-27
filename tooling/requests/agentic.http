@@ -1,0 +1,21 @@
+### New Chat
+GET http://127.0.0.1:8000/api/new_chat
+
+### Ingest
+POST http://127.0.0.1:8000/api/ingest
+Content-Type: application/json
+
+{
+  "text": "hello from VSCode http file",
+  "metadata": { "source": "vscode" }
+}
+
+### Feedback
+POST http://127.0.0.1:8000/api/feedback
+Content-Type: application/json
+
+{
+  "chat_id": "http-demo",
+  "rating": 1,
+  "comment": "ok"
+}

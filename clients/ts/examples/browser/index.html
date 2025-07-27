@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>AgenticAI Browser Demo</title></head>
+<body>
+  <h1>AgenticAI Browser Demo</h1>
+  <textarea id="input" rows="4" cols="80">Build a competitive briefing on ACME Robotics and draft a short outreach email.</textarea><br/>
+  <button id="go">Send</button>
+  <pre id="out"></pre>
+<script type="module">
+const out = document.getElementById("out");
+document.getElementById("go").onclick = async () => {
+  out.textContent = "";
+  const message = document.getElementById("input").value;
+  const r = await fetch("/api/new_chat");
+  const j = await r.json();
+  const resp = await fetch("/api/chat", {
+    method: "POST", headers: { "Content-Type":"application/json" },
+    body: JSON.stringify({ chat_id: j.chat_id, message })
+  });
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder("utf-8");
+  let buf = "";
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\\n\\n")) >= 0) {
+      const block = buf.slice(0, i); buf = buf.slice(i+2);
+      const ev = (block.match(/event:(.*)/)||[])[1]?.trim();
+      const data = (block.match(/data:(.*)/s)||[])[1];
+      if (ev === "token") out.textContent += data;
+    }
+  }
+};
+</script>
+</body></html>
