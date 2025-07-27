@@ -598,7 +598,7 @@ This opinionated design allows for a clear and consistent development experience
 This project is licensed under the [Apache License](LICENSE). You are free to use, modify, and distribute this code as long as you include the original license and copyright notice.
 
 > [!NOTE]
-> Regardless of use, make sure you credit the original authors and contributors when using this code in your projects. Contributions are welcome, and we encourage you to share your improvements or extensions to the system. 
+> Regardless of use, make sure you credit the original authors and contributors when using this code in your projects. Contributions are welcome, and we encourage you to share your improvements or extensions to the system.
 
 ## Conclusion
 
