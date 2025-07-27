@@ -1,0 +1,19 @@
+{
+  "name": "agentic-ai-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TypeScript client SDK for Agentic AI (FastAPI + SSE).",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "tsc -p .",
+    "dev": "tsx src/demo.ts",
+    "demo": "node dist/demo.js",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.4"
+  }
+}
