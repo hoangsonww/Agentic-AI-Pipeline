@@ -1,18 +1,28 @@
 {
   "name": "agentic-ai-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "TypeScript client SDK for Agentic AI (FastAPI + SSE).",
+  "description": "TypeScript client SDK for Agentic AI (FastAPI + SSE) with Node + Browser support.",
   "type": "module",
   "engines": { "node": ">=18" },
   "scripts": {
     "build": "tsc -p .",
     "dev": "tsx src/demo.ts",
     "demo": "node dist/demo.js",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx",
+    "fmt": "prettier -w .",
+    "types": "npx openapi-typescript ../../openapi.json -o src/openapi.types.ts || echo \"(tip) run scripts/openapi_ts.sh\""
   },
-  "dependencies": {},
+  "dependencies": {
+    "eventsource-parser": "^1.1.2"
+  },
   "devDependencies": {
+    "@types/node": "^20.14.10",
+    "eslint": "^9.8.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "prettier": "^3.3.3",
     "tsx": "^4.16.0",
     "typescript": "^5.5.4"
   }
