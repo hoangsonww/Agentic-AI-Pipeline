@@ -1,0 +1,11 @@
+---
+# Docker-based deployment using community.docker
+- name: Deploy Agentic AI (Docker)
+  hosts: agentic
+  become: true
+  vars:
+    docker_enabled: true
+  roles:
+    - role: common
+    - role: app_docker
+    - { role: nginx, when: nginx_enabled }

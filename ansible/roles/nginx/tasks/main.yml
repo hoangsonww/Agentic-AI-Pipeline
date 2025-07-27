@@ -1,0 +1,32 @@
+---
+- name: Ensure nginx installed
+  ansible.builtin.package:
+    name: nginx
+    state: present
+
+- name: Render nginx site
+  ansible.builtin.template:
+    src: "nginx.conf.j2"
+    dest: "/etc/nginx/sites-available/{{ app_name }}"
+    mode: "0644"
+  notify: reload nginx
+
+- name: Enable site
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ app_name }}"
+    dest: "/etc/nginx/sites-enabled/{{ app_name }}"
+    state: link
+    force: yes
+  notify: reload nginx
+
+- name: Disable default site (if present)
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload nginx
+
+- name: Ensure nginx running
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true

@@ -1,0 +1,47 @@
+---
+# ====== Global app settings ======
+app_name: agentic-ai
+app_user: agentic
+app_group: agentic
+app_home: /opt/agentic-ai
+data_dir: /var/lib/agentic-ai
+logs_dir: /var/log/agentic-ai
+venv_dir: "{{ app_home }}/.venv"
+repo_url: "https://github.com/your-org/agentic-ai.git"   # set if you deploy from Git
+repo_version: "main"
+
+app_host: "0.0.0.0"
+app_port: 8000
+
+# .env values (override in inventory/group/host if needed)
+env_vars:
+  MODEL_PROVIDER: "openai"
+  OPENAI_API_KEY: "set-me"           # override in prod
+  OPENAI_MODEL_CHAT: "gpt-4o-mini"
+  OPENAI_MODEL_EMBED: "text-embedding-3-small"
+  CHROMA_DIR: "{{ data_dir }}/chroma"
+  SQLITE_PATH: "{{ data_dir }}/sqlite/agent.db"
+  APP_HOST: "{{ app_host }}"
+  APP_PORT: "{{ app_port }}"
+
+# ====== Docker deployment ======
+docker_enabled: false
+docker_image: "your-registry/agentic-ai"
+docker_tag: "latest"
+docker_container_name: "agentic-ai"
+docker_ports:
+  - "8000:8000"
+docker_volumes:
+  - "{{ logs_dir }}:/app/.logs"
+  - "{{ data_dir }}/chroma:/data/chroma"
+  - "{{ data_dir }}/sqlite:/data/sqlite"
+# Optional: add seed or web as RO mounts if you bake them in image
+docker_env: "{{ env_vars }}"
+docker_restart_policy: "unless-stopped"
+
+# ====== Nginx reverse proxy (SSE-friendly) ======
+nginx_enabled: true
+nginx_server_name: "_"
+nginx_listen_port: 80
+nginx_upstream_host: "127.0.0.1"
+nginx_upstream_port: "{{ app_port }}"

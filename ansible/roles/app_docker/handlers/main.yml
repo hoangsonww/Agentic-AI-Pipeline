@@ -1,0 +1,5 @@
+---
+- name: restart container
+  community.docker.docker_container:
+    name: "{{ docker_container_name }}"
+    state: restarted

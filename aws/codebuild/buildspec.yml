@@ -1,0 +1,26 @@
+version: 0.2
+
+env:
+  variables:
+    REPO: "agentic-ai"
+    IMAGE_TAG: "latest"
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to ECR..."
+      - aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID".dkr.ecr."$AWS_REGION".amazonaws.com
+  build:
+    commands:
+      - echo "Building image..."
+      - docker build -t "$REPO:$IMAGE_TAG" .
+      - docker tag "$REPO:$IMAGE_TAG" "$AWS_ACCOUNT_ID".dkr.ecr."$AWS_REGION".amazonaws.com/"$REPO":"$IMAGE_TAG"
+  post_build:
+    commands:
+      - echo "Pushing image..."
+      - docker push "$AWS_ACCOUNT_ID".dkr.ecr."$AWS_REGION".amazonaws.com/"$REPO":"$IMAGE_TAG"
+      - printf '[{"name":"app","imageUri":"%s.dkr.ecr.%s.amazonaws.com/%s:%s"}]' "$AWS_ACCOUNT_ID" "$AWS_REGION" "$REPO" "$IMAGE_TAG" > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json

@@ -1,0 +1,11 @@
+---
+# Bare-metal deployment (systemd + venv + Uvicorn) + optional Nginx proxy
+- name: Deploy Agentic AI (systemd)
+  hosts: agentic
+  become: true
+  vars:
+    docker_enabled: false
+  roles:
+    - role: common
+    - role: app_systemd
+    - { role: nginx, when: nginx_enabled }

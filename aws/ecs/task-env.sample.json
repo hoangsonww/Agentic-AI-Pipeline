@@ -1,0 +1,13 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "app",
+      "environment": [
+        { "name": "MODEL_PROVIDER", "value": "openai" },
+        { "name": "OPENAI_MODEL_CHAT", "value": "gpt-4o-mini" },
+        { "name": "APP_HOST", "value": "0.0.0.0" },
+        { "name": "APP_PORT", "value": "8000" }
+      ]
+    }
+  ]
+}

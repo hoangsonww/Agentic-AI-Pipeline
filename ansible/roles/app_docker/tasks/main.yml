@@ -1,0 +1,41 @@
+---
+- name: Install Docker engine (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - python3-docker
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Ensure docker service is running
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Create directories for bind mounts
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group | default(app_user) }}"
+    mode: "0755"
+  loop:
+    - "{{ logs_dir }}"
+    - "{{ data_dir }}/chroma"
+    - "{{ data_dir }}/sqlite"
+
+- name: Run container
+  community.docker.docker_container:
+    name: "{{ docker_container_name }}"
+    image: "{{ docker_image }}:{{ docker_tag }}"
+    state: started
+    restart_policy: "{{ docker_restart_policy }}"
+    published_ports: "{{ docker_ports }}"
+    env: "{{ docker_env }}"
+    volumes: "{{ docker_volumes }}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/api/new_chat || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

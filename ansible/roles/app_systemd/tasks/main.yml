@@ -1,0 +1,44 @@
+---
+- name: Clone repository
+  ansible.builtin.git:
+    repo: "{{ repo_url }}"
+    dest: "{{ app_home }}/current"
+    version: "{{ repo_version }}"
+    force: yes
+    update: yes
+    accept_hostkey: yes
+  become_user: "{{ app_user }}"
+
+- name: Ensure virtualenv exists
+  ansible.builtin.command:
+    cmd: "python3 -m venv {{ venv_dir }}"
+    creates: "{{ venv_dir }}/bin/activate"
+
+- name: Install Python dependencies
+  ansible.builtin.pip:
+    requirements: "{{ app_home }}/current/requirements.txt"
+    virtualenv: "{{ venv_dir }}"
+    virtualenv_command: "python3 -m venv"
+
+- name: Render .env file
+  ansible.builtin.template:
+    src: "env.j2"
+    dest: "{{ app_home }}/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_group | default(app_user) }}"
+    mode: "0600"
+
+- name: Render systemd unit
+  ansible.builtin.template:
+    src: "agentic-ai.service.j2"
+    dest: "/etc/systemd/system/agentic-ai.service"
+    mode: "0644"
+  notify:
+    - daemon-reload
+    - restart agentic-ai
+
+- name: Ensure service enabled and started
+  ansible.builtin.systemd:
+    name: agentic-ai
+    enabled: true
+    state: started
