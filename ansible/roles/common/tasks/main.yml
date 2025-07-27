@@ -1,0 +1,42 @@
+---
+- name: Ensure apt cache updated (Debian/Ubuntu)
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+
+- name: Install base packages
+  ansible.builtin.package:
+    name:
+      - git
+      - curl
+      - ca-certificates
+      - rsync
+      - python3
+      - python3-venv
+      - python3-pip
+      - nginx
+    state: present
+
+- name: Create app user/group
+  ansible.builtin.user:
+    name: "{{ app_user }}"
+    group: "{{ app_group | default(app_user) }}"
+    shell: /bin/bash
+    create_home: yes
+  register: created_user
+  ignore_errors: false
+
+- name: Create directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group | default(app_user) }}"
+    mode: "0755"
+  loop:
+    - "{{ app_home }}"
+    - "{{ data_dir }}"
+    - "{{ data_dir }}/chroma"
+    - "{{ data_dir }}/sqlite"
+    - "{{ logs_dir }}"

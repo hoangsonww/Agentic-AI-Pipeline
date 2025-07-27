@@ -20,6 +20,9 @@
 [![Code Quality](https://img.shields.io/badge/Code%20Quality-Tests%20+%20Lint-4C1?logo=codequality\&logoColor=white)](#)
 [![Open Source](https://img.shields.io/badge/Open%20Source-Community-FF5722?logo=open-source-initiative\&logoColor=white)](#)
 [![Shell](https://img.shields.io/badge/Shell-CLI%20Tools-4EAA25?logo=gnu-bash\&logoColor=white)](#)
+[![AWS](https://img.shields.io/badge/AWS-Cloud%20Ready-FF9900?logo=amazonaws\&logoColor=white)](#)
+[![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker\&logoColor=white)](#)
+[![Ansible](https://img.shields.io/badge/Ansible-Configuration%20Management-EE0000?logo=ansible\&logoColor=white)](#)
 
 A **full‑fledged, multi‑stage, agentic chatbot** that **plans → discovers → reasons → uses tools → learns**.
 The reference task baked into this repo is a **Research & Outreach Agent** (“**DossierOutreachAgent**”): given a topic/company, it builds a **compact, cited briefing** and (optionally) **drafts an outreach email**, saving artifacts to disk.

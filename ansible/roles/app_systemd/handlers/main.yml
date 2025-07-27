@@ -1,0 +1,9 @@
+---
+- name: daemon-reload
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: restart agentic-ai
+  ansible.builtin.service:
+    name: agentic-ai
+    state: restarted

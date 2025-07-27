@@ -21,3 +21,7 @@ pnpm-lock.yaml
 clients/**/dist/
 clients/**/.turbo/
 clients/**/.eslintcache
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*

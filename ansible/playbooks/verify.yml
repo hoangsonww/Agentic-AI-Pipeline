@@ -1,0 +1,20 @@
+---
+- name: Verify Agent is healthy
+  hosts: agentic
+  gather_facts: false
+  tasks:
+    - name: Wait for service to come up
+      ansible.builtin.wait_for:
+        host: "127.0.0.1"
+        port: "{{ nginx_enabled | ternary(nginx_listen_port, app_port) }}"
+        timeout: 60
+
+    - name: Hit health endpoint
+      ansible.builtin.uri:
+        url: "{{ 'http://127.0.0.1:' ~ (nginx_enabled | ternary(nginx_listen_port, app_port)) ~ '/api/new_chat' }}"
+        return_content: true
+      register: health
+
+    - name: Show response
+      ansible.builtin.debug:
+        var: health.json

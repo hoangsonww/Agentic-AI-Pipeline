@@ -1,0 +1,22 @@
+---
+- name: Stop and remove Agentic AI
+  hosts: agentic
+  become: true
+  tasks:
+    - name: Stop systemd service (if present)
+      ansible.builtin.service:
+        name: agentic-ai
+        state: stopped
+      ignore_errors: true
+
+    - name: Disable service (if present)
+      ansible.builtin.systemd:
+        name: agentic-ai
+        enabled: false
+      ignore_errors: true
+
+    - name: Remove Docker container (if present)
+      community.docker.docker_container:
+        name: agentic-ai
+        state: absent
+      ignore_errors: true

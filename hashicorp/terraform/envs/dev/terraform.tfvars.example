@@ -1,0 +1,7 @@
+aws_region      = "us-east-1"
+aws_profile     = "default"
+vpc_id          = "vpc-xxxxxxxx"
+public_subnets  = ["subnet-aaaaaaa","subnet-bbbbbbb"]
+image_tag       = "latest"
+desired_count   = 1
+env             = "dev"

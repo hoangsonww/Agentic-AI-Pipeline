@@ -1,0 +1,18 @@
+[Unit]
+Description=Agentic AI (FastAPI + SSE)
+After=network.target
+
+[Service]
+Type=simple
+User={{ app_user }}
+Group={{ app_group | default(app_user) }}
+WorkingDirectory={{ app_home }}/current
+EnvironmentFile={{ app_home }}/.env
+ExecStart={{ venv_dir }}/bin/uvicorn agentic_ai.app:app --host {{ app_host }} --port {{ app_port }}
+Restart=on-failure
+RestartSec=5s
+StandardOutput=append:{{ logs_dir }}/app.out.log
+StandardError=append:{{ logs_dir }}/app.err.log
+
+[Install]
+WantedBy=multi-user.target
