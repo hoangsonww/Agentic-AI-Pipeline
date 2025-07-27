@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.chroma/
+.sqlite/
+.sqlite-wal
+.sqlite-shm
+.logs/
+.DS_Store
+coverage/
+.pytest_cache/

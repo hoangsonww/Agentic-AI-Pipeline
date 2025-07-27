@@ -1,0 +1,55 @@
+name: Smoke API
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "src/**"
+      - "web/**"
+      - "requirements.txt"
+      - ".github/workflows/smoke-api.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements.txt
+
+      - name: Start API (background)
+        env:
+          MODEL_PROVIDER: openai
+          OPENAI_API_KEY: "not-needed"
+          APP_HOST: 127.0.0.1
+          APP_PORT: 8010
+        run: |
+          python -m uvicorn agentic_ai.app:app --host 127.0.0.1 --port 8010 &
+          echo $! > uvicorn.pid
+          sleep 3
+
+      - name: Hit endpoints
+        run: |
+          set -eux
+          curl -f http://127.0.0.1:8010/ | head -n 5
+          curl -f http://127.0.0.1:8010/api/new_chat
+          curl -f -X POST http://127.0.0.1:8010/api/ingest -H "Content-Type: application/json" -d text:kb doc from CI
+          curl -f -X POST http://127.0.0.1:8010/api/feedback -H "Content-Type: application/json" -d chat_id:ci
+
+      - name: Stop API
+        if: always()
+        run: |
+          kill $(cat uvicorn.pid) || true

@@ -1,0 +1,8 @@
+[virtualenvs]
+in-project = true
+# If you use pyenv or system Python, Poetry will still create .venv/ in repo root.
+# You can override via POETRY_VIRTUALENVS_IN_PROJECT=false environment variable.
+
+[installer]
+no-binary = []
+

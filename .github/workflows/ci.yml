@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ "**" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Lint & Test (Python ${{ matrix.python-version }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ "3.10", "3.11" ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install system deps (if needed for lxml/etc.)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements.txt
+
+      - name: Lint (ruff)
+        run: |
+          ruff check src tests
+          ruff format --check src tests
+
+      - name: Run tests
+        env:
+          # Avoid accidental real LLM calls in CI
+          MODEL_PROVIDER: openai
+          OPENAI_API_KEY: "not-needed-for-tests"
+          CHROMA_DIR: .chroma
+          SQLITE_PATH: .sqlite/agent.db
+        run: |
+          mkdir -p reports
+          pytest -q --junitxml=reports/junit.xml
+
+      - name: Upload test reports (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: reports/junit.xml
+
+      - name: Upload logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: .logs/

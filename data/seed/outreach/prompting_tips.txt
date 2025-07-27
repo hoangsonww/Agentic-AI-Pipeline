@@ -1,0 +1,3 @@
+- Keep the ask crisp; 1 CTA only.
+- Personalization token(s): {{signal}}, {{metric}}, {{industry}}.
+- Tone: professional, friendly, specific; avoid hype adjectives.

@@ -1,0 +1,5 @@
+name: DossierOutreachAgent
+objective: >
+  Produce competitive/company/topic briefings with concrete facts and citations. When asked, draft
+  a professional outreach email and save artifacts to disk.
+capabilities: [plan, search, fetch, kb_search, summarize, calculate, write_file, email, memory]

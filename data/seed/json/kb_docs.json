@@ -1,0 +1,12 @@
+[
+  {
+    "id": "kb:playbook",
+    "text": "Research → Dossier → Outreach: clarify scope; discover (search/fetch/KB); synthesize with citations; draft email; persist artifacts.",
+    "metadata": {"topic":"playbook"}
+  },
+  {
+    "id": "kb:amr_signals",
+    "text": "AMR fit: SKU count high, dynamic aisles, pick density > 120/hr, aisle width > 1.2m, need for flexible automation.",
+    "metadata": {"topic":"amr"}
+  }
+]
