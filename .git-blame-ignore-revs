@@ -1,0 +1,3 @@
+# Add commit hashes of large refactors/formatting-only changes to reduce noise.
+# Example:
+# 1234567890abcdef1234567890abcdef12345678 ruff format sweep

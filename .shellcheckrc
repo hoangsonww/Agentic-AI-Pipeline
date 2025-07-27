@@ -1,0 +1,5 @@
+enable=all
+shell=bash
+external-sources=true
+severity=style
+source-path=SCRIPTDIR

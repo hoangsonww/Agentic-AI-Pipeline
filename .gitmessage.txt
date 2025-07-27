@@ -1,0 +1,6 @@
+type(scope): short summary
+
+Body: Explain what and why (wrap at ~72 chars).
+- Bullet points allowed.
+
+Refs: #issue-id

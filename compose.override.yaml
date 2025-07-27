@@ -1,0 +1,12 @@
+services:
+  app:
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      MODEL_PROVIDER: openai
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-changeme}
+    volumes:
+      - ./src:/app/src:ro
+      - ./web:/app/web:ro
+      - ./.logs:/app/.logs
+      - ./data:/app/data
