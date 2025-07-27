@@ -42,6 +42,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [Memory & Feedback](#memory--feedback)
 * [Extending the System](#extending-the-system)
 * [Testing & Quality](#testing--quality)
+* [GitHub Actions](#github-actions)
 * [Security & Ops](#security--ops)
 * [Troubleshooting](#troubleshooting)
 * [Roadmap Ideas](#roadmap-ideas)
@@ -508,6 +509,23 @@ pytest -q
 make format
 make lint
 ```
+
+## GitHub Actions
+
+This repository uses GitHub Actions for continuous integration (CI) to ensure code quality and functionality. The CI pipeline includes:
+
+* **Linting**: checks code style and formatting using `ruff`.
+* **Testing**: runs unit tests and smoke tests to verify functionality.
+* **Type checking**: ensures type safety using `mypy`.
+* **Dependency management**: checks for outdated dependencies and security vulnerabilities.
+* **Documentation generation**: builds the documentation from the code comments and README.
+* **Code coverage**: reports code coverage to ensure sufficient test coverage.
+* **Release management**: automatically creates releases based on tags.
+* **Docker build**: builds a Docker image for the application.
+* **Security checks**: runs security scans on the codebase.
+* and many more!
+
+You can view the CI pipeline in the `.github/workflows/` directory. This should provide you with a solid foundation for maintaining code quality and ensuring that your changes do not break existing functionality, and feel free to extend the CI pipeline with additional checks or steps as needed.
 
 ## Security & Ops
 
