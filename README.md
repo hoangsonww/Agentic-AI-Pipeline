@@ -1,28 +1,28 @@
 # Agentic Multi‑Stage Bot - A Research & Outreach Agent 🤖
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python\&logoColor=white)](#)
-[![FastAPI](https://img.shields.io/badge/FastAPI-API%20Server-009688?logo=fastapi\&logoColor=white)](#)
-[![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI%20Server-222222?logo=python\&logoColor=white)](#)
-[![LangGraph](https://img.shields.io/badge/LangGraph-Agent%20Orchestration-5E6AD2?logo=graphql\&logoColor=white)](#)
-[![LangChain](https://img.shields.io/badge/LangChain-Tooling%2FRAG-1C3C3C?logo=chainlink\&logoColor=white)](#)
-[![OpenAI](https://img.shields.io/badge/OpenAI-Chat%20LLM-412991?logo=openai\&logoColor=white)](#)
-[![Anthropic](https://img.shields.io/badge/Anthropic-Chat%20LLM-18181B?logo=apache\&logoColor=white)](#)
-[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Memory-282828?logo=databricks\&logoColor=white)](#)
-[![SQLite](https://img.shields.io/badge/SQLite-Conversation%20Store-003B57?logo=sqlite\&logoColor=white)](#)
-[![DuckDuckGo](https://img.shields.io/badge/DuckDuckGo-Search-FB542B?logo=duckduckgo\&logoColor=white)](#)
-[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?logo=databricks\&logoColor=white)](#)
-[![Pydantic](https://img.shields.io/badge/Pydantic-Config-0E7C86?logo=pydantic\&logoColor=white)](#)
-[![Pytest](https://img.shields.io/badge/Pytest-Tests-0A9EDC?logo=pytest\&logoColor=white)](#)
-[![Ruff](https://img.shields.io/badge/Ruff-Lint-000000?logo=ruff\&logoColor=white)](#)
-[![SSE](https://img.shields.io/badge/SSE-Streaming-5C5C5C?logo=electron\&logoColor=white)](#)
-[![Makefile](https://img.shields.io/badge/Makefile-Build%20System-000000?logo=make\&logoColor=white)](#)
-[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI/CD-2088FF?logo=githubactions\&logoColor=white)](#)
-[![Code Quality](https://img.shields.io/badge/Code%20Quality-Tests%20+%20Lint-4C1?logo=codequality\&logoColor=white)](#)
-[![Open Source](https://img.shields.io/badge/Open%20Source-Community-FF5722?logo=open-source-initiative\&logoColor=white)](#)
-[![Shell](https://img.shields.io/badge/Shell-CLI%20Tools-4EAA25?logo=gnu-bash\&logoColor=white)](#)
-[![AWS](https://img.shields.io/badge/AWS-Cloud%20Ready-FF9900?logo=amazonaws\&logoColor=white)](#)
-[![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker\&logoColor=white)](#)
-[![Ansible](https://img.shields.io/badge/Ansible-Configuration%20Management-EE0000?logo=ansible\&logoColor=white)](#)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
+[![FastAPI](https://img.shields.io/badge/FastAPI-API%20Server-009688?logo=fastapi&logoColor=white)](#)
+[![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI%20Server-222222?logo=python&logoColor=white)](#)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Agent%20Orchestration-5E6AD2?logo=graphql&logoColor=white)](#)
+[![LangChain](https://img.shields.io/badge/LangChain-Tooling%2FRAG-1C3C3C?logo=chainlink&logoColor=white)](#)
+[![OpenAI](https://img.shields.io/badge/OpenAI-Chat%20LLM-412991?logo=openai&logoColor=white)](#)
+[![Anthropic](https://img.shields.io/badge/Anthropic-Chat%20LLM-18181B?logo=apache&logoColor=white)](#)
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Memory-282828?logo=databricks&logoColor=white)](#)
+[![SQLite](https://img.shields.io/badge/SQLite-Conversation%20Store-003B57?logo=sqlite&logoColor=white)](#)
+[![DuckDuckGo](https://img.shields.io/badge/DuckDuckGo-Search-FB542B?logo=duckduckgo&logoColor=white)](#)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?logo=databricks&logoColor=white)](#)
+[![Pydantic](https://img.shields.io/badge/Pydantic-Config-0E7C86?logo=pydantic&logoColor=white)](#)
+[![Pytest](https://img.shields.io/badge/Pytest-Tests-0A9EDC?logo=pytest&logoColor=white)](#)
+[![Ruff](https://img.shields.io/badge/Ruff-Lint-000000?logo=ruff&logoColor=white)](#)
+[![SSE](https://img.shields.io/badge/SSE-Streaming-5C5C5C?logo=electron&logoColor=white)](#)
+[![Makefile](https://img.shields.io/badge/Makefile-Build%20System-000000?logo=make&logoColor=white)](#)
+[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI/CD-2088FF?logo=githubactions&logoColor=white)](#)
+[![Code Quality](https://img.shields.io/badge/Code%20Quality-Tests%20+%20Lint-4C1?logo=codequality&logoColor=white)](#)
+[![Open Source](https://img.shields.io/badge/Open%20Source-Community-FF5722?logo=open-source-initiative&logoColor=white)](#)
+[![Shell](https://img.shields.io/badge/Shell-CLI%20Tools-4EAA25?logo=gnu-bash&logoColor=white)](#)
+[![AWS](https://img.shields.io/badge/AWS-Cloud%20Ready-FF9900?logo=amazonaws&logoColor=white)](#)
+[![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker&logoColor=white)](#)
+[![Ansible](https://img.shields.io/badge/Ansible-Configuration%20Management-EE0000?logo=ansible&logoColor=white)](#)
 
 A **full‑fledged, multi‑stage, agentic chatbot** that **plans → discovers → reasons → uses tools → learns**.
 The reference task baked into this repo is a **Research & Outreach Agent** (“**DossierOutreachAgent**”): given a topic/company, it builds a **compact, cited briefing** and (optionally) **drafts an outreach email**, saving artifacts to disk.
@@ -33,6 +33,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [7‑Layer Architecture](#7-layer-architecture)
 * [Agent Graph (LangGraph)](#agent-graph-langgraph)
 * [Repository Layout](#repository-layout)
+* [Bonus: Agentic RAG](#bonus-agentic-rag)
 * [Quickstart](#quickstart)
 * [Configuration](#configuration)
 * [Running](#running)
@@ -237,6 +238,9 @@ This design ensures that each step is clear and focused, allowing for easy debug
 ## Repository Layout
 
 ```
+Agentic-RAG-Pipeline/     # Bonus: full agentic RAG pipeline in addition to this bot
+Makefile                  # Common tasks (setup, ingest, run, test)
+requirements.txt          # Python dependencies
 src/
   agentic_ai/
     app.py                # FastAPI app (Experience)
@@ -270,6 +274,32 @@ tests/
 
 > [!IMPORTANT]
 > This layout separates concerns clearly, with `src/agentic_ai` containing the core logic, `web/` for the UI, and `data/` for input/output artifacts. The `tests/` directory holds unit and smoke tests to ensure code quality.
+
+## Bonus: Agentic RAG
+
+Looking for a **full agentic RAG pipeline** (multi-step plan → retrieve → reflect → verify → answer) with memory, tool use, and quality checks? Check out the companion project **Agentic-RAG-Pipeline** for a complete, production-grade implementation and deeper docs.
+
+> [!TIP]
+> See **[Agentic-RAG-Pipeline Directory](Agentic-RAG-Pipeline/README.md)** for more info and end-to-end code.
+
+```mermaid
+flowchart TD
+  U[User] --> IR[Intent Router - Flash]
+  IR --> PL[Planner - Pro]
+  PL --> RP[Retrieval Planner - Pro]
+  RP --> R1[VectorRetriever - FAISS]
+  RP --> R2[WebRetriever - Google CSE + Fetch]
+  R1 --> W[Writer - Pro]
+  R2 --> W
+  W --> C[Critic - Pro]
+  C -->|follow-ups| RP
+  W --> G[Guardrails]
+  G --> A[Answer + Evidence]
+  PL -. session .-> M[(File-backed Memory)]
+```
+
+This is a **full-fledged, multi-stage, agentic chatbot** that **plans → discovers → reasons → uses tools → learns**.
+The reference task baked into this repo is a **Research & Outreach Agent** (“**DossierOutreachAgent**”): given a topic/company, it builds a **compact, cited briefing** and (optionally) **drafts an outreach email**, saving artifacts to disk.
 
 ## Quickstart
 
