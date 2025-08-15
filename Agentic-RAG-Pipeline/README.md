@@ -3,6 +3,30 @@
 An end-to-end, production-ready **Agentic RAG** pipeline powered by **Google Gemini** (planning, writing, critique), **FAISS** (vector search), **Google Programmable Search** (hybrid web retrieval), and a simple, file-backed **session memory**.
 It does **intent recognition**, **task decomposition**, **dynamic retrieval planning**, **multi-agent verification**, **tool/API calls**, and **guardrailed finalization**.
 
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
+[![FastAPI](https://img.shields.io/badge/FastAPI-API%20Server-009688?logo=fastapi&logoColor=white)](#)
+[![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI%20Server-222222?logo=python&logoColor=white)](#)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Agent%20Orchestration-5E6AD2?logo=graphql&logoColor=white)](#)
+[![LangChain](https://img.shields.io/badge/LangChain-Tooling%2FRAG-1C3C3C?logo=chainlink&logoColor=white)](#)
+[![OpenAI](https://img.shields.io/badge/OpenAI-Chat%20LLM-412991?logo=openai&logoColor=white)](#)
+[![Anthropic](https://img.shields.io/badge/Anthropic-Chat%20LLM-18181B?logo=apache&logoColor=white)](#)
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Memory-282828?logo=databricks&logoColor=white)](#)
+[![SQLite](https://img.shields.io/badge/SQLite-Conversation%20Store-003B57?logo=sqlite&logoColor=white)](#)
+[![DuckDuckGo](https://img.shields.io/badge/DuckDuckGo-Search-FB542B?logo=duckduckgo&logoColor=white)](#)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?logo=databricks&logoColor=white)](#)
+[![Pydantic](https://img.shields.io/badge/Pydantic-Config-0E7C86?logo=pydantic&logoColor=white)](#)
+[![Pytest](https://img.shields.io/badge/Pytest-Tests-0A9EDC?logo=pytest&logoColor=white)](#)
+[![Ruff](https://img.shields.io/badge/Ruff-Lint-000000?logo=ruff&logoColor=white)](#)
+[![SSE](https://img.shields.io/badge/SSE-Streaming-5C5C5C?logo=electron&logoColor=white)](#)
+[![Makefile](https://img.shields.io/badge/Makefile-Build%20System-000000?logo=make&logoColor=white)](#)
+[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI/CD-2088FF?logo=githubactions&logoColor=white)](#)
+[![Code Quality](https://img.shields.io/badge/Code%20Quality-Tests%20+%20Lint-4C1?logo=codequality&logoColor=white)](#)
+[![Open Source](https://img.shields.io/badge/Open%20Source-Community-FF5722?logo=open-source-initiative&logoColor=white)](#)
+[![Shell](https://img.shields.io/badge/Shell-CLI%20Tools-4EAA25?logo=gnu-bash&logoColor=white)](#)
+[![AWS](https://img.shields.io/badge/AWS-Cloud%20Ready-FF9900?logo=amazonaws&logoColor=white)](#)
+[![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker&logoColor=white)](#)
+[![Ansible](https://img.shields.io/badge/Ansible-Configuration%20Management-EE0000?logo=ansible&logoColor=white)](#)
+
 ---
 
 ## Contents
