@@ -282,6 +282,22 @@ Looking for a **full agentic RAG pipeline** (multi-step plan → retrieve → re
 > [!TIP]
 > See **[Agentic-RAG-Pipeline Directory](Agentic-RAG-Pipeline/README.md)** for more info and end-to-end code.
 
+```mermaid
+flowchart TD
+  U[User] --> IR[Intent Router - Flash]
+  IR --> PL[Planner - Pro]
+  PL --> RP[Retrieval Planner - Pro]
+  RP --> R1[VectorRetriever - FAISS]
+  RP --> R2[WebRetriever - Google CSE + Fetch]
+  R1 --> W[Writer - Pro]
+  R2 --> W
+  W --> C[Critic - Pro]
+  C -->|follow-ups| RP
+  W --> G[Guardrails]
+  G --> A[Answer + Evidence]
+  PL -. session .-> M[(File-backed Memory)]
+```
+
 This is a **full-fledged, multi-stage, agentic chatbot** that **plans → discovers → reasons → uses tools → learns**.
 The reference task baked into this repo is a **Research & Outreach Agent** (“**DossierOutreachAgent**”): given a topic/company, it builds a **compact, cited briefing** and (optionally) **drafts an outreach email**, saving artifacts to disk.
 

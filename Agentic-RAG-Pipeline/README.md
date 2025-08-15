@@ -65,6 +65,22 @@ It does **intent recognition**, **task decomposition**, **dynamic retrieval plan
 
 ## Architecture
 
+```mermaid
+flowchart TD
+  U[User] --> IR[Intent Router - Flash]
+  IR --> PL[Planner - Pro]
+  PL --> RP[Retrieval Planner - Pro]
+  RP --> R1[VectorRetriever - FAISS]
+  RP --> R2[WebRetriever - Google CSE + Fetch]
+  R1 --> W[Writer - Pro]
+  R2 --> W
+  W --> C[Critic - Pro]
+  C -->|follow-ups| RP
+  W --> G[Guardrails]
+  G --> A[Answer + Evidence]
+  PL -. session .-> M[(File-backed Memory)]
+```
+
 ```
 User
   │
