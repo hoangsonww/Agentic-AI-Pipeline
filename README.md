@@ -237,6 +237,9 @@ This design ensures that each step is clear and focused, allowing for easy debug
 ## Repository Layout
 
 ```
+Agentic-RAG-Pipeline/     # Bonus: full agentic RAG pipeline in addition to this bot
+Makefile                  # Common tasks (setup, ingest, run, test)
+requirements.txt          # Python dependencies
 src/
   agentic_ai/
     app.py                # FastAPI app (Experience)
@@ -270,6 +273,16 @@ tests/
 
 > [!IMPORTANT]
 > This layout separates concerns clearly, with `src/agentic_ai` containing the core logic, `web/` for the UI, and `data/` for input/output artifacts. The `tests/` directory holds unit and smoke tests to ensure code quality.
+
+## Bonus: Agentic RAG
+
+Looking for a **full agentic RAG pipeline** (multi-step plan → retrieve → reflect → verify → answer) with memory, tool use, and quality checks? Check out the companion project **Agentic-RAG-Pipeline** for a complete, production-grade implementation and deeper docs.
+
+> [!TIP]
+> See **[Agentic-RAG-Pipeline Directory](Agentic-RAG-Pipeline/README.md)** for more info and end-to-end code.
+
+This is a **full-fledged, multi-stage, agentic chatbot** that **plans → discovers → reasons → uses tools → learns**.
+The reference task baked into this repo is a **Research & Outreach Agent** (“**DossierOutreachAgent**”): given a topic/company, it builds a **compact, cited briefing** and (optionally) **drafts an outreach email**, saving artifacts to disk.
 
 ## Quickstart
 
