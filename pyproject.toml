@@ -9,7 +9,7 @@ description = "Full-fledged multi-stage agentic chatbot with 7-layer architectur
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 license = "MIT"
-packages = [{ include = "agentic_ai", from = "src" }, { include = "mcp", from = "src" }]
+packages = [{ include = "agentic_ai", from = "src" }, { include = "mcp" }]
 keywords = ["agents", "langgraph", "langchain", "fastapi", "rag", "chromadb", "sqlite", "sse", "tool-chaining"]
 
 # Console entry points

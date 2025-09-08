@@ -15,7 +15,7 @@ The design is modular so additional roles (documentation, security, deployment, 
 
 ## MCP Server Integration
 
-The pipeline registers with the shared [`mcp`](../src/mcp) package. A central `PipelineRegistry` allows any of the project pipelines (research outreach, RAG, or coding) to dispatch tasks through a common FastAPI server.
+The pipeline registers with the shared [`mcp`](../mcp) package. A central `PipelineRegistry` allows any of the project pipelines (research outreach, RAG, or coding) to dispatch tasks through a common FastAPI server that also exposes web search and browsing tools.
 
 ## Running the Pipeline
 
