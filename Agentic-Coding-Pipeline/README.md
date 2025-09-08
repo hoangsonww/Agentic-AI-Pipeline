@@ -1,28 +1,41 @@
 # Agentic Coding Pipeline
 
-This module provides an autonomous coding workflow built from multiple cooperating
-agents. The pipeline contains coding agents that propose code changes, testing
-agents that verify correctness, and quality assurance agents that ensure style
-and code health.
+An autonomous, multi-agent workflow that iteratively edits a codebase until LLM-generated tests and reviews pass.
 
-## Components
+## Overview
 
-- **Coding agents** generate or modify code using LLMs.
-- **Testing agents** run project test suites and report failures.
-- **QA/QC agents** perform static analysis and style checks.
-- **Orchestrator** coordinates agents and repeats iterations until all checks
-  pass or a maximum number of attempts is reached.
+This pipeline coordinates several specialized agents backed by pluggable LLM providers:
 
-The pipeline is intentionally modular so additional agents (documentation,
-security, deployment, etc.) can be added easily.
+- **Coding agents** synthesize or refine patches. By default both OpenAI and Claude models collaborate to produce code.
+- **Formatting agents** run local tooling (e.g. `ruff --fix`) to keep style consistent.
+- **Testing agents** ask an LLM (default Claude) to draft pytest suites and execute them locally.
+- **QA/QC agents** perform LLM-based code review (default Gemini) to ensure style and correctness.
+- **Orchestrator** loops until all checks succeed or a retry limit is reached.
 
-## Usage
+The design is modular so additional roles (documentation, security, deployment, etc.) can be plugged in without altering the core loop.
+
+## MCP Server Integration
+
+The pipeline registers with the shared [`mcp`](../mcp) package. A central `MCPServer` allows any of the project pipelines (research outreach, RAG, or coding) to dispatch tasks through a common FastAPI server that also exposes web search, browsing tools and direct LLM access.
+
+## Running the Pipeline
 
 ```bash
-python -m agentic_coding_pipeline.run "Add feature X"
+cd Agentic-Coding-Pipeline
+python run.py "Add feature X"
 ```
 
-An `OPENAI_API_KEY` environment variable is required for coding agents that
-leverage OpenAI models. Testing and QA agents rely on local tooling such as
-`pytest` and `ruff`.
+The default configuration uses OpenAI and Claude for coding, formats code with Ruff, generates tests with Claude and reviews with Gemini. Set the corresponding API keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`) so agents can call each provider. Local tooling such as `pytest` is used to run the tests emitted by the LLM.
+
+## Extending
+
+Modify `pipeline.py` to add new agent steps or alter the iteration logic. New tasks can be exposed to the MCP server by registering them in `run.py`.
+
+## Tests
+
+Run the built-in checks to verify that the pipeline operates correctly:
+
+```bash
+ruff check .
+pytest tests/test_pipeline.py
 ```
