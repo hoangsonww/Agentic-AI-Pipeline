@@ -1,28 +1,40 @@
 # Agentic Coding Pipeline
 
-This module provides an autonomous coding workflow built from multiple cooperating
-agents. The pipeline contains coding agents that propose code changes, testing
-agents that verify correctness, and quality assurance agents that ensure style
-and code health.
+An autonomous, multi-agent workflow that iteratively edits a codebase until tests and style checks pass.
 
-## Components
+## Overview
 
-- **Coding agents** generate or modify code using LLMs.
-- **Testing agents** run project test suites and report failures.
-- **QA/QC agents** perform static analysis and style checks.
-- **Orchestrator** coordinates agents and repeats iterations until all checks
-  pass or a maximum number of attempts is reached.
+This pipeline coordinates several specialized agents:
 
-The pipeline is intentionally modular so additional agents (documentation,
-security, deployment, etc.) can be added easily.
+- **Coding agents** propose or modify patches using LLMs.
+- **Testing agents** execute the project's test suite and surface failures.
+- **QA/QC agents** run formatters and static analysis like `ruff`.
+- **Orchestrator** loops until all checks succeed or a retry limit is reached.
 
-## Usage
+The design is modular so additional roles (documentation, security, deployment, etc.) can be plugged in without altering the core loop.
+
+## MCP Server Integration
+
+The pipeline registers with the shared [`mcp`](../src/mcp) package. A central `PipelineRegistry` allows any of the project pipelines (research outreach, RAG, or coding) to dispatch tasks through a common FastAPI server.
+
+## Running the Pipeline
 
 ```bash
-python -m agentic_coding_pipeline.run "Add feature X"
+cd Agentic-Coding-Pipeline
+python run.py "Add feature X"
 ```
 
-An `OPENAI_API_KEY` environment variable is required for coding agents that
-leverage OpenAI models. Testing and QA agents rely on local tooling such as
-`pytest` and `ruff`.
+Set `OPENAI_API_KEY` so coding agents can call LLMs. Local tooling such as `pytest` and `ruff` is used for testing and quality checks.
+
+## Extending
+
+Modify `pipeline.py` to add new agent steps or alter the iteration logic. New tasks can be exposed to the MCP server by registering them in `run.py`.
+
+## Tests
+
+Run the built-in checks to verify that the pipeline operates correctly:
+
+```bash
+ruff check .
+pytest tests/test_pipeline.py
 ```

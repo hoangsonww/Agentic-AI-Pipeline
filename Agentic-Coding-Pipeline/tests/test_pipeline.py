@@ -9,8 +9,8 @@ from typing import Dict
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from agentic_coding_pipeline.agents.base import BaseAgent
-from agentic_coding_pipeline.pipeline import AgenticCodingPipeline
+from agents.base import BaseAgent
+from pipeline import AgenticCodingPipeline
 
 
 @dataclass

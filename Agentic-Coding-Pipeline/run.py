@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import argparse
 
-from .agents.coding import CodingAgent
-from .agents.qa import QAAgent
-from .agents.testing import TestingAgent
-from .pipeline import AgenticCodingPipeline
+from agents.coding import CodingAgent
+from agents.qa import QAAgent
+from agents.testing import TestingAgent
+from pipeline import AgenticCodingPipeline
 
 
 def main() -> None:

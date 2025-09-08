@@ -34,6 +34,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [Agent Graph (LangGraph)](#agent-graph-langgraph)
 * [Repository Layout](#repository-layout)
 * [Bonus: Agentic RAG](#bonus-agentic-rag)
+* [Bonus: Agentic Coding Pipeline](#bonus-agentic-coding-pipeline)
 * [Quickstart](#quickstart)
 * [Configuration](#configuration)
 * [Running](#running)
@@ -300,6 +301,18 @@ flowchart TD
 
 This is a **full-fledged, multi-stage, agentic chatbot** that **plans → discovers → reasons → uses tools → learns**.
 The reference task baked into this repo is a **Research & Outreach Agent** (“**DossierOutreachAgent**”): given a topic/company, it builds a **compact, cited briefing** and (optionally) **drafts an outreach email**, saving artifacts to disk.
+
+## Bonus: Agentic Coding Pipeline
+
+Want an **autonomous coding assistant** that proposes patches, runs tests, and iterates until everything passes? The companion **Agentic Coding Pipeline** orchestrates coding, QA, and testing agents through a shared MCP server so any pipeline can dispatch code tasks.
+
+> [!TIP]
+> See **[Agentic-Coding-Pipeline Directory](Agentic-Coding-Pipeline/README.md)** for detailed usage and architecture.
+
+```bash
+cd Agentic-Coding-Pipeline
+python run.py "Add feature X"
+```
 
 ## Quickstart
 
