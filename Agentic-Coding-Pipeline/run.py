@@ -5,35 +5,27 @@ from __future__ import annotations
 import argparse
 
 from agents.coding import CodingAgent
+from agents.formatting import FormattingAgent
 from agents.qa import QAAgent
 from agents.testing import TestingAgent
 from pipeline import AgenticCodingPipeline
 
 from agentic_ai.llm import ClaudeClient, GeminiClient, OpenAIClient
 
-PROVIDERS = {
-    "openai": OpenAIClient,
-    "claude": ClaudeClient,
-    "gemini": GeminiClient,
-}
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the agentic coding pipeline")
     parser.add_argument("task", help="High level coding task for the agents")
-    parser.add_argument(
-        "--provider",
-        choices=PROVIDERS.keys(),
-        default="openai",
-        help="LLM provider to use",
-    )
     args = parser.parse_args()
 
-    llm = PROVIDERS[args.provider]()
     pipeline = AgenticCodingPipeline(
-        coder=CodingAgent(name="coder", llm=llm),
-        testers=[TestingAgent(name="tester", llm=llm)],
-        reviewers=[QAAgent(name="qa", llm=llm)],
+        coders=[
+            CodingAgent(name="gpt-coder", llm=OpenAIClient()),
+            CodingAgent(name="claude-coder", llm=ClaudeClient()),
+        ],
+        formatters=[FormattingAgent(name="formatter")],
+        testers=[TestingAgent(name="tester", llm=ClaudeClient())],
+        reviewers=[QAAgent(name="qa", llm=GeminiClient())],
     )
     result = pipeline.run(args.task)
     print(result.get("status"))

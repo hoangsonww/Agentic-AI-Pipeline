@@ -20,11 +20,18 @@ class CodingAgent(BaseAgent):
             self.llm = OpenAIClient()
 
     def run(self, state: Dict[str, object]) -> Dict[str, object]:
-        prompt = state.get("task", "")
-        prompt = (
-            "Write a single Python function solving the following task. "
-            "Return only code.\n" + str(prompt)
-        )
+        task = str(state.get("task", ""))
+        existing = state.get("proposed_code")
+        if existing:
+            prompt = (
+                "Improve the following Python code to better accomplish the task.\n"
+                f"Task: {task}\n" "Code:\n" f"{existing}"
+            )
+        else:
+            prompt = (
+                "Write a single Python function solving the following task. "
+                "Return only code.\n" + task
+            )
         content = self.llm.complete(prompt)
         state["proposed_code"] = content
         return state

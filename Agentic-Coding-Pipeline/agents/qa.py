@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict
 
-from agentic_ai.llm import LLMClient, OpenAIClient
+from agentic_ai.llm import GeminiClient, LLMClient
 
 from .base import BaseAgent
 
@@ -17,7 +17,8 @@ class QAAgent(BaseAgent):
 
     def __post_init__(self) -> None:  # pragma: no cover
         if self.llm is None:
-            self.llm = OpenAIClient()
+            # Gemini excels at broad reasoning for reviews
+            self.llm = GeminiClient()
 
     def run(self, state: Dict[str, object]) -> Dict[str, object]:
         code = state.get("proposed_code", "")

@@ -7,6 +7,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from agents.coding import CodingAgent
+from agents.formatting import FormattingAgent
 from agents.qa import QAAgent
 from agents.testing import TestingAgent
 from pipeline import AgenticCodingPipeline
@@ -33,7 +34,8 @@ class MockLLM:
 def test_pipeline_completes() -> None:
     llm = MockLLM()
     pipeline = AgenticCodingPipeline(
-        coder=CodingAgent(name="coder", llm=llm),
+        coders=[CodingAgent(name="gpt-coder", llm=llm), CodingAgent(name="claude-coder", llm=llm)],
+        formatters=[FormattingAgent(name="fmt")],
         testers=[TestingAgent(name="tester", llm=llm)],
         reviewers=[QAAgent(name="qa", llm=llm)],
     )

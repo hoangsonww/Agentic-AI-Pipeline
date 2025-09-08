@@ -7,7 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict
 
-from agentic_ai.llm import LLMClient, OpenAIClient
+from agentic_ai.llm import ClaudeClient, LLMClient
 
 from .base import BaseAgent
 
@@ -20,7 +20,8 @@ class TestingAgent(BaseAgent):
 
     def __post_init__(self) -> None:  # pragma: no cover
         if self.llm is None:
-            self.llm = OpenAIClient()
+            # Default to Claude for richer code reasoning
+            self.llm = ClaudeClient()
 
     def run(self, state: Dict[str, object]) -> Dict[str, object]:
         code = state.get("proposed_code", "")
