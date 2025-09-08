@@ -304,14 +304,14 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 
 ## Bonus: Agentic Coding Pipeline
 
-Want an **autonomous coding assistant** that proposes patches, runs tests, and iterates until everything passes? The companion **Agentic Coding Pipeline** orchestrates coding, QA, and testing agents through a shared MCP server so any pipeline can dispatch code tasks.
+Want an **autonomous coding assistant** that proposes patches, drafts tests, reviews code and iterates until everything passes? The companion **Agentic Coding Pipeline** orchestrates coding, testing and QA agents powered by OpenAI, Claude or Gemini through a shared MCP server so any pipeline can dispatch code tasks.
 
 > [!TIP]
 > See **[Agentic-Coding-Pipeline Directory](Agentic-Coding-Pipeline/README.md)** for detailed usage and architecture.
 
 ```bash
 cd Agentic-Coding-Pipeline
-python run.py "Add feature X"
+python run.py "Add feature X" --provider openai  # or claude/gemini
 ```
 
 ## Quickstart
