@@ -7,8 +7,27 @@ from .graph import run_chat
 from .layers import memory as mem
 from .infra.rate_limit import allow
 from .infra.logging import logger
+from .infra.tracing import init_tracing, instrument_fastapi, current_trace_id
+
+# Initialize tracing
+init_tracing()
 
 app = FastAPI(title="Agentic Multi-Stage Bot")
+
+# Instrument FastAPI with OpenTelemetry
+instrument_fastapi(app)
+
+@app.middleware("http")
+async def add_trace_context(request: Request, call_next):
+    """Add trace context to request and response headers."""
+    response = await call_next(request)
+    
+    # Add trace ID to response headers for client visibility
+    trace_id = current_trace_id()
+    if trace_id:
+        response.headers["X-Trace-ID"] = trace_id
+    
+    return response
 
 # ---------- Static ----------
 @app.get("/", response_class=HTMLResponse)

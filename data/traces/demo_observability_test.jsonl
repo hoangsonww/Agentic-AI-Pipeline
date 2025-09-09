@@ -1,0 +1,8 @@
+{"timestamp": "2025-09-09T02:51:42.966348+00:00", "event_type": "node_enter", "chat_id": "demo_observability_test", "trace_id": "trace1", "span_id": "span1", "node": "plan", "metadata": {}}
+{"timestamp": "2025-09-09T02:51:42.966539+00:00", "event_type": "llm_prompt", "chat_id": "demo_observability_test", "trace_id": "trace1", "span_id": "span1", "prompt": "Plan how to research Tesla Inc.", "metadata": {}}
+{"timestamp": "2025-09-09T02:51:42.966629+00:00", "event_type": "llm_output", "chat_id": "demo_observability_test", "trace_id": "trace1", "span_id": "span1", "output": "I'll search for Tesla information, analyze the results, and create a briefing.", "metadata": {}}
+{"timestamp": "2025-09-09T02:51:42.966722+00:00", "event_type": "node_exit", "chat_id": "demo_observability_test", "trace_id": "trace1", "span_id": "span1", "node": "plan", "metadata": {}}
+{"timestamp": "2025-09-09T02:51:42.966791+00:00", "event_type": "node_enter", "chat_id": "demo_observability_test", "trace_id": "trace1", "span_id": "span2", "node": "act", "metadata": {}}
+{"timestamp": "2025-09-09T02:51:42.966858+00:00", "event_type": "tool_call", "chat_id": "demo_observability_test", "trace_id": "trace1", "span_id": "span2", "tool": "web_search", "prompt": "Tesla Inc electric vehicle company", "metadata": {}}
+{"timestamp": "2025-09-09T02:51:42.966950+00:00", "event_type": "tool_result", "chat_id": "demo_observability_test", "trace_id": "trace1", "span_id": "span2", "tool": "web_search", "output": "Tesla, Inc. is an American electric vehicle and clean energy company...", "metadata": {}}
+{"timestamp": "2025-09-09T02:51:42.967041+00:00", "event_type": "node_exit", "chat_id": "demo_observability_test", "trace_id": "trace1", "span_id": "span2", "node": "act", "metadata": {}}

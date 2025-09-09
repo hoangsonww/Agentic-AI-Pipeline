@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trace Report - demo_observability_test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .event { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .node_enter { background-color: #e7f5e7; }
+        .node_exit { background-color: #f5e7e7; }
+        .tool_call { background-color: #e7e7f5; }
+        .llm_prompt { background-color: #f5f5e7; }
+        .timestamp { font-size: 0.8em; color: #666; }
+        .metadata { font-size: 0.9em; color: #444; }
+    </style>
+</head>
+<body>
+    <h1>Trace Report: demo_observability_test</h1>
+    
+    <h2>Summary</h2>
+    <p>Total events: 8</p>
+    <p>LLM interactions: 1</p>
+    
+    <h2>Timeline</h2>
+
+    <div class="event nodeenter">
+        <strong>Node Enter</strong>
+        <span class="timestamp">(2025-09-09T02:51:42.966348+00:00)</span>
+        <br>
+Node: plan<br></div>
+    <div class="event llmprompt">
+        <strong>Llm Prompt</strong>
+        <span class="timestamp">(2025-09-09T02:51:42.966539+00:00)</span>
+        <br>
+Prompt: Plan how to research Tesla Inc....<br></div>
+    <div class="event llmoutput">
+        <strong>Llm Output</strong>
+        <span class="timestamp">(2025-09-09T02:51:42.966629+00:00)</span>
+        <br>
+Output: I'll search for Tesla information, analyze the results, and create a briefing....<br></div>
+    <div class="event nodeexit">
+        <strong>Node Exit</strong>
+        <span class="timestamp">(2025-09-09T02:51:42.966722+00:00)</span>
+        <br>
+Node: plan<br></div>
+    <div class="event nodeenter">
+        <strong>Node Enter</strong>
+        <span class="timestamp">(2025-09-09T02:51:42.966791+00:00)</span>
+        <br>
+Node: act<br></div>
+    <div class="event toolcall">
+        <strong>Tool Call</strong>
+        <span class="timestamp">(2025-09-09T02:51:42.966858+00:00)</span>
+        <br>
+Tool: web_search<br>Prompt: Tesla Inc electric vehicle company...<br></div>
+    <div class="event toolresult">
+        <strong>Tool Result</strong>
+        <span class="timestamp">(2025-09-09T02:51:42.966950+00:00)</span>
+        <br>
+Tool: web_search<br>Output: Tesla, Inc. is an American electric vehicle and clean energy company......<br></div>
+    <div class="event nodeexit">
+        <strong>Node Exit</strong>
+        <span class="timestamp">(2025-09-09T02:51:42.967041+00:00)</span>
+        <br>
+Node: act<br></div>
+</body>
+</html>

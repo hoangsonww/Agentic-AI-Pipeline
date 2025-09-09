@@ -1,4 +1,4 @@
-.PHONY: setup run dev test format lint ingest demo
+.PHONY: setup run dev test format lint ingest demo eval
 setup:
 	python -m venv .venv && . .venv/bin/activate && pip install -U pip && pip install -r requirements.txt
 	cp -n .env.example .env || true
@@ -22,3 +22,6 @@ ingest:
 
 demo:
 	. .venv/bin/activate && python -m agentic_ai.cli demo "Give me a competitive briefing on ACME Robotics and draft a short outreach email."
+
+eval:
+	. .venv/bin/activate && python -m tests.evals.runner --output eval_results.xml

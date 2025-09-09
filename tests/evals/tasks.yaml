@@ -1,0 +1,60 @@
+# Golden tasks for regression testing
+# Each task includes: prompt, expected_checks, and metadata
+
+tasks:
+  - id: "search_company_info"
+    prompt: "Give me basic information about Tesla Inc."
+    description: "Test ability to search for and summarize company information"
+    expected_checks:
+      - contains_facts: ["Tesla", "electric", "automotive", "Elon Musk"]
+      - has_citations: true
+      - min_length: 100
+    timeout_seconds: 60
+
+  - id: "draft_email_basic" 
+    prompt: "Draft a professional email to introduce our AI consulting services"
+    description: "Test email drafting capability"
+    expected_checks:
+      - contains_email_structure: true
+      - contains_facts: ["AI", "consulting", "services"]
+      - professional_tone: true
+      - min_length: 50
+    timeout_seconds: 45
+
+  - id: "search_and_calculate"
+    prompt: "Find the current stock price of Apple and calculate what 100 shares would cost"
+    description: "Test search + calculation workflow"
+    expected_checks:
+      - contains_facts: ["Apple", "stock", "price"]
+      - has_calculation: true
+      - contains_currency: true
+    timeout_seconds: 90
+
+  - id: "knowledge_retrieval"
+    prompt: "What do we know about renewable energy trends from our knowledge base?"
+    description: "Test knowledge base retrieval"
+    expected_checks:
+      - uses_kb_search: true
+      - contains_facts: ["renewable", "energy"]
+      - min_length: 80
+    timeout_seconds: 30
+
+  - id: "multi_step_research"
+    prompt: "Research the latest developments in quantum computing and summarize key breakthroughs"
+    description: "Test complex multi-step research workflow"
+    expected_checks:
+      - contains_facts: ["quantum", "computing"]
+      - has_citations: true
+      - multi_step_plan: true
+      - min_length: 150
+    timeout_seconds: 120
+
+  - id: "competitive_analysis"
+    prompt: "Compare OpenAI and Anthropic in terms of their AI models and business approach"
+    description: "Test comparative analysis capability"
+    expected_checks:
+      - contains_facts: ["OpenAI", "Anthropic", "models"]
+      - comparative_structure: true
+      - has_citations: true
+      - min_length: 200
+    timeout_seconds: 150
