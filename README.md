@@ -42,6 +42,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [HTTP API](#http-api)
 * [Tools & Capabilities](#tools--capabilities)
 * [Memory & Feedback](#memory--feedback)
+* [Observability & Replay](#observability--replay)
 * [Extending the System](#extending-the-system)
 * [Testing & Quality](#testing--quality)
 * [GitHub Actions](#github-actions)
@@ -496,6 +497,118 @@ CREATE TABLE IF NOT EXISTS feedback (
 ```
 
 Feel free to extend the memory layer with additional tables or fields as needed. The agent can use this memory to maintain context across interactions, allowing for more coherent and informed responses. More details on the memory layer can be found in `src/agentic_ai/memory/`.
+
+## Observability & Replay
+
+The system includes comprehensive **observability** capabilities powered by OpenTelemetry, enabling detailed tracing of agent execution, deterministic replay of conversations, and regression testing.
+
+### OpenTelemetry Tracing
+
+Every agent interaction is automatically instrumented with OpenTelemetry spans:
+
+- **Node-level spans**: `agent.plan`, `agent.decide`, `agent.act`, `agent.tools`, `agent.reflect`, `agent.finalize`  
+- **Tool-level spans**: `agent.tools.web_search`, `agent.tools.calculator`, etc.
+- **LLM spans**: `llm.plan`, `llm.decide`, etc. with token counts and latency
+- **Request tracing**: Full request context propagated through the system
+
+#### Start Jaeger (Local Development)
+
+```bash
+# Start Jaeger + OpenTelemetry Collector
+docker compose -f observability/docker-compose.jaeger.yaml up -d
+
+# View traces at http://localhost:16686
+```
+
+### Deterministic Replay
+
+All agent interactions are automatically recorded to `data/traces/{chat_id}.jsonl` with complete execution history:
+
+```bash
+# List available traces
+python -m agentic_ai.cli list-traces
+
+# Replay a specific conversation (no API calls)
+python -m agentic_ai.cli replay --chat-id abc123 --html-report
+
+# View generated HTML report
+open data/traces/abc123_report.html
+```
+
+The replay system captures:
+- LLM prompts and responses  
+- Tool inputs and outputs
+- Node entry/exit events
+- Timing and metadata
+
+### Regression Evaluations
+
+Run automated evaluations against golden tasks to catch regressions:
+
+```bash
+# Run all evaluation tasks
+make eval
+
+# Run with replay mode (deterministic)
+python -m tests.evals.runner --use-replay
+```
+
+#### Golden Tasks Structure
+
+Tasks are defined in `tests/evals/tasks.yaml`:
+
+```yaml
+tasks:
+  - id: "search_company_info"
+    prompt: "Give me basic information about Tesla Inc."
+    expected_checks:
+      - contains_facts: ["Tesla", "electric", "automotive"]
+      - has_citations: true
+      - min_length: 100
+```
+
+#### Built-in Evaluation Checks
+
+- `contains_facts`: Verifies required facts are present
+- `has_citations`: Validates URL citations exist  
+- `contains_email_structure`: Checks email formatting
+- `professional_tone`: Ensures appropriate language
+- `has_calculation`: Detects mathematical operations
+- `multi_step_plan`: Confirms complex reasoning workflow
+- `comparative_structure`: Validates comparison analysis
+
+### Trace Attributes
+
+Each span includes rich attributes for analysis:
+
+```json
+{
+  "chat_id": "chat_12345",
+  "node": "plan", 
+  "latency_ms": 1250,
+  "llm.provider": "openai",
+  "llm.model": "gpt-3.5-turbo",
+  "llm.tokens_input": 245,
+  "llm.tokens_output": 89,
+  "tool": "web_search",
+  "success": true
+}
+```
+
+### CI Integration
+
+GitHub Actions automatically runs regression evaluations on PRs:
+
+```yaml
+# .github/workflows/eval.yml
+- name: Run regression evaluations
+  run: make eval
+  
+- name: Fail on regression
+  if: evaluation score < 90%
+```
+
+This ensures changes don't break existing agent capabilities.
 
 ## Extending the System
 

@@ -11,10 +11,10 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 
 from .checks import CHECK_FUNCTIONS
-from ..graph import run_chat
-from ..memory.trace_store import get_trace_store
-from ..llm.replay_llm import ReplayLLM
-from ..infra.logging import logger
+from agentic_ai.graph import run_chat
+from agentic_ai.memory.trace_store import get_trace_store
+from agentic_ai.llm.replay_llm import ReplayLLM
+from agentic_ai.infra.logging import logger
 
 
 @dataclass
