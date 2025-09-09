@@ -10,6 +10,13 @@ __pycache__/
 .DS_Store
 coverage/
 .pytest_cache/
+
+# Tracing and evaluation data
+data/traces/
+data/agent_output/
+data/emails/
+evals/results/
+
 # Node / client artifacts
 node_modules/
 clients/**/node_modules/

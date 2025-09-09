@@ -11,6 +11,7 @@ import time
 import uuid
 import hashlib
 import os
+import random
 from pathlib import Path
 from typing import Any, Dict, Optional, List, Union
 from contextlib import contextmanager
@@ -208,3 +209,37 @@ def read_trace(trace_path: Union[str, Path]) -> List[TraceEvent]:
             data = json.loads(line.strip())
             events.append(TraceEvent(**data))
     return events
+
+
+def seed_randomness(seed: Optional[Union[str, int]] = None):
+    """Seed random number generators for reproducible runs"""
+    if seed is None:
+        return
+    
+    # Convert string seeds to integers
+    if isinstance(seed, str):
+        seed = hash(seed) % (2**32)
+    
+    # Seed Python's random module
+    random.seed(seed)
+    
+    # Seed numpy if available
+    try:
+        import numpy as np
+        np.random.seed(seed % (2**32))
+    except ImportError:
+        pass
+    
+    # Set environment variable for other libraries
+    os.environ['PYTHONHASHSEED'] = str(seed)
+
+
+def create_reproducible_run_id(chat_id: str, user_message: str, seed: Optional[str] = None) -> str:
+    """Create a deterministic run ID for reproducible runs"""
+    if seed:
+        # Use seed to create deterministic run ID
+        content = f"{chat_id}:{user_message}:{seed}"
+        return hashlib.md5(content.encode()).hexdigest()[:8]
+    else:
+        # Use random run ID
+        return str(uuid.uuid4())[:8]
