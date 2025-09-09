@@ -22,4 +22,15 @@ class Settings(BaseSettings):
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 8000
 
+    # Tracing & Evals
+    ENABLE_TRACING: bool = False
+    TRACE_MAX_CONTENT_LENGTH: int = 2000
+    TRACE_REDACT_PATTERNS: list[str] = ["api_key", "token", "password", "authorization"]
+    
+    # Optional integrations (disabled by default)
+    ENABLE_LANGSMITH: bool = False
+    LANGSMITH_API_KEY: str | None = None
+    ENABLE_OTEL_EXPORTER: bool = False
+    OTEL_ENDPOINT: str | None = None
+
 settings = Settings()
