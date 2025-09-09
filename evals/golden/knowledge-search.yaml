@@ -1,0 +1,19 @@
+id: "knowledge-search"
+description: "Test knowledge base search capabilities"
+prompt: "Search for information about artificial intelligence and tell me about machine learning"
+timeout_seconds: 90
+expected_behavior: "knowledge_retrieval"
+assertions:
+  - type: "tool_used"
+    value: "kb_search"
+    description: "Should use knowledge base search"
+  - type: "must_include"
+    value: ["artificial intelligence", "machine learning", "AI", "ML"]
+    description: "Response should include relevant terms"
+  - type: "min_tokens"
+    value: 50
+    description: "Should provide detailed information"
+  - type: "max_tokens"
+    value: 800
+    description: "Keep response focused and readable"
+tags: ["knowledge", "search", "AI", "retrieval"]

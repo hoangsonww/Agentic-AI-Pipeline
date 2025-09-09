@@ -1,0 +1,22 @@
+id: "plan-and-reflect"
+description: "Test multi-step planning and reflection"
+prompt: "Plan a simple birthday party for a 10-year-old, including activities, food, and decorations"
+timeout_seconds: 120
+expected_behavior: "structured_planning"
+assertions:
+  - type: "must_include"
+    value: ["activities", "food", "decorations", "birthday"]
+    description: "Should address all requested elements"
+  - type: "has_structure"
+    value: true
+    description: "Should organize response with clear sections or lists"
+  - type: "min_tokens"
+    value: 100
+    description: "Should provide comprehensive planning"
+  - type: "max_tokens"
+    value: 1000
+    description: "Keep planning focused and actionable"
+  - type: "node_sequence"
+    value: ["plan", "decide", "reflect"]
+    description: "Should follow planning workflow"
+tags: ["planning", "reflection", "structured_response", "multi_step"]
