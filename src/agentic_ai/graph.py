@@ -14,7 +14,7 @@ async def run_chat(chat_id: str, user_text: str) -> AsyncIterator[str]:
     # Persist user message
     mem.save_turn(chat_id, "user", user_text)
     state = {"messages": [HumanMessage(content=user_text)], "plan": "", "next_action": "", "citations": [],
-             "done": False}
+             "done": False, "chat_id": chat_id}  # Added chat_id to state
     last_ai = None
     async for ev in _graph.astream(state, stream_mode="values"):
         msgs = ev.get("messages") or []

@@ -1,0 +1,164 @@
+name: Regression Evaluation
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Create minimal environment config
+      run: |
+        echo "MODEL_PROVIDER=openai" > .env
+        echo "OPENAI_MODEL_CHAT=gpt-3.5-turbo" >> .env
+        echo "ANTHROPIC_MODEL_CHAT=claude-3-haiku-20240307" >> .env
+        echo "CHROMA_DIR=./data/chroma_test" >> .env
+        echo "SQL_DATABASE_URL=sqlite:///./data/test.db" >> .env
+        echo "APP_HOST=0.0.0.0" >> .env
+        echo "APP_PORT=8000" >> .env
+
+    - name: Set up OpenAI API key
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        if [ -n "$OPENAI_API_KEY" ]; then
+          echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> .env
+        fi
+        if [ -n "$ANTHROPIC_API_KEY" ]; then
+          echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> .env
+        fi
+
+    - name: Create data directories
+      run: |
+        mkdir -p data/chroma_test
+        mkdir -p data/traces
+
+    - name: Run regression evaluations
+      run: |
+        make eval
+      continue-on-error: true
+      id: eval
+
+    - name: Upload evaluation results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: evaluation-results
+        path: |
+          eval_results.xml
+          data/traces/
+
+    - name: Parse evaluation results
+      id: parse-results
+      if: always()
+      run: |
+        if [ -f eval_results.xml ]; then
+          # Extract results from XML
+          TOTAL=$(grep -o 'tests="[^"]*"' eval_results.xml | head -1 | cut -d'"' -f2)
+          FAILURES=$(grep -o 'failures="[^"]*"' eval_results.xml | head -1 | cut -d'"' -f2)
+          PASSED=$((TOTAL - FAILURES))
+          PASS_RATE=$(python -c "print(f'{$PASSED/$TOTAL*100:.1f}%')" 2>/dev/null || echo "N/A")
+          
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILURES" >> $GITHUB_OUTPUT
+          echo "pass_rate=$PASS_RATE" >> $GITHUB_OUTPUT
+          
+          # Set overall result
+          if [ "$FAILURES" = "0" ]; then
+            echo "result=success" >> $GITHUB_OUTPUT
+          else
+            echo "result=failure" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "result=error" >> $GITHUB_OUTPUT
+          echo "total=0" >> $GITHUB_OUTPUT
+          echo "passed=0" >> $GITHUB_OUTPUT
+          echo "failed=0" >> $GITHUB_OUTPUT
+          echo "pass_rate=N/A" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Comment on PR
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const result = '${{ steps.parse-results.outputs.result }}';
+          const total = '${{ steps.parse-results.outputs.total }}';
+          const passed = '${{ steps.parse-results.outputs.passed }}';
+          const failed = '${{ steps.parse-results.outputs.failed }}';
+          const passRate = '${{ steps.parse-results.outputs.pass_rate }}';
+          
+          let icon, status, color;
+          if (result === 'success') {
+            icon = '✅';
+            status = 'PASSED';
+            color = '🟢';
+          } else if (result === 'failure') {
+            icon = '❌';
+            status = 'FAILED';
+            color = '🔴';
+          } else {
+            icon = '⚠️';
+            status = 'ERROR';
+            color = '🟡';
+          }
+          
+          const body = `## ${icon} Regression Evaluation ${status}
+          
+          ${color} **Overall Result:** ${status}
+          
+          ### Summary
+          - **Total Tasks:** ${total}
+          - **Passed:** ${passed}
+          - **Failed:** ${failed}
+          - **Pass Rate:** ${passRate}
+          
+          ### Details
+          ${result === 'failure' ? '❗ Some evaluation tasks failed. Please review the failed checks and ensure your changes do not break existing functionality.' : ''}
+          ${result === 'success' ? '🎉 All evaluation tasks passed successfully!' : ''}
+          ${result === 'error' ? '⚠️ There was an error running the evaluations. Please check the workflow logs.' : ''}
+          
+          <details>
+          <summary>📊 View evaluation artifacts</summary>
+          
+          Detailed results and trace files are available in the [workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          </details>`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          });
+
+    - name: Fail job if evaluations failed
+      if: steps.parse-results.outputs.result == 'failure'
+      run: |
+        echo "::error title=Evaluation Failure::${{ steps.parse-results.outputs.failed }} out of ${{ steps.parse-results.outputs.total }} evaluation tasks failed"
+        exit 1
+
+    - name: Fail job if evaluation error
+      if: steps.parse-results.outputs.result == 'error'
+      run: |
+        echo "::error title=Evaluation Error::Failed to run evaluation tasks"
+        exit 1

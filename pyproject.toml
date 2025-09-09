@@ -51,6 +51,14 @@ chromadb = ">=0.5.5"
 SQLAlchemy = ">=2.0.32"
 aiosqlite = ">=0.20.0"
 
+# Observability
+opentelemetry-api = ">=1.20.0"
+opentelemetry-sdk = ">=1.20.0"
+opentelemetry-exporter-otlp-proto-grpc = ">=1.20.0"
+opentelemetry-instrumentation-fastapi = ">=0.41b0"
+opentelemetry-semantic-conventions = ">=0.41b0"
+tiktoken = ">=0.5.0"
+
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.2.0"
 ruff = ">=0.6.2"
