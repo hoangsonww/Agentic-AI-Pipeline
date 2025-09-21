@@ -62,14 +62,14 @@ The flowchart below maps the agents that participate in a single iteration and h
 
 ```mermaid
 flowchart TD
-    U[Developer Task] --> OR[AgenticCodingPipeline\n(Iterative Orchestrator)]
+    U[Developer Task] --> OR["AgenticCodingPipeline<br/>(Iterative Orchestrator)"]
     OR -->|state| GPT[GPT Coding Agent]
     OR -->|state| CLAUDE[Claude Coding Agent]
     GPT --> OR
     CLAUDE --> OR
     OR --> F[Ruff Formatter]
     F --> OR
-    OR --> T[Claude Test Author\nPytest Runner]
+    OR --> T["Claude Test Author<br/>Pytest Runner"]
     T -->|tests pass?| OR
     OR --> Q[Gemini QA Reviewer]
     Q -->|PASS?| OR
