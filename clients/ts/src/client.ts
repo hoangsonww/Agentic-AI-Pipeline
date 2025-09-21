@@ -81,4 +81,12 @@ export class AgenticAIClient {
     if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text().catch(()=>"")}`);
     return r.json();
   }
+
+  // ----- Agentic Data Pipeline -----
+  async dataAnalyzeStream(args: { source: 'url'|'path'|'text'; dataset: string; task?: string | null; onEvent: (ev: { event: string; data: string }) => void }) {
+    await streamSSE(`${this.base}/api/data/stream`, { method: "POST", body: JSON.stringify({ source: args.source, dataset: args.dataset, task: args.task ?? null }), onEvent: args.onEvent });
+  }
+  async dataAnalyzeRun(args: { source: 'url'|'path'|'text'; dataset: string; task?: string | null }) {
+    return httpJson(`${this.base}/api/data/run`, { method: "POST", body: JSON.stringify(args) });
+  }
 }

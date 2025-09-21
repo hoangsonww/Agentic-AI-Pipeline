@@ -298,6 +298,72 @@ async def api_rag_ask(payload: dict = Body(...)):
 
     return EventSourceResponse(gen())
 
+# ---------- Agentic Data Pipeline UI + API ----------
+
+def _data_ui_root() -> Path:
+    return Path(__file__).resolve().parents[2] / "Agentic-Data-Pipeline" / "ui"
+
+
+@app.get("/data", response_class=HTMLResponse)
+def data_index():
+    fp = _data_ui_root() / "index.html"
+    if not fp.exists():
+        raise HTTPException(status_code=404, detail="Data UI not found")
+    return HTMLResponse(fp.read_text(encoding="utf-8"))
+
+
+@app.get("/data/app.js", response_class=PlainTextResponse)
+def data_js():
+    fp = _data_ui_root() / "app.js"
+    if not fp.exists():
+        raise HTTPException(status_code=404, detail="/data/app.js not found")
+    return PlainTextResponse(fp.read_text(encoding="utf-8"), media_type="application/javascript")
+
+
+@app.get("/data/styles.css", response_class=PlainTextResponse)
+def data_css():
+    fp = _data_ui_root() / "styles.css"
+    if not fp.exists():
+        raise HTTPException(status_code=404, detail="/data/styles.css not found")
+    return PlainTextResponse(fp.read_text(encoding="utf-8"), media_type="text/css")
+
+
+def _import_data_services():
+    root = Path(__file__).resolve().parents[2]
+    sys.path.append(str(root / "Agentic-Data-Pipeline"))
+    from services import run_data_stream  # type: ignore
+    return run_data_stream
+
+
+@app.post("/api/data/stream")
+async def api_data_stream(payload: dict = Body(...)):
+    run_data_stream = _import_data_services()
+    source = (payload.get("source") or "text").strip()
+    dataset = payload.get("dataset") or ""
+    task = payload.get("task")
+    if not dataset:
+        raise HTTPException(status_code=400, detail="dataset required")
+
+    def gen():
+        for ev, data in run_data_stream(source=source, dataset=dataset, task=task):
+            yield {"event": ev, "data": data}
+    return EventSourceResponse(gen())
+
+
+@app.post("/api/data/run")
+def api_data_run(payload: dict = Body(...)):
+    run_data_stream = _import_data_services()
+    source = (payload.get("source") or "text").strip()
+    dataset = payload.get("dataset") or ""
+    task = payload.get("task")
+    if not dataset:
+        raise HTTPException(status_code=400, detail="dataset required")
+    final_report = None
+    for ev, data in run_data_stream(source=source, dataset=dataset, task=task):
+        if ev == "report":
+            final_report = data
+    return {"report": final_report or "", "ok": True}
+
 
 @app.post("/api/rag/ingest_text")
 def api_rag_ingest_text(payload: dict = Body(...)):

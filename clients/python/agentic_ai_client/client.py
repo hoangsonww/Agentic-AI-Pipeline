@@ -128,6 +128,27 @@ class AgenticAIClient:
             r.raise_for_status()
             return r.json()
 
+    # -------- Agentic Data Pipeline --------
+    async def data_analyze_stream(self, source: str, dataset: str, task: str | None = None, on_event: Callable[[str, str], None] | None = None) -> None:
+        payload = {"source": source, "dataset": dataset, "task": task}
+        r = await self.client.post(f"{self.base}/api/data/stream", json=payload)
+        r.raise_for_status()
+        async for chunk in r.aiter_text():
+            for block in chunk.split("\n\n"):
+                if not block.strip():
+                    continue
+                ev = None; data = None
+                for line in block.splitlines():
+                    if line.startswith("event:"): ev = line[6:].strip()
+                    elif line.startswith("data:"): data = line[5:]
+                if ev and data and on_event:
+                    on_event(ev, data)
+
+    async def data_analyze_run(self, source: str, dataset: str, task: str | None = None) -> dict:
+        r = await self.client.post(f"{self.base}/api/data/run", json={"source": source, "dataset": dataset, "task": task})
+        r.raise_for_status()
+        return r.json()
+
     async def aclose(self):
         await self.client.aclose()
 

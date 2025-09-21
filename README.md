@@ -46,8 +46,10 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [CLI Utilities](#cli-utilities)
 * [HTTP API](#http-api)
 * [Client SDKs](#client-sdks)
+* [MCP Server](#mcp-server)
 * [Tools & Capabilities](#tools--capabilities)
 * [Memory & Feedback](#memory--feedback)
+* [MCP Server](#mcp-server)
 * [Extending the System](#extending-the-system)
 * [Testing & Quality](#testing--quality)
 * [GitHub Actions](#github-actions)
@@ -633,6 +635,28 @@ CREATE TABLE IF NOT EXISTS feedback (
 ```
 
 Feel free to extend the memory layer with additional tables or fields as needed. The agent can use this memory to maintain context across interactions, allowing for more coherent and informed responses. More details on the memory layer can be found in `src/agentic_ai/memory/`.
+
+## MCP Server
+
+A shared control plane that exposes common tools and pipeline dispatch over HTTP for all subsystems (Research/Outreach, RAG, Coding, Data).
+
+- Run locally:
+
+```bash
+uvicorn mcp.server:create_app --factory --reload
+# Explore: http://127.0.0.1:8000/pipelines
+```
+
+- Key endpoints:
+  - `/pipelines` – list registered names
+  - `/pipeline/coding/stream` – stream logs/results (SSE)
+  - `/pipeline/rag/ask` – stream answer/sources (SSE)
+  - `/llm/{provider}` and `/llm/summarize`
+  - `/search`, `/browse`, `/research`
+  - `/kb/add`, `/kb/search`
+  - `/fs/write`, `/fs/read` (sandboxed to `data/agent_output`)
+
+See `mcp/README.md` for diagrams, examples, and deployment options.
 
 ## Extending the System
 
