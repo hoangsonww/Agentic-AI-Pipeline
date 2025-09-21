@@ -1,38 +1,39 @@
 # Agentic Coding Pipeline (with Multi-LLM Pair Programming)
 
-An end-to-end, production-ready **agentic coding** loop that composes, formats, tests, and reviews code until quality gates pass.
-It orchestrates **specialized LLM agents**, **local tooling**, and **git-friendly utilities** so you can ship reliable patches on autopilot.
+An end-to-end, production-ready **agentic coding** loop that continuously drafts, formats, tests, and reviews code until quality gates pass.
+It orchestrates **specialized LLM agents**, **local developer tooling**, and **git-friendly utilities** so you can ship reliable patches on autopilot.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
+[![Poetry](https://img.shields.io/badge/Poetry-Environment%20Mgmt-60A5FA?logo=poetry&logoColor=white)](#)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT%20Coders-412991?logo=openai&logoColor=white)](#)
 [![Anthropic](https://img.shields.io/badge/Anthropic-Claude%20Coders-18181B?logo=apache&logoColor=white)](#)
-[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Review-4285F4?logo=google&logoColor=white)](#)
-[![Pytest](https://img.shields.io/badge/Pytest-Test%20Execution-0A9EDC?logo=pytest&logoColor=white)](#)
-[![Ruff](https://img.shields.io/badge/Ruff-Formatting-000000?logo=ruff&logoColor=white)](#)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-QA%20Review-4285F4?logo=google&logoColor=white)](#)
+[![Pytest](https://img.shields.io/badge/Pytest-Test%20Runner-0A9EDC?logo=pytest&logoColor=white)](#)
+[![Ruff](https://img.shields.io/badge/Ruff-Autoformat-000000?logo=ruff&logoColor=white)](#)
 [![Git](https://img.shields.io/badge/Git-Patch%20Workflows-F05032?logo=git&logoColor=white)](#)
 [![CLI](https://img.shields.io/badge/CLI-Argparse-4EAA25?logo=gnu-bash&logoColor=white)](#)
-[![Poetry](https://img.shields.io/badge/Poetry-Env%20Mgmt-60A5FA?logo=poetry&logoColor=white)](#)
-[![Makefile](https://img.shields.io/badge/Makefile-Tasks-000000?logo=gnu&logoColor=white)](#)
+[![Makefile](https://img.shields.io/badge/Makefile-Developer%20Tasks-000000?logo=gnu&logoColor=white)](#)
 [![Automation](https://img.shields.io/badge/Automation-Iterative%20Loop-FF9800?logo=robot&logoColor=white)](#)
-[![Quality](https://img.shields.io/badge/Quality-QA%20%2B%20Testing-4C1?logo=checkmarx&logoColor=white)](#)
+[![Code%20Quality](https://img.shields.io/badge/Code%20Quality-Tests%20%2B%20QA-4C1?logo=codequality&logoColor=white)](#)
+[![MCP](https://img.shields.io/badge/MCP-Shared%20Agent%20Bus-6B4BA1?logo=protocol&logoColor=white)](#)
 [![Open%20Source](https://img.shields.io/badge/Open%20Source-Contributions%20Welcome-FF5722?logo=open-source-initiative&logoColor=white)](#)
 
 ---
 
 ## Contents
 
-* [At a glance](#at-a-glance)
+* [What you get](#what-you-get)
 * [Architecture](#architecture)
-* [Operational timeline](#operational-timeline)
 * [Prerequisites](#prerequisites)
-* [Quickstart](#quickstart)
-* [Configuration reference](#configuration-reference)
+* [Install](#install)
+* [Configure](#configure)
 * [Run](#run)
+* [How it works (step-by-step)](#how-it-works-step-by-step)
 * [State contract](#state-contract)
 * [Project structure](#project-structure)
 * [Agents (roles & prompts)](#agents-roles--prompts)
 * [Prompt reference](#prompt-reference)
-* [Test synthesis & execution](#test-synthesis--execution)
+* [Test orchestration](#test-orchestration)
 * [Formatting & patch hygiene](#formatting--patch-hygiene)
 * [Tooling & integration patterns](#tooling--integration-patterns)
 * [MCP integration](#mcp-integration)
@@ -44,14 +45,14 @@ It orchestrates **specialized LLM agents**, **local tooling**, and **git-friendl
 
 ---
 
-## At a glance
+## What you get
 
-* **Multi-LLM coding pair** – OpenAI + Claude coders collaborate and hand off state between iterations.【F:Agentic-Coding-Pipeline/run.py†L21-L29】
+* **Multi-LLM pair programming** – GPT and Claude coders collaborate, sharing structured state between passes for richer iterations.【F:Agentic-Coding-Pipeline/run.py†L21-L29】
 * **Autonomous refinement loop** – The orchestrator keeps iterating until formatting, tests, and QA all succeed or retries are exhausted.【F:Agentic-Coding-Pipeline/pipeline.py†L21-L55】
 * **Tool-backed quality gates** – Ruff auto-fixes style, pytest executes LLM-authored suites, and Gemini reviews the diff before completion.【F:Agentic-Coding-Pipeline/agents/formatting.py†L17-L26】【F:Agentic-Coding-Pipeline/agents/testing.py†L26-L42】【F:Agentic-Coding-Pipeline/agents/qa.py†L23-L33】
 * **Git-friendly helpers** to commit generated patches directly from agents when desired.【F:Agentic-Coding-Pipeline/tools/git.py†L10-L14】
-* **Drop-in modularity** – swap models or add agents without rewriting the orchestration contract thanks to a shared `Agent` protocol.【F:Agentic-Coding-Pipeline/agents/base.py†L9-L26】
-* **Regression tests** – lightweight unit tests validate orchestration behaviour, providing a safety net for custom agents.【F:Agentic-Coding-Pipeline/tests/test_pipeline.py†L34-L44】
+* **Drop-in modularity** – Swap models or add agents without rewriting the orchestration contract thanks to a shared `Agent` protocol.【F:Agentic-Coding-Pipeline/agents/base.py†L9-L26】
+* **Regression safety net** – Lightweight unit tests validate orchestration behaviour, providing confidence when extending the loop.【F:Agentic-Coding-Pipeline/tests/test_pipeline.py†L34-L44】
 
 ---
 
@@ -100,19 +101,6 @@ Completion → `status="completed"` or loop with feedback until max iterations
 
 ---
 
-## Operational timeline
-
-1. **Task ingestion** – CLI seeds a shared state dict with the human request.【F:Agentic-Coding-Pipeline/pipeline.py†L21-L23】
-2. **First coder pass** – GPT-based agent drafts an initial solution (or improves an existing snippet).【F:Agentic-Coding-Pipeline/agents/coding.py†L22-L36】
-3. **Second coder pass** – Claude-based agent refines the proposal, incorporating earlier feedback or failures.【F:Agentic-Coding-Pipeline/run.py†L21-L28】
-4. **Formatter pass** – Ruff auto-fixes lint/style deviations before any tests run.【F:Agentic-Coding-Pipeline/agents/formatting.py†L17-L26】
-5. **Test synthesis** – Claude drafts pytest suites tailored to the generated code.【F:Agentic-Coding-Pipeline/agents/testing.py†L26-L38】
-6. **Local execution** – Pytest runs in an isolated temp directory; stdout/stderr are captured for diagnostics.【F:Agentic-Coding-Pipeline/agents/testing.py†L34-L42】
-7. **QA verdict** – Gemini reviews the candidate patch, emitting PASS/FAIL plus commentary.【F:Agentic-Coding-Pipeline/agents/qa.py†L23-L33】
-8. **Loop or finish** – Failures store feedback and trigger another iteration (up to `max_iterations`).【F:Agentic-Coding-Pipeline/pipeline.py†L33-L55】
-
----
-
 ## Prerequisites
 
 * **Python 3.10+** (matches the rest of the Agentic AI monorepo).
@@ -127,25 +115,20 @@ Completion → `status="completed"` or loop with feedback until max iterations
 
 ---
 
-## Quickstart
+## Install
 
 ```bash
 # 1. Create an isolated environment
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-# 2. Install repo dependencies and tooling
+# 2. Install repo dependencies and developer tooling
 pip install --upgrade pip
-pip install -e .           # exposes agentic_ai.llm clients
-pip install ruff pytest    # ensure local tools are present
-
-# 3. Provide API keys (export or use a .env)
-export OPENAI_API_KEY=sk-...
-export ANTHROPIC_API_KEY=sk-...
-export GOOGLE_API_KEY=sk-...
+pip install -e .           # exposes shared agentic_ai clients
+pip install ruff pytest    # ensure local tools are present on PATH
 ```
 
-Prefer Poetry? Swap steps 1–2 with:
+Prefer Poetry? Swap the virtualenv commands with:
 
 ```bash
 poetry install
@@ -154,7 +137,19 @@ poetry shell
 
 ---
 
-## Configuration reference
+## Configure
+
+Set credentials as environment variables (or drop them into a `.env` loaded by your shell):
+
+```bash
+export OPENAI_API_KEY=sk-...
+export ANTHROPIC_API_KEY=sk-...
+export GOOGLE_API_KEY=sk-...
+```
+
+Each agent reads from these keys when instantiated, so they must be available before running the CLI or creating the pipeline.【F:Agentic-Coding-Pipeline/run.py†L21-L33】【F:Agentic-Coding-Pipeline/agents/qa.py†L16-L33】
+
+### Configuration reference
 
 | Knob | Where to set | Default | Effect |
 | ---- | ------------ | ------- | ------ |
@@ -199,6 +194,19 @@ print(result["status"], result.get("feedback"))
 ```
 
 The return value is a serializable dict suitable for downstream orchestration (CI jobs, MCP routing, etc.).【F:Agentic-Coding-Pipeline/pipeline.py†L21-L55】
+
+---
+
+## How it works (step-by-step)
+
+1. **Task ingestion** – CLI seeds a shared state dict with the human request.【F:Agentic-Coding-Pipeline/pipeline.py†L21-L23】
+2. **First coder pass** – GPT-based agent drafts an initial solution (or improves an existing snippet).【F:Agentic-Coding-Pipeline/agents/coding.py†L22-L36】
+3. **Second coder pass** – Claude-based agent refines the proposal, incorporating earlier feedback or failures.【F:Agentic-Coding-Pipeline/run.py†L21-L28】
+4. **Formatter pass** – Ruff auto-fixes lint/style deviations before any tests run.【F:Agentic-Coding-Pipeline/agents/formatting.py†L17-L26】
+5. **Test synthesis** – Claude drafts pytest suites tailored to the generated code.【F:Agentic-Coding-Pipeline/agents/testing.py†L26-L38】
+6. **Local execution** – Pytest runs in an isolated temp directory; stdout/stderr are captured for diagnostics.【F:Agentic-Coding-Pipeline/agents/testing.py†L34-L42】
+7. **QA verdict** – Gemini reviews the candidate patch, emitting PASS/FAIL plus commentary.【F:Agentic-Coding-Pipeline/agents/qa.py†L23-L33】
+8. **Loop or finish** – Failures store feedback and trigger another iteration (up to `max_iterations`).【F:Agentic-Coding-Pipeline/pipeline.py†L33-L55】
 
 ---
 
@@ -269,7 +277,7 @@ Swap or augment these strings in custom agents to target different languages, fr
 
 ---
 
-## Test synthesis & execution
+## Test orchestration
 
 * **Isolation by temp directory** – Generated code and tests live in a throwaway workspace, keeping your repo pristine.【F:Agentic-Coding-Pipeline/agents/testing.py†L34-L38】
 * **Pytest integration** – Subprocess execution captures stdout/stderr, storing them in `test_output` for debugging or feedback to coders.【F:Agentic-Coding-Pipeline/agents/testing.py†L34-L42】
