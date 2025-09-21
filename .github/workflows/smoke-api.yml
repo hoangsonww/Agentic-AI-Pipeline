@@ -46,8 +46,20 @@ jobs:
           set -eux
           curl -f http://127.0.0.1:8010/ | head -n 5
           curl -f http://127.0.0.1:8010/api/new_chat
-          curl -f -X POST http://127.0.0.1:8010/api/ingest -H "Content-Type: application/json" -d text:kb doc from CI
-          curl -f -X POST http://127.0.0.1:8010/api/feedback -H "Content-Type: application/json" -d chat_id:ci
+          curl -f -X POST http://127.0.0.1:8010/api/ingest \
+               -H "Content-Type: application/json" \
+               -d '{"text":"kb doc from CI","metadata":{"source":"ci"}}'
+          curl -f -X POST http://127.0.0.1:8010/api/feedback \
+               -H "Content-Type: application/json" \
+               -d '{"chat_id":"ci","rating":1,"comment":"ok"}'
+
+      - name: UI endpoints (static)
+        run: |
+          set -eux
+          curl -f http://127.0.0.1:8010/coding | head -n 5 || true
+          curl -f http://127.0.0.1:8010/coding/app.js | head -n 2 || true
+          curl -f http://127.0.0.1:8010/rag | head -n 5 || true
+          curl -f http://127.0.0.1:8010/rag/app.js | head -n 2 || true
 
       - name: Stop API
         if: always()

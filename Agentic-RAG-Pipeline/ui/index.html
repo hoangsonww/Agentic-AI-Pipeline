@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Agentic RAG Pipeline</title>
+  <link rel="stylesheet" href="/rag/styles.css"/>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/marked@12/marked.min.js"></script>
+</head>
+<body>
+  <div id="app" class="shell">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">📚</div>
+        <div>
+          <h1>Agentic RAG Pipeline</h1>
+          <p>Hybrid retrieval (vector + web), multi-agent planning, and evidence-grounded answers.</p>
+        </div>
+      </div>
+      <div class="links">
+        <a href="/" title="Research & Outreach Agent">Research Agent</a>
+        <a href="/coding" title="Agentic Coding Pipeline">Coding Pipeline</a>
+      </div>
+    </header>
+
+    <section class="panel query">
+      <div class="field full">
+        <label>Question</label>
+        <input v-model="question" type="text" placeholder="e.g., Summarize ACME Robotics' market and cite sources" @keydown.enter.prevent="ask"/>
+      </div>
+      <div class="actions">
+        <button class="primary" :disabled="busy || !question.trim()" @click="ask">Ask</button>
+        <button class="ghost" :disabled="busy" @click="clear">Clear</button>
+      </div>
+    </section>
+
+    <main class="panel content">
+      <div class="messages" ref="msgWrap">
+        <div v-for="(m,i) in messages" :key="i" class="msg" :class="m.role">
+          <div class="bubble">
+            <div class="meta" v-if="m.role==='bot'">Answer</div>
+            <div class="meta" v-if="m.role==='log'">Log</div>
+            <div class="content" v-html="m.html"></div>
+          </div>
+        </div>
+      </div>
+      <div v-if="sources.length" class="sources">
+        <h3>Sources</h3>
+        <ol>
+          <li v-for="(s, i) in sources" :key="i">
+            <a v-if="s.meta && s.meta.uri" :href="s.meta.uri" target="_blank">{{ s.meta.title || s.meta.uri }}</a>
+            <span v-else>{{ s.meta?.title || s.doc_id }}</span>
+          </li>
+        </ol>
+      </div>
+    </main>
+
+    <section class="panel ingest">
+      <h2>Ingest</h2>
+      <div class="ingest-grid">
+        <div class="field full">
+          <label>From URL</label>
+          <input v-model="ingestUrl" placeholder="https://example.com/article"/>
+          <button class="ghost" :disabled="busy || !ingestUrl.trim()" @click="doIngestUrl">Ingest URL</button>
+        </div>
+        <div class="field full">
+          <label>Text</label>
+          <textarea v-model="ingestText" placeholder="Paste text to index..."></textarea>
+          <div class="row">
+            <input v-model="ingestId" placeholder="doc id (optional)"/>
+            <input v-model="ingestTitle" placeholder="title (optional)"/>
+            <input v-model="ingestTags" placeholder="tags (comma-separated)"/>
+            <button class="ghost" :disabled="busy || !ingestText.trim()" @click="doIngestText">Ingest Text</button>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Upload Files (.txt, .md, .pdf, .docx, .png/.jpg)</label>
+          <input type="file" multiple @change="doIngestFiles"/>
+          <p class="hint">PDF requires pypdf/pdfminer; DOCX requires python-docx; Image OCR requires pillow + pytesseract.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="/rag/app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,36 @@
+pipeline {
+  agent any
+  environment { VENV = 'venv' }
+  options { timestamps(); ansiColor('xterm'); disableConcurrentBuilds() }
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+    stage('Setup Python') {
+      steps {
+        sh '''
+          python3 -m venv ${VENV}
+          . ${VENV}/bin/activate
+          python -m pip install -U pip
+          pip install -r requirements.txt || true
+          pip install ruff
+        '''
+      }
+    }
+    stage('Lint') {
+      steps { sh '. ${VENV}/bin/activate && ruff check Agentic-RAG-Pipeline || true' }
+    }
+    stage('UI Smoke via Root API') {
+      steps {
+        sh '''
+          . ${VENV}/bin/activate
+          nohup python -m uvicorn agentic_ai.app:app --host 127.0.0.1 --port 8021 >/dev/null 2>&1 & echo $! > uvicorn.pid
+          sleep 3
+          set -eux
+          curl -f http://127.0.0.1:8021/rag | head -n 5
+          curl -f http://127.0.0.1:8021/rag/app.js | head -n 2
+          kill $(cat uvicorn.pid) || true
+        '''
+      }
+    }
+  }
+}
+

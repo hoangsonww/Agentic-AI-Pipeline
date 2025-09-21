@@ -21,6 +21,10 @@
 [![Open Source](https://img.shields.io/badge/Open%20Source-Community-FF5722?logo=open-source-initiative&logoColor=white)](#)
 [![Shell](https://img.shields.io/badge/Shell-CLI%20Tools-4EAA25?logo=gnu-bash&logoColor=white)](#)
 [![AWS](https://img.shields.io/badge/AWS-Cloud%20Ready-FF9900?logo=amazonaws&logoColor=white)](#)
+[![Vue.js](https://img.shields.io/badge/Vue.js-Web%20UI-4FC08D?logo=vue.js&logoColor=white)](#)
+[![JavaScript](https://img.shields.io/badge/JavaScript-Frontend-F7DF1E?logo=javascript&logoColor=black)](#)
+[![HTML5](https://img.shields.io/badge/HTML5-Markup-E34F26?logo=html5&logoColor=white)](#)
+[![CSS3](https://img.shields.io/badge/CSS3-Stylesheet-1572B6?logo=css3&logoColor=white)](#)
 [![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker&logoColor=white)](#)
 [![Ansible](https://img.shields.io/badge/Ansible-Configuration%20Management-EE0000?logo=ansible&logoColor=white)](#)
 
@@ -38,6 +42,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [Quickstart](#quickstart)
 * [Configuration](#configuration)
 * [Running](#running)
+* [Web UI](#web-ui)
 * [CLI Utilities](#cli-utilities)
 * [HTTP API](#http-api)
 * [Tools & Capabilities](#tools--capabilities)
@@ -52,7 +57,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 ## Key Features
 
 * **Multi‑stage reasoning & planning** with **LangGraph** state machine (plan → decide → act → tools → reflect → finalize).
-* **Autonomous tool use & tool‑chaining** (web search, URL fetch, calculator, file write, email draft, KB search/add).
+* **Autonomous tool use & tool‑chaining** (web search, URL fetch, calculator, file write, email draft, KB - Knowledge Base - search/add).
 * **Two memory systems**:
 
   * **SQLite** conversation store (turn history, feedback).
@@ -240,6 +245,7 @@ This design ensures that each step is clear and focused, allowing for easy debug
 
 ```
 Agentic-RAG-Pipeline/     # Bonus: full agentic RAG pipeline in addition to this bot
+Agentic-Coding-Pipeline/  # Bonus: autonomous coding assistant pipeline
 Makefile                  # Common tasks (setup, ingest, run, test)
 requirements.txt          # Python dependencies
 src/
@@ -409,6 +415,36 @@ uvicorn src.agentic_ai.app:app --host
 
 This will start the FastAPI server on `http://localhost:8000`, where you can interact with the agent via the web UI or API.
 
+## Web UI
+
+A zero-build, single-page chat UI is included for the Research & Outreach Agent.
+
+- Start the server (any of):
+
+```bash
+make run
+# or
+uvicorn src.agentic_ai.app:app --host 0.0.0.0 --port 8000
+```
+
+- Open `http://127.0.0.1:8000`.
+- Enter your prompt and click Send; responses stream live via SSE.
+
+Features
+- Live streaming chat (SSE parsing) with “New Chat” and “Clear”.
+- Knowledge Base ingest:
+  - Paste text → POST `/api/ingest`
+  - Ingest from URL → POST `/api/ingest_url`
+  - Upload files (.txt/.md/.pdf/.docx/.png/.jpg) → POST `/api/ingest_file`
+- Feedback buttons (👍/👎) posting to `/api/feedback`.
+- Copy last assistant message.
+- No build step required — Vue 3 + Marked via CDN.
+
+Implementation Files
+- `web/index.html`:1 — Vue SPA markup.
+- `web/app.js`:1 — Chat logic, SSE parsing, ingest + feedback helpers.
+- `web/styles.css`:1 — Dark, minimal theme.
+
 ## CLI Utilities
 
 This repository also provides a CLI for quick interactions and ingestion of knowledge:
@@ -451,6 +487,20 @@ Add an internal KB document.
 ```json
 { "id": "doc-123", "text": "content...", "metadata": { "source": "..." } }
 ```
+
+### `POST /api/ingest_url`
+
+Add content from a URL (fetch + extract)
+
+```json
+{ "url": "https://example.com/article", "id": null, "metadata": { "tags": ["acme", "market"] } }
+```
+
+### `POST /api/ingest_file`
+
+Upload a document to extract and index (.txt/.md/.pdf/.docx/.png/.jpg)
+
+Form fields: `file`, `id?`, `tags?`
 
 ### `POST /api/feedback`
 

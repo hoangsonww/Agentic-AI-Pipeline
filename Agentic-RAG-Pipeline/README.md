@@ -34,6 +34,8 @@ It does **intent recognition**, **task decomposition**, **dynamic retrieval plan
 * [What you get](#what-you-get)
 * [Architecture](#architecture)
 * [Prerequisites](#prerequisites)
+* [Web UI](#web-ui)
+* [HTTP API](#http-api)
 * [Install](#install)
 * [Configure](#configure)
 * [Run](#run)
@@ -67,50 +69,32 @@ It does **intent recognition**, **task decomposition**, **dynamic retrieval plan
 
 ```mermaid
 flowchart TD
-  U[User] --> IR[Intent Router - Flash]
-  IR --> PL[Planner - Pro]
-  PL --> RP[Retrieval Planner - Pro]
-  RP --> R1[VectorRetriever - FAISS]
-  RP --> R2[WebRetriever - Google CSE + Fetch]
-  R1 --> W[Writer - Pro]
-  R2 --> W
-  W --> C[Critic - Pro]
-  C -->|follow-ups| RP
-  W --> G[Guardrails]
-  G --> A[Answer + Evidence]
-  PL -. session .-> M[(File-backed Memory)]
-```
+    U[User]
+    IR["Intent Router<br/>(Gemini Flash)<br/><br/>JSON: intents, safety, urgency"]
+    PD["Planner / Decomposer<br/>(Gemini Pro)<br/><br/>JSON: sub-goals with sources & done-tests"]
+    RP["Retrieval Planner<br/>(Gemini Pro)<br/><br/>JSON: diverse queries, k"]
+    MEM["Memory<br/>(session)"]
+    RET["Retrievers<br/>(parallel per query)"]
+    VR["VectorRetriever<br/>(FAISS)"]
+    WR["WebRetriever<br/>(Google CSE + page reader)"]
+    WRT["Writer / Synthesizer<br/>(Gemini Pro)<br/><br/>JSON: {status, draft, missing}"]
+    CRT["Critic / Verifier<br/>(Gemini Pro)<br/><br/>JSON: {ok, issues, followup_queries}"]
+    GR["Guardrails<br/>(PII masking)"]
+    FA["Final Answer<br/>+ Evidence Trace"]
 
-```
-User
-  │
-  ▼
-Intent Router (Gemini Flash)
-  │  JSON: intents, safety, urgency
-  ▼
-Planner / Decomposer (Gemini Pro)
-  │  JSON: sub-goals with sources & done-tests
-  ├─────────────┐
-  │             │
-  ▼             ▼
-Retrieval Planner (Gemini Pro)     Memory (session)
-  │  JSON: diverse queries, k
-  ▼
-Retrievers (parallel per query)
-  ├─ VectorRetriever (FAISS)
-  └─ WebRetriever (Google CSE + page reader)
-  │
-  ▼
-Writer / Synthesizer (Gemini Pro)
-  │  JSON: {status, draft, missing}
-  ▼
-Critic / Verifier (Gemini Pro)
-  │  JSON: {ok, issues, followup_queries}
-  ├─(if gaps)→ targeted re-retrieval → Writer
-  ▼
-Guardrails (PII masking)
-  ▼
-Final Answer + Evidence Trace
+    %% Main flow
+    U --> IR --> PD
+    PD --> RP
+    PD --> MEM
+    RP --> RET
+    RET --> VR
+    RET --> WR
+    VR --> WRT
+    WR --> WRT
+    MEM --> WRT
+    WRT --> CRT
+    CRT -- if gaps --> RP
+    CRT --> GR --> FA
 ```
 
 **Do agents share the same LLM instance?**
@@ -125,6 +109,10 @@ Each agent runs its **own LLM session** (distinct system prompt, temperature, to
 
   * `GOOGLE_API_KEY` (required) for Gemini.
   * Optional `CSE_API_KEY` and `CSE_ENGINE_ID` for Google Programmable Search (web retrieval).
+* Optional ingestion extras for multimodal support:
+  * `pypdf` or `pdfminer.six` for PDF extraction
+  * `python-docx` for DOCX extraction
+  * `pillow` + `pytesseract` for image OCR
 
 ---
 
@@ -135,6 +123,8 @@ python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install --upgrade pip
 pip install google-generativeai faiss-cpu httpx requests beautifulsoup4 pydantic python-dotenv
+# Optional (multimodal ingest)
+pip install pypdf pdfminer.six python-docx pillow pytesseract
 ```
 
 ---
@@ -193,6 +183,44 @@ The system will plan, retrieve (vector + web if enabled), synthesize, critique, 
 
 ---
 
+## Web UI
+
+A zero-build Vue UI is included and mounted by the root FastAPI server.
+
+```bash
+uvicorn agentic_ai.app:app --reload
+# Then open http://127.0.0.1:8000/rag
+```
+
+Features:
+- Ask questions; results stream with markdown rendering.
+- Ingest sources by URL, raw text, or upload files (.txt, .md, .pdf, .docx, .png/.jpg).
+- Optional extras enable rich extraction for PDFs/DOCX/images.
+
+Files:
+- `Agentic-RAG-Pipeline/ui/index.html`
+- `Agentic-RAG-Pipeline/ui/app.js`
+- `Agentic-RAG-Pipeline/ui/styles.css`
+
+---
+
+## HTTP API
+
+Endpoints (served by root FastAPI):
+
+- `GET /api/rag/new_session` → `{ "session_id": "uuid" }`
+- `POST /api/rag/ask` (SSE) with `{ "session_id": "uuid", "question": "..." }`
+  - Events: `log`, `answer` (markdown), `sources` (JSON array), `done`.
+- `POST /api/rag/ingest_text` to add text or a URL
+  - `{ "text": "...", "id?": "doc-id", "title?": "...", "tags?": [ ... ] }`
+  - or `{ "url": "https://...", "title?": "...", "tags?": [ ... ] }`
+- `POST /api/rag/ingest_file` (multipart)
+  - Form fields: `file`, `title?`, `tags?` (comma-separated)
+
+All ingestion routes chunk text and add it to the in-memory FAISS index with metadata for later retrieval.
+
+---
+
 ## How it works (step-by-step)
 
 1. **Intent Router** classifies the task (answer/plan/code/etc.) and flags safety concerns.
@@ -214,6 +242,7 @@ The system will plan, retrieve (vector + web if enabled), synthesize, critique, 
 ```
 agentic-rag/
   app.py
+  services.py       # UI/API glue: shared index, ingestion, streaming
   core/
     llm.py           # Gemini client, embeddings, JSON helpers
     vector.py        # FAISS index + corpus ingestion
@@ -235,6 +264,10 @@ agentic-rag/
     harness.py       # Optional quick smoke tests
   corpus/            # (your .txt/.md docs)
   .session_memory/   # (generated)
+  ui/                # Browser UI mounted at /rag
+    index.html
+    app.js
+    styles.css
 ```
 
 ---

@@ -2,24 +2,100 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>Agentic Multi-Stage Bot</title>
+  <title>Agentic Research & Outreach Agent</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <link rel="stylesheet" href="/styles.css"/>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/marked@12/marked.min.js"></script>
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0b0e14">
+  <meta name="description" content="Agentic multi-stage research & outreach agent with planning, tools, and memory.">
+  <style>/* small font tuning for code */ code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }</style>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
-<div class="shell">
-  <header>
-    <h1>Agentic Multi-Stage Bot</h1>
-    <p>Research & Outreach Agent — plans, searches, fetches, queries internal KB, calculates, writes files, drafts emails.</p>
-  </header>
-  <main id="chat">
-    <div id="messages"></div>
-    <form id="form">
-      <input id="input" type="text" placeholder="e.g. Build a briefing on ACME Robotics and draft an outreach email" autocomplete="off"/>
-      <button type="submit">Send</button>
-    </form>
-  </main>
-</div>
-<script src="/app.js"></script>
+  <div id="app" class="shell">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">🧭</div>
+        <div>
+          <h1>Research & Outreach Agent</h1>
+          <p>Plan → discover → fetch → reflect → draft — with KB + memory.</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button @click="newChat" :disabled="busy" title="Start new chat">New Chat</button>
+      </div>
+    </header>
+
+    <section class="panel inputs">
+      <div class="field full">
+        <label>Prompt</label>
+        <input v-model="prompt" type="text" placeholder="Build a competitive briefing on ACME Robotics and draft an outreach email." @keydown.enter.prevent="send"/>
+      </div>
+      <div class="actions">
+        <button class="primary" :disabled="busy || !prompt.trim()" @click="send">Send</button>
+        <button class="ghost" :disabled="busy" @click="clearChat">Clear</button>
+      </div>
+    </section>
+
+    <main class="panel chat">
+      <div class="messages" ref="msgWrap">
+        <div v-for="(m, i) in messages" :key="i" class="msg" :class="m.role">
+          <div class="bubble">
+            <div v-if="m.role==='user'" class="meta">You</div>
+            <div v-if="m.role==='bot'" class="meta">Agent</div>
+            <div class="content" v-html="m.html"></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div class="feedback">
+          <button :disabled="busy || !chatId" @click="rate(1)" title="Good">👍</button>
+          <button :disabled="busy || !chatId" @click="rate(-1)" title="Bad">👎</button>
+        </div>
+        <div class="copy">
+          <button :disabled="!lastAssistantText" @click="copyLast">Copy last</button>
+        </div>
+      </div>
+    </main>
+
+    <section class="panel ingest">
+      <div class="field full">
+        <label>Ingest to KB (Text)</label>
+        <textarea v-model="ingestText" placeholder="Paste notes or documents to add to the knowledge base..."></textarea>
+      </div>
+      <div class="field">
+        <label>Doc ID (optional)</label>
+        <input v-model="ingestId" placeholder="doc-123"/>
+      </div>
+      <div class="field">
+        <label>Tags (optional, comma-separated)</label>
+        <input v-model="ingestTags" placeholder="acme, robotics, market"/>
+      </div>
+      <div class="actions">
+        <button class="ghost" :disabled="busy || !ingestText.trim()" @click="ingest">Ingest Text</button>
+      </div>
+
+      <div class="field full">
+        <label>Ingest from URL</label>
+        <div class="row">
+          <input v-model="ingestUrl" placeholder="https://example.com/article"/>
+          <button class="ghost" :disabled="busy || !ingestUrl.trim()" @click="ingestFromUrl">Ingest URL</button>
+        </div>
+      </div>
+
+      <div class="field full">
+        <label>Upload Files (.txt, .md, .pdf, .docx, .png/.jpg)</label>
+        <input type="file" multiple @change="ingestFiles"/>
+        <p class="hint">PDF requires pypdf/pdfminer; DOCX requires python-docx; Image OCR requires pillow + pytesseract.</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="/app.js"></script>
 </body>
 </html>
