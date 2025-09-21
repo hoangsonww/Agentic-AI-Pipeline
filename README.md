@@ -304,7 +304,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 
 ## Bonus: Agentic Coding Pipeline
 
-Need an **autonomous coding assistant** that drafts patches, formats them, synthesizes tests, runs quality gates, and iterates until everything passes? The companion **Agentic Coding Pipeline** coordinates GPT + Claude coders, Ruff formatting, pytest execution, and Gemini QA review through the same shared MCP bus that powers the rest of this monorepo.【F:Agentic-Coding-Pipeline/run.py†L21-L33】【F:Agentic-Coding-Pipeline/agents/formatting.py†L17-L26】【F:Agentic-Coding-Pipeline/agents/testing.py†L26-L42】【F:Agentic-Coding-Pipeline/agents/qa.py†L23-L33】
+Need an **autonomous coding assistant** that drafts patches, formats them, synthesizes tests, runs quality gates, and iterates until everything passes? The companion **Agentic Coding Pipeline** coordinates GPT + Claude coders, Ruff formatting, pytest execution, and Gemini QA review through the same shared MCP bus that powers the rest of this monorepo.
 
 > [!TIP]
 > See **[Agentic-Coding-Pipeline Directory](Agentic-Coding-Pipeline/README.md)** for setup, architecture, and customization notes.
@@ -327,9 +327,9 @@ flowchart TD
   OR -. feedback .-> C2
 ```
 
-* **Multi-LLM pair programming** keeps GPT and Claude coders in lockstep via a shared state dictionary.【F:Agentic-Coding-Pipeline/run.py†L21-L33】【F:Agentic-Coding-Pipeline/pipeline.py†L21-L43】
-* **Tool-backed gates** ensure Ruff formatting, pytest verification, and Gemini QA review all pass before the pipeline returns success.【F:Agentic-Coding-Pipeline/agents/formatting.py†L17-L26】【F:Agentic-Coding-Pipeline/agents/testing.py†L26-L42】【F:Agentic-Coding-Pipeline/agents/qa.py†L23-L33】
-* **Iterative retry logic** loops until a completed state is reached or the max iteration budget is exhausted, surfacing feedback for humans or follow-up agents.【F:Agentic-Coding-Pipeline/pipeline.py†L33-L56】
+* **Multi-LLM pair programming** keeps GPT and Claude coders in lockstep via a shared state dictionary.
+* **Tool-backed gates** ensure Ruff formatting, pytest verification, and Gemini QA review all pass before the pipeline returns success.
+* **Iterative retry logic** loops until a completed state is reached or the max iteration budget is exhausted, surfacing feedback for humans or follow-up agents.
 
 ```bash
 cd Agentic-Coding-Pipeline
