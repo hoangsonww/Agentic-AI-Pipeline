@@ -1,6 +1,6 @@
 # Agentic Coding Pipeline (with Multi-LLM Pair Programming)
 
-An end-to-end, production-ready **agentic coding** loop that continuously drafts, formats, tests, and reviews code until quality gates pass.
+An end-to-end, production-ready **agentic coding** loop that continuously drafts, formats, tests, and reviews code until quality gates pass.  
 It orchestrates **specialized LLM agents**, **local developer tooling**, and **git-friendly utilities** so you can ship reliable patches on autopilot.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
@@ -22,14 +22,12 @@ It orchestrates **specialized LLM agents**, **local developer tooling**, and **g
 
 ## Contents
 
-* [Overview](#overview)
 * [What you get](#what-you-get)
 * [Architecture](#architecture)
 * [Prerequisites](#prerequisites)
 * [Install](#install)
 * [Configure](#configure)
-* [Running the Pipeline](#running-the-pipeline)
-* [Control room UI](#control-room-ui)
+* [Run](#run)
 * [How it works (step-by-step)](#how-it-works-step-by-step)
 * [State contract](#state-contract)
 * [Project structure](#project-structure)
@@ -38,22 +36,12 @@ It orchestrates **specialized LLM agents**, **local developer tooling**, and **g
 * [Test orchestration](#test-orchestration)
 * [Formatting & patch hygiene](#formatting--patch-hygiene)
 * [Tooling & integration patterns](#tooling--integration-patterns)
-* [MCP Server Integration](#mcp-server-integration)
-* [Extending](#extending)
+* [MCP integration](#mcp-integration)
+* [Extending & customization](#extending--customization)
 * [Operations & observability](#operations--observability)
 * [Quality control & failure handling](#quality-control--failure-handling)
-* [Tests](#tests)
 * [Troubleshooting](#troubleshooting)
 * [FAQ](#faq)
-
----
-
-## Overview
-
-This pipeline combines multiple specialized agents with developer tooling to ship reliable patches autonomously. Coding agents
-draft and refine changes, a formatter normalizes style, a testing agent authorizes pytest suites, and a QA reviewer enforces a
-final human-like gate. The orchestrator loops through these stages until every check passes or retries are exhausted, mirroring
-the design documented in the Agentic RAG Pipeline guide so both experiences share a consistent operational feel.
 
 ---
 
@@ -74,21 +62,21 @@ The flowchart below maps the agents that participate in a single iteration and h
 
 ```mermaid
 flowchart TD
-    U[Developer Task] --> OR[AgenticCodingPipeline\n(Iterative Orchestrator)]
+    U[Developer Task] --> OR["AgenticCodingPipeline<br/>(Iterative Orchestrator)"]
     OR -->|state| GPT[GPT Coding Agent]
     OR -->|state| CLAUDE[Claude Coding Agent]
     GPT --> OR
     CLAUDE --> OR
     OR --> F[Ruff Formatter]
     F --> OR
-    OR --> T[Claude Test Author\nPytest Runner]
+    OR --> T["Claude Test Author<br/>Pytest Runner"]
     T -->|tests pass?| OR
     OR --> Q[Gemini QA Reviewer]
     Q -->|PASS?| OR
     OR -->|status| OUT[Ready-to-commit Patch]
     OR -. feedback .-> GPT
     OR -. feedback .-> CLAUDE
-```
+````
 
 The sequence diagram highlights the concrete API calls triggered when you run the bundled CLI.
 
@@ -138,26 +126,31 @@ stateDiagram-v2
     Failed --> [*]
 ```
 
-```text
-Task
-  │
-  ▼
-AgenticCodingPipeline (max 3 iterations)
-  │  shared dict state: {task, proposed_code, tests_passed, qa_passed, feedback, ...}
-  ▼
-Coding agents (OpenAI + Claude)
-  │  produce / refine `proposed_code`
-  ▼
-Formatting agents (Ruff --fix)
-  │  normalize style before verification
-  ▼
-Testing agents (Claude writes tests → pytest run)
-  │  set `tests_passed`, attach `test_output`
-  ▼
-QA agents (Gemini review)
-  │  set `qa_passed`, attach `qa_output`
-  ▼
-Completion → `status="completed"` or loop with feedback until max iterations
+A compact flowchart version of the iteration and stopping condition:
+
+```mermaid
+flowchart TD
+    %% Nodes
+    T[Task]
+    ACP["AgenticCodingPipeline<br/>(max 3 iterations)"]
+    SD["Shared dict state:<br/>{task, proposed_code, tests_passed,<br/>qa_passed, feedback, ...}"]
+    CA["Coding agents<br/>(OpenAI + Claude)"]
+    FA["Formatting agents<br/>(Ruff --fix)"]
+    TA["Testing agents<br/>(Claude writes tests → pytest run)"]
+    QA["QA agents<br/>(Gemini review)"]
+    DEC{"qa_passed = true<br/>OR<br/>max iterations reached?"}
+    DONE["Completion<br/>status = &quot;completed&quot;"]
+
+    %% Main flow
+    T --> ACP
+    ACP -. maintains .- SD
+    ACP -->|produce / refine proposed_code| CA
+    CA --> FA
+    FA -->|normalize style before verification| TA
+    TA -->|set tests_passed, attach test_output| QA
+    QA -->|set qa_passed, attach qa_output| DEC
+    DEC -- Yes --> DONE
+    DEC -- No (feedback) --> CA
 ```
 
 ---
@@ -166,9 +159,11 @@ Completion → `status="completed"` or loop with feedback until max iterations
 
 * **Python 3.10+** (matches the rest of the Agentic AI monorepo).
 * **Local tooling** available on `$PATH`:
+
   * `ruff` for formatting.
   * `pytest` for executing generated suites.
 * **LLM credentials** (set as environment variables):
+
   * `OPENAI_API_KEY` for GPT coders.
   * `ANTHROPIC_API_KEY` for Claude coders/testers.
   * `GOOGLE_API_KEY` for Gemini QA review.
@@ -212,17 +207,17 @@ Each agent reads from these keys when instantiated, so they must be available be
 
 ### Configuration reference
 
-| Knob | Where to set | Default | Effect |
-| ---- | ------------ | ------- | ------ |
-| `OPENAI_API_KEY` | env var | – | Authenticates the GPT-based `CodingAgent`. |
-| `ANTHROPIC_API_KEY` | env var | – | Powers the Claude-based coder and testing agent. |
-| `GOOGLE_API_KEY` | env var | – | Enables Gemini QA review verdicts. |
-| `max_iterations` | `AgenticCodingPipeline(max_iterations=...)` | `3` | Caps retries before marking the run as failed. |
-| `coders`/`formatters`/`testers`/`reviewers` | Constructor args | see CLI defaults | Controls which agents participate in the loop. |
+| Knob                                        | Where to set                                | Default          | Effect                                           |
+| ------------------------------------------- | ------------------------------------------- | ---------------- | ------------------------------------------------ |
+| `OPENAI_API_KEY`                            | env var                                     | –                | Authenticates the GPT-based `CodingAgent`.       |
+| `ANTHROPIC_API_KEY`                         | env var                                     | –                | Powers the Claude-based coder and testing agent. |
+| `GOOGLE_API_KEY`                            | env var                                     | –                | Enables Gemini QA review verdicts.               |
+| `max_iterations`                            | `AgenticCodingPipeline(max_iterations=...)` | `3`              | Caps retries before marking the run as failed.   |
+| `coders`/`formatters`/`testers`/`reviewers` | Constructor args                            | see CLI defaults | Controls which agents participate in the loop.   |
 
 ---
 
-## Running the Pipeline
+## Run
 
 ### CLI (batteries included)
 
@@ -260,8 +255,8 @@ The return value is a serializable dict suitable for downstream orchestration (C
 
 ## Control room UI
 
-The repo now ships with a **FastAPI + static web UI** so you can drive the same multi-agent loop from a browser.
-It mirrors the RAG pipeline control room: a glowing stage timeline, conversational transcript, and hitl gating buttons.
+The repo ships with a **FastAPI + static web UI** so you can drive the same multi-agent loop from a browser.
+It mirrors the RAG pipeline control room: a stage timeline, conversational transcript, and HITL gating buttons.
 
 ### Start the server
 
@@ -270,39 +265,31 @@ cd Agentic-AI-Pipeline/Agentic-Coding-Pipeline
 uvicorn ui.server:app --reload --port 8000
 ```
 
-Navigate to <http://localhost:8000>. The launcher banner accepts the high-level mission, then the UI streams each stage.
+Open `http://localhost:8000`.
 
 ### What the UI provides
 
-* **Chat-based control room** – every agent turn (coders, formatter, tester, QA) is narrated in the right-hand transcript with code/test logs attached inline.
-* **Stage timeline** – the left column shows live status chips (pending, awaiting human, running, failed, done) so you always know which gate is active.
+* **Chat-based control room** – every agent turn (coders, formatter, tester, QA) is narrated with code/test logs attached inline.
+* **Stage timeline** – live status chips (pending, awaiting human, running, failed, done) show which gate is active.
 * **Human-in-the-loop controls** – approve or request revisions after the coding pass, choose when to run tests, and decide when to hand off to QA.
 * **Artifacts at a glance** – code previews, pytest output, and QA notes are stored in each stage card for quick auditing.
 
 ### Workflow in the browser
 
-1. **Launch a mission** with a task (e.g., "Add retry logic to the webhook client").
-2. **Review coder output** in the chat stream; request revisions with inline feedback or approve to continue.
-3. **Gate automation** – trigger pytest when satisfied; if failures occur, the timeline reopens the human review stage with logs.
-4. **Send to QA** only after tests are green; QA verdicts and release notes appear in the chat.
+1. **Launch a mission** with a task (e.g., “Add retry logic to the webhook client”).
+2. **Review coder output**; request revisions with inline feedback or approve to continue.
+3. **Gate automation** – trigger pytest when satisfied; failures reopen the review stage with logs.
+4. **Send to QA** after tests are green; QA verdicts and release notes appear in the chat.
 5. **Start another build** directly from the workspace once the pipeline reaches the Completed state.
 
 ### HTTP endpoints
 
-| Method & path | Description |
-| ------------- | ----------- |
-| `POST /api/sessions` | Launch a new coding mission; returns session id, chat history, and stage metadata. |
-| `GET /api/sessions/{id}` | Fetch the latest state (useful for external dashboards or polling). |
-| `POST /api/sessions/{id}/feedback` | Submit human feedback: `approve` to continue or `revise` with notes to rerun coders. |
-| `POST /api/sessions/{id}/advance` | Advance automation gates (`run_tests` or `send_to_qa`). |
-
-### Front-end layout
-
-Static assets live in `ui/static/`:
-
-* `index.html` – shell with hero banner, timeline column, and chat panel.
-* `styles.css` – gradient aesthetic, stage badges, message formatting, toasts, and responsive behaviour.
-* `app.js` – fetches API endpoints, renders markdown/code blocks, and wires review/test/QA controls.
+| Method & path                      | Description                                                                        |
+| ---------------------------------- | ---------------------------------------------------------------------------------- |
+| `POST /api/sessions`               | Launch a new coding mission; returns session id, chat history, and stage metadata. |
+| `GET /api/sessions/{id}`           | Fetch the latest state (for dashboards or polling).                                |
+| `POST /api/sessions/{id}/feedback` | Submit human feedback: `approve` or `revise` (with notes).                         |
+| `POST /api/sessions/{id}/advance`  | Advance automation gates (`run_tests` or `send_to_qa`).                            |
 
 ---
 
@@ -323,17 +310,17 @@ Static assets live in `ui/static/`:
 
 The shared state dictionary evolves as agents run. Understanding the keys makes it easy to plug in dashboards or custom logic.
 
-| Key | Producer | Consumer(s) | Description |
-| --- | -------- | ----------- | ----------- |
-| `task` | CLI / caller | All agents | Original human request seeded at pipeline start. |
-| `proposed_code` | Coding agents, formatter | Testers, reviewers | Latest candidate solution being evaluated. |
-| `tests_passed` | Testing agents | Orchestrator loop | Boolean signal to continue to QA. Failures trigger iteration feedback. |
-| `test_output` | Testing agents | Humans / coders | Raw pytest stdout+stderr, preserved for diagnosis or re-prompting. |
-| `qa_passed` | QA agents | Orchestrator loop | Indicates whether QA cleared the change. |
-| `qa_output` | QA agents | Humans / coders | Reviewer commentary (PASS or actionable issues). |
-| `feedback` | Orchestrator | Coders, humans | When tests/QA fail, the orchestrator surfaces the raw output as feedback for the next iteration. |
-| `status` | Orchestrator | Callers | Final lifecycle marker: `completed` or `failed`. |
-| `reason` | Orchestrator | Callers | Populated when a coder agent returns no code to explain the early failure. |
+| Key             | Producer                 | Consumer(s)        | Description                                                            |
+| --------------- | ------------------------ | ------------------ | ---------------------------------------------------------------------- |
+| `task`          | CLI / caller             | All agents         | Original human request seeded at pipeline start.                       |
+| `proposed_code` | Coding agents, formatter | Testers, reviewers | Latest candidate solution being evaluated.                             |
+| `tests_passed`  | Testing agents           | Orchestrator loop  | Boolean signal to continue to QA. Failures trigger iteration feedback. |
+| `test_output`   | Testing agents           | Humans / coders    | Raw pytest stdout+stderr, preserved for diagnosis or re-prompting.     |
+| `qa_passed`     | QA agents                | Orchestrator loop  | Indicates whether QA cleared the change.                               |
+| `qa_output`     | QA agents                | Humans / coders    | Reviewer commentary (PASS or actionable issues).                       |
+| `feedback`      | Orchestrator             | Coders, humans     | When tests/QA fail, the orchestrator surfaces raw output as feedback.  |
+| `status`        | Orchestrator             | Callers            | Final lifecycle marker: `completed` or `failed`.                       |
+| `reason`        | Orchestrator             | Callers            | Populated when a coder agent returns no code to explain early failure. |
 
 ---
 
@@ -366,12 +353,12 @@ Agentic-Coding-Pipeline/
 
 ## Agents (roles & prompts)
 
-| Role | Default LLM client | Prompt strategy | Key state inputs | Key outputs |
-| ---- | ------------------ | --------------- | ---------------- | ----------- |
-| `CodingAgent` | `OpenAIClient` / `ClaudeClient` | Seed or improve a Python solution depending on whether `proposed_code` already exists. | `task`, `proposed_code` | Updated `proposed_code` |
-| `FormattingAgent` | Ruff CLI | Runs `ruff --fix` against a temp file and reloads the formatted contents. | `proposed_code` | Normalized `proposed_code` |
-| `TestingAgent` | `ClaudeClient` | Generates pytest suites covering the solution, executes them, and stores stdout/stderr. | `proposed_code` | `tests_passed`, `test_output` |
-| `QAAgent` | `GeminiClient` | Requests a PASS/FAIL verdict with commentary on issues found. | `proposed_code` | `qa_passed`, `qa_output` |
+| Role              | Default LLM client              | Prompt strategy                                                                         | Key state inputs        | Key outputs                   |
+| ----------------- | ------------------------------- | --------------------------------------------------------------------------------------- | ----------------------- | ----------------------------- |
+| `CodingAgent`     | `OpenAIClient` / `ClaudeClient` | Seed or improve a Python solution depending on whether `proposed_code` already exists.  | `task`, `proposed_code` | Updated `proposed_code`       |
+| `FormattingAgent` | Ruff CLI                        | Runs `ruff --fix` against a temp file and reloads the formatted contents.               | `proposed_code`         | Normalized `proposed_code`    |
+| `TestingAgent`    | `ClaudeClient`                  | Generates pytest suites covering the solution, executes them, and stores stdout/stderr. | `proposed_code`         | `tests_passed`, `test_output` |
+| `QAAgent`         | `GeminiClient`                  | Requests a PASS/FAIL verdict with commentary on issues found.                           | `proposed_code`         | `qa_passed`, `qa_output`      |
 
 All agents share the lightweight `Agent` protocol, so custom roles (docs writers, security scanners, benchmark runners) can drop in without changing the orchestrator.
 
@@ -381,10 +368,10 @@ All agents share the lightweight `Agent` protocol, so custom roles (docs writers
 
 Understanding default prompt templates helps tailor model behaviour.
 
-* **Initial synthesis** – "Write a single Python function solving the following task. Return only code."
-* **Refinement** – "Improve the following Python code to better accomplish the task" (includes task and current code).
-* **Test authoring** – "Write pytest tests for the following Python code. Return only the test file contents."
-* **QA review** – "Respond with PASS if the code is acceptable, otherwise describe the problems."
+* **Initial synthesis** – “Write a single Python function solving the following task. Return only code.”
+* **Refinement** – “Improve the following Python code to better accomplish the task” (includes task and current code).
+* **Test authoring** – “Write pytest tests for the following Python code. Return only the test file contents.”
+* **QA review** – “Respond with PASS if the code is acceptable, otherwise describe the problems.”
 
 Swap or augment these strings in custom agents to target different languages, frameworks, or review policies.
 
@@ -402,6 +389,7 @@ Swap or augment these strings in custom agents to target different languages, fr
 ## Formatting & patch hygiene
 
 * Ruff auto-fix keeps stylistic feedback out of the LLM loop and reduces diff churn.
+
 * Capture formatted snippets with git helpers for deterministic commits:
 
   ```python
@@ -417,14 +405,14 @@ Swap or augment these strings in custom agents to target different languages, fr
 
 ## Tooling & integration patterns
 
-* **CLI orchestration** – `run.py` demonstrates how to wire agents with explicit LLM clients, making it easy to lift into Airflow, Dagster, or bespoke schedulers.
+* **CLI orchestration** – `run.py` demonstrates how to wire agents with explicit LLM clients; easy to lift into Airflow, Dagster, or bespoke schedulers.
 * **Custom retries** – Wrap `pipeline.run()` and inspect `feedback` to implement exponential backoff, diff-based heuristics, or fallback model selection.
 * **CI hooks** – Use the returned dict in a job step to decide whether to push commits, request reviews, or fail fast. The bundled unit test shows how to swap LLMs for mocks when running in headless CI.
 * **Artifact capture** – Persist `proposed_code`, `test_output`, and `qa_output` to S3 or issue comments to give humans full context on automated changes.
 
 ---
 
-## MCP Server Integration
+## MCP integration
 
 This pipeline registers with the shared [`mcp`](../mcp) package. The FastAPI-backed **MCPServer** exposes a unified toolbox (web search, browsing, direct LLM calls) so any pipeline in the monorepo can dispatch coding tasks remotely or as part of a larger workflow.
 
@@ -437,7 +425,7 @@ To plug this pipeline into the MCP network:
 
 ---
 
-## Extending
+## Extending & customization
 
 * **Swap models** – Pass alternative `LLMClient` implementations when constructing agents (e.g., Azure OpenAI, local models).
 * **Add new stages** – Extend the `formatters`, `testers`, or `reviewers` lists with additional agents (docs generation, security scans, benchmarks).
@@ -466,29 +454,16 @@ To plug this pipeline into the MCP network:
 
 ---
 
-## Tests
-
-Run the bundled checks to verify the pipeline end-to-end:
-
-```bash
-ruff check Agentic-Coding-Pipeline
-pytest Agentic-Coding-Pipeline/tests/test_pipeline.py
-```
-
-Pair these with the control room UI or CLI examples above when validating changes locally.
-
----
-
 ## Troubleshooting
 
-| Symptom | Likely cause | Fix |
-| ------- | ------------ | --- |
-| `ModuleNotFoundError: agentic_ai.llm` | Repo dependencies not installed | Run `pip install -e .` from repo root or `poetry install`. |
-| `ruff: command not found` | Ruff not installed in current environment | `pip install ruff` or `poetry run ruff --version` to verify. |
-| Pytest exits with import errors | Generated code expects extra dependencies | Update prompts to constrain imports or pre-install needed packages. |
-| QA always fails with "PASS" missing | Reviewer prompt/casing changed | Ensure reviewer returns a string containing `PASS` on success or tweak condition accordingly. |
-| Pipeline stops after coder stage | An agent returned an empty string | Inspect `reason` for `"coder did not return code"` and adjust prompts or guardrails. |
-| Iterations never succeed | Feedback not consumed by coders | Make coder prompts reference `feedback` to incorporate failures when you extend the pipeline. |
+| Symptom                               | Likely cause                              | Fix                                                                                           |
+| ------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `ModuleNotFoundError: agentic_ai.llm` | Repo dependencies not installed           | Run `pip install -e .` from repo root or `poetry install`.                                    |
+| `ruff: command not found`             | Ruff not installed in current environment | `pip install ruff` or `poetry run ruff --version` to verify.                                  |
+| Pytest exits with import errors       | Generated code expects extra dependencies | Update prompts to constrain imports or pre-install needed packages.                           |
+| QA always fails with "PASS" missing   | Reviewer prompt/casing changed            | Ensure reviewer returns a string containing `PASS` on success or tweak condition accordingly. |
+| Pipeline stops after coder stage      | An agent returned an empty string         | Inspect `reason` for `"coder did not return code"` and adjust prompts or guardrails.          |
+| Iterations never succeed              | Feedback not consumed by coders           | Make coder prompts reference `feedback` to incorporate failures when you extend the pipeline. |
 
 ---
 
