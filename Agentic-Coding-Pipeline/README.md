@@ -126,26 +126,29 @@ stateDiagram-v2
     Failed --> [*]
 ```
 
-```text
-Task
-  │
-  ▼
-AgenticCodingPipeline (max 3 iterations)
-  │  shared dict state: {task, proposed_code, tests_passed, qa_passed, feedback, ...}
-  ▼
-Coding agents (OpenAI + Claude)
-  │  produce / refine `proposed_code`
-  ▼
-Formatting agents (Ruff --fix)
-  │  normalize style before verification
-  ▼
-Testing agents (Claude writes tests → pytest run)
-  │  set `tests_passed`, attach `test_output`
-  ▼
-QA agents (Gemini review)
-  │  set `qa_passed`, attach `qa_output`
-  ▼
-Completion → `status="completed"` or loop with feedback until max iterations
+```mermaid
+flowchart TD
+    %% Nodes
+    T[Task]
+    ACP["AgenticCodingPipeline<br/>(max 3 iterations)"]
+    SD["Shared dict state:<br/>{task, proposed_code, tests_passed,<br/>qa_passed, feedback, ...}"]
+    CA["Coding agents<br/>(OpenAI + Claude)"]
+    FA["Formatting agents<br/>(Ruff --fix)"]
+    TA["Testing agents<br/>(Claude writes tests → pytest run)"]
+    QA["QA agents<br/>(Gemini review)"]
+    DEC{"qa_passed = true<br/>OR<br/>max iterations reached?"}
+    DONE["Completion<br/>status = &quot;completed&quot;"]
+
+    %% Main flow
+    T --> ACP
+    ACP -. maintains .- SD
+    ACP -->|produce / refine proposed_code| CA
+    CA --> FA
+    FA -->|normalize style before verification| TA
+    TA -->|set tests_passed, attach test_output| QA
+    QA -->|set qa_passed, attach qa_output| DEC
+    DEC -- Yes --> DONE
+    DEC -- No (feedback) --> CA
 ```
 
 ---
