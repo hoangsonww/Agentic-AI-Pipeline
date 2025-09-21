@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agentic Coding Pipeline Control Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div class="background"></div>
+    <div class="app">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Bonus Tooling</p>
+          <h1>Agentic Coding Pipeline Control Room</h1>
+          <p class="lede">
+            Orchestrate coder, formatter, tester, and QA agents with human-in-the-loop checkpoints.
+            Launch a build request, review diff summaries, gate automated testing, and approve release notes
+            all inside a conversational workspace.
+          </p>
+        </div>
+        <form id="task-launcher" class="task-launcher" autocomplete="off">
+          <label for="task">New coding mission</label>
+          <textarea
+            id="task"
+            name="task"
+            placeholder="e.g. Add rate limiting middleware to the FastAPI gateway and expose metrics"
+            required
+          ></textarea>
+          <button type="submit">Spin up pipeline</button>
+        </form>
+      </header>
+
+      <main class="workspace">
+        <aside class="timeline" aria-label="Pipeline timeline">
+          <h2>Pipeline stages</h2>
+          <div id="timeline"></div>
+        </aside>
+        <section class="chat-panel" aria-label="Agent conversation">
+          <div id="chat-stream" class="chat-stream" aria-live="polite"></div>
+          <div class="controls" id="controls"></div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/assets/app.js"></script>
+  </body>
+</html>
