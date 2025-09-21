@@ -4,7 +4,7 @@ from chromadb.utils import embedding_functions
 from pathlib import Path
 
 class VectorStore:
-    def __init__(self, persist_dir: str = ".chroma", name: str = "kb"):
+    def __init__(self, persist_dir: str = ".chroma", name: str = "knowledge_base"):
         Path(persist_dir).mkdir(parents=True, exist_ok=True)
         self.client = chromadb.PersistentClient(path=persist_dir)
         self.collection = self.client.get_or_create_collection(

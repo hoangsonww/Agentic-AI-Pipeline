@@ -10,6 +10,8 @@ from ..config import settings
 from .composition import PROFILE
 from . import memory as mem
 from ..infra.logging import logger
+from ..infra.trace import get_current_tracer
+import time
 
 
 # ---- State definition ----
@@ -40,14 +42,54 @@ General guidelines:
 """
 
 
+def _trace_node(node_name: str):
+    """Decorator to add tracing to node functions"""
+    def decorator(node_func):
+        def wrapped_node(state: AgentState) -> AgentState:
+            tracer = get_current_tracer()
+            start_time = time.time()
+            
+            if tracer:
+                tracer.log_node_start(node_name, {
+                    "state_keys": list(state.keys()),
+                    "messages_count": len(state.get("messages", [])),
+                    "current_action": state.get("next_action", ""),
+                    "done": state.get("done", False)
+                })
+            
+            try:
+                result = node_func(state)
+                duration_ms = (time.time() - start_time) * 1000
+                
+                if tracer:
+                    tracer.log_node_end(node_name, {
+                        "output_action": result.get("next_action", ""),
+                        "plan_summary": result.get("plan", "")[:200] if result.get("plan") else "",
+                        "done": result.get("done", False),
+                        "messages_added": len(result.get("messages", [])) - len(state.get("messages", []))
+                    }, duration_ms)
+                
+                return result
+                
+            except Exception as e:
+                duration_ms = (time.time() - start_time) * 1000
+                if tracer:
+                    tracer.log_node_end(node_name, {"error": str(e)}, duration_ms)
+                raise
+                
+        return wrapped_node
+    return decorator
+
+
 # ---- Nodes ----
+@_trace_node("planner")
 def planner_node(state: AgentState) -> AgentState:
     """Create a short action plan and consider KB context."""
     llm = _llm()
     # Retrieve recent KB passages for context (RAG pre-plan)
     user_text = state["messages"][-1].content if state["messages"] else ""
     kb_hits = mem.kb_search(user_text, k=5)
-    kb_context = "\n\n".join(f"- {h[text][:500]}" for h in kb_hits)
+    kb_context = "\n\n".join(f"- {h['text'][:500]}" for h in kb_hits)
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM),
@@ -62,6 +104,7 @@ def planner_node(state: AgentState) -> AgentState:
     return state
 
 
+@_trace_node("decide")
 def decide_node(state: AgentState) -> AgentState:
     """Choose next action label."""
     llm = _llm()
@@ -80,6 +123,7 @@ def act_node_builder(tools: List[BaseTool]):
     """Bind tools to LLM and cause a structured tool call for the chosen action."""
     llm = _llm().bind_tools(tools)
 
+    @_trace_node("act")
     def act_node(state: AgentState) -> AgentState:
         action = state.get("next_action", "")
         mapping = {
@@ -112,6 +156,7 @@ def act_node_builder(tools: List[BaseTool]):
     return act_node
 
 
+@_trace_node("reflect")
 def reflect_node(state: AgentState) -> AgentState:
     llm = _llm()
     notes = "\n".join(m.content for m in state["messages"] if isinstance(m, AIMessage))
@@ -130,6 +175,7 @@ def reflect_node(state: AgentState) -> AgentState:
     return state
 
 
+@_trace_node("finalize")
 def finalize_node(state: AgentState) -> AgentState:
     state["done"] = True
     return state
@@ -138,12 +184,64 @@ def finalize_node(state: AgentState) -> AgentState:
 # ---- Graph build ----
 def build_graph(tools: List[BaseTool]):
     from langgraph.prebuilt import ToolNode
+    
+    # Create traced tool node
+    def traced_tool_node(state: AgentState) -> AgentState:
+        tracer = get_current_tracer()
+        
+        # Extract tool calls from the last AI message
+        messages = state.get("messages", [])
+        if not messages:
+            return state
+            
+        last_msg = messages[-1]
+        if not hasattr(last_msg, 'tool_calls') or not last_msg.tool_calls:
+            return state
+        
+        # Execute each tool call with tracing
+        for tool_call in last_msg.tool_calls:
+            tool_name = tool_call.get("name", "unknown")
+            tool_args = tool_call.get("args", {})
+            
+            if tracer:
+                tracer.log_tool_request(tool_name, tool_args)
+            
+            start_time = time.time()
+            try:
+                # Use the original ToolNode for actual execution
+                original_tool_node = ToolNode(tools)
+                result_state = original_tool_node.invoke(state)
+                duration_ms = (time.time() - start_time) * 1000
+                
+                # Try to extract the tool result from the updated state
+                new_messages = result_state.get("messages", [])
+                tool_result = None
+                if len(new_messages) > len(messages):
+                    # Assuming the new message contains the tool result
+                    tool_msg = new_messages[-1]
+                    if hasattr(tool_msg, 'content'):
+                        tool_result = tool_msg.content
+                
+                if tracer:
+                    tracer.log_tool_response(tool_name, tool_result, duration_ms)
+                
+                return result_state
+                
+            except Exception as e:
+                duration_ms = (time.time() - start_time) * 1000
+                if tracer:
+                    tracer.log_tool_response(tool_name, None, duration_ms, str(e))
+                raise
+        
+        # Fallback to original ToolNode if no tool calls found
+        return ToolNode(tools).invoke(state)
+    
     g = StateGraph(AgentState)
 
     g.add_node("plan", planner_node)
     g.add_node("decide", decide_node)
     g.add_node("act", act_node_builder(tools))
-    g.add_node("tools", ToolNode(tools))
+    g.add_node("tools", traced_tool_node)
     g.add_node("reflect", reflect_node)
     g.add_node("finalize", finalize_node)
 

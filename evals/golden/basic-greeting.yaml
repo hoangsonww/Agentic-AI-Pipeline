@@ -1,0 +1,16 @@
+id: "basic-greeting"
+description: "Test basic conversational ability"
+prompt: "Hello, how are you today?"
+timeout_seconds: 30
+expected_behavior: "polite_response"
+assertions:
+  - type: "must_include"
+    value: ["hello", "hi", "good", "fine", "well"]
+    description: "Should include greeting or positive response"
+  - type: "max_tokens"
+    value: 200
+    description: "Keep response concise"
+  - type: "min_tokens" 
+    value: 5
+    description: "Should provide substantive response"
+tags: ["basic", "greeting", "conversation"]

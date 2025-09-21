@@ -1,0 +1,19 @@
+id: "error-handling"
+description: "Test graceful error handling"
+prompt: "Calculate the square root of -1 and explain what happened"
+timeout_seconds: 60
+expected_behavior: "graceful_error_handling"
+assertions:
+  - type: "tool_used"
+    value: "calculator"
+    description: "Should attempt to use calculator tool"
+  - type: "must_include"
+    value: ["error", "cannot", "complex", "imaginary", "negative"]
+    description: "Should explain the mathematical limitation"
+  - type: "no_fabrication"
+    value: true
+    description: "Should not make up incorrect results"
+  - type: "max_tokens"
+    value: 400
+    description: "Keep explanation concise"
+tags: ["error_handling", "math", "explanation", "robustness"]
