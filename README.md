@@ -299,19 +299,38 @@ flowchart TD
   PL -. session .-> M[(File-backed Memory)]
 ```
 
-This is a **full-fledged, multi-stage, agentic chatbot** that **plans → discovers → reasons → uses tools → learns**.
-The reference task baked into this repo is a **Research & Outreach Agent** (“**DossierOutreachAgent**”): given a topic/company, it builds a **compact, cited briefing** and (optionally) **drafts an outreach email**, saving artifacts to disk.
-
 ## Bonus: Agentic Coding Pipeline
 
-Want an **autonomous coding assistant** that proposes patches, formats them, drafts tests, reviews code and iterates until everything passes? The companion **Agentic Coding Pipeline** orchestrates multi-model coding (OpenAI + Claude), formatting, testing and Gemini-based review through a shared MCP server so any pipeline can dispatch code tasks.
+Need an **autonomous coding assistant** that drafts patches, formats them, synthesizes tests, runs quality gates, and iterates until everything passes? The companion **Agentic Coding Pipeline** coordinates GPT + Claude coders, Ruff formatting, pytest execution, and Gemini QA review through the same shared MCP bus that powers the rest of this monorepo.
 
 > [!TIP]
-> See **[Agentic-Coding-Pipeline Directory](Agentic-Coding-Pipeline/README.md)** for detailed usage and architecture.
+> See **[Agentic-Coding-Pipeline Directory](Agentic-Coding-Pipeline/README.md)** for setup, architecture, and customization notes.
+
+```mermaid
+flowchart TD
+  T[Developer Task] --> OR[AgenticCodingPipeline]
+  OR --> C1[GPT Coding Agent]
+  OR --> C2[Claude Coding Agent]
+  C1 --> OR
+  C2 --> OR
+  OR --> F[Ruff Formatter]
+  F --> OR
+  OR --> TS[Claude Test Author + Pytest Runner]
+  TS --> OR
+  OR --> QA[Gemini QA Reviewer]
+  QA -->|PASS?| OR
+  OR --> OUT[Ready-to-commit Patch]
+  OR -. feedback .-> C1
+  OR -. feedback .-> C2
+```
+
+* **Multi-LLM pair programming** keeps GPT and Claude coders in lockstep via a shared state dictionary.
+* **Tool-backed gates** ensure Ruff formatting, pytest verification, and Gemini QA review all pass before the pipeline returns success.
+* **Iterative retry logic** loops until a completed state is reached or the max iteration budget is exhausted, surfacing feedback for humans or follow-up agents.
 
 ```bash
 cd Agentic-Coding-Pipeline
-python run.py "Add feature X"
+python run.py "Add pagination support to the API client"
 ```
 
 ## Quickstart
