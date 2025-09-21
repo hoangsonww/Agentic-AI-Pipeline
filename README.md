@@ -45,6 +45,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [Web UI](#web-ui)
 * [CLI Utilities](#cli-utilities)
 * [HTTP API](#http-api)
+* [Client SDKs](#client-sdks)
 * [Tools & Capabilities](#tools--capabilities)
 * [Memory & Feedback](#memory--feedback)
 * [Extending the System](#extending-the-system)
@@ -501,6 +502,73 @@ Add content from a URL (fetch + extract)
 Upload a document to extract and index (.txt/.md/.pdf/.docx/.png/.jpg)
 
 Form fields: `file`, `id?`, `tags?`
+
+## Client SDKs
+
+Two SDKs live under `clients/` to integrate with this server and the sibling pipelines:
+
+- TypeScript (Node/Browser): `clients/ts`
+- Python (async): `clients/python`
+
+TypeScript usage (Node 18+)
+
+```ts
+import { AgenticAIClient } from "./clients/ts/src/client";
+
+const client = new AgenticAIClient({ baseUrl: "http://127.0.0.1:8000" });
+
+// Root chat
+const { chat_id } = await client.newChat();
+await client.chatStream({ chat_id, message: "Brief ACME Robotics", onToken: t => process.stdout.write(t) });
+
+// Root ingestion
+await client.ingest("text to index", { tags: ["acme"] });
+await client.ingestUrl("https://example.com/article", { tags: ["market"] });
+// await client.ingestFile(fileBlob, { filename: "doc.pdf", tags: ["pdf"] });
+
+// Coding pipeline
+await client.codingStream({ repo: "/path/to/repo", github: "owner/repo#123", onEvent: ev => console.log(ev.event, ev.data) });
+const result = await client.codingRun({ task: "Implement caching" });
+
+// RAG pipeline
+const sess = await client.ragNewSession();
+await client.ragAskStream({ session_id: sess.session_id, question: "Summarize X", onEvent: ev => console.log(ev.event, ev.data) });
+await client.ragIngestText({ url: "https://example.com" });
+```
+
+Python usage
+
+```python
+import anyio
+from clients.python.agentic_ai_client import AgenticAIClient
+
+async def main():
+    async with AgenticAIClient("http://127.0.0.1:8000") as c:
+        # Root chat
+        meta = await c.new_chat()
+        await c.chat_stream("Brief ACME Robotics", chat_id=meta["chat_id"], on_token=lambda t: print(t, end=""))
+
+        # Root ingestion
+        await c.ingest("notes", {"tags":["kb"]})
+        await c.ingest_url("https://example.com/article", {"tags":["market"]})
+        # await c.ingest_file("/path/to/file.pdf", title="Whitepaper", tags=["pdf"])  # optional deps required
+
+        # Coding pipeline
+        await c.coding_stream(repo="/path/to/repo", task="Implement X", on_event=lambda ev, data: print(ev, data))
+        out = await c.coding_run(task="Refactor Y")
+
+        # RAG pipeline
+        sess = await c.rag_new_session()
+        await c.rag_ask_stream("Summarize Z", session_id=sess["session_id"], on_event=lambda ev, data: print(ev, data))
+        await c.rag_ingest_text(url="https://example.com")
+
+anyio.run(main)
+```
+
+Build scripts
+- Export OpenAPI: `python scripts/export_openapi.py` → `openapi.json`
+- Build TS SDK: `bash scripts/install_ts_client.sh`
+- Regenerate Python client from OpenAPI (optional): `bash scripts/gen_client.sh`
 
 ### `POST /api/feedback`
 

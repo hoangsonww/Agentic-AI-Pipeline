@@ -32,4 +32,53 @@ export class AgenticAIClient {
     if (!finalChat) throw new Error("No chat_id returned by server.");
     return { chat_id: finalChat };
   }
+
+  // ----- Extended ingestion -----
+  async ingestUrl(url: string, metadata: Record<string, unknown> = {}) {
+    return httpJson(`${this.base}/api/ingest_url`, { method: "POST", body: JSON.stringify({ url, metadata }) });
+  }
+
+  async ingestFile(file: File | Blob, opts?: { filename?: string; tags?: string[] }) {
+    const fd = new FormData();
+    // @ts-ignore File has a name in browsers; for Blob provide filename option
+    const fname = (file as any).name || opts?.filename || "upload";
+    fd.append("file", file, fname);
+    if (opts?.tags?.length) fd.append("tags", opts.tags.join(","));
+    const r = await fetch(`${this.base}/api/ingest_file`, { method: "POST", body: fd });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text().catch(()=>"")}`);
+    return r.json();
+  }
+
+  // ----- Agentic Coding Pipeline -----
+  async codingRun(args: { repo?: string | null; github?: string | null; jira?: string | null; task?: string | null }) {
+    return httpJson(`${this.base}/api/coding/run`, { method: "POST", body: JSON.stringify(args) });
+  }
+
+  async codingStream(args: { repo?: string | null; github?: string | null; jira?: string | null; task?: string | null; onEvent: (ev: { event: string; data: string }) => void }) {
+    await streamSSE(`${this.base}/api/coding/stream`, { method: "POST", body: JSON.stringify(args), onEvent: args.onEvent });
+  }
+
+  // ----- Agentic RAG Pipeline -----
+  async ragNewSession(): Promise<{ session_id: string }> {
+    return httpJson(`${this.base}/api/rag/new_session`);
+  }
+
+  async ragAskStream(args: { session_id?: string; question: string; onEvent: (ev: { event: string; data: string }) => void }) {
+    await streamSSE(`${this.base}/api/rag/ask`, { method: "POST", body: JSON.stringify({ session_id: args.session_id, question: args.question }), onEvent: args.onEvent });
+  }
+
+  async ragIngestText(payload: { text?: string; url?: string; title?: string | null; tags?: string[] }) {
+    return httpJson(`${this.base}/api/rag/ingest_text`, { method: "POST", body: JSON.stringify(payload) });
+  }
+
+  async ragIngestFile(file: File | Blob, opts?: { title?: string; tags?: string[] }) {
+    const fd = new FormData();
+    // @ts-ignore name may exist
+    fd.append("file", file, (file as any).name || "upload");
+    if (opts?.title) fd.append("title", opts.title);
+    if (opts?.tags?.length) fd.append("tags", opts.tags.join(","));
+    const r = await fetch(`${this.base}/api/rag/ingest_file`, { method: "POST", body: fd });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text().catch(()=>"")}`);
+    return r.json();
+  }
 }

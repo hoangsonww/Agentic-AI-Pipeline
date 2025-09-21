@@ -324,6 +324,33 @@ Implementation:
 
 ---
 
+## Client SDKs
+
+Use the monorepo SDKs to call the coding endpoints directly:
+
+- TypeScript:
+
+```ts
+import { AgenticAIClient } from "../clients/ts/src/client";
+const c = new AgenticAIClient({ baseUrl: "http://127.0.0.1:8000" });
+await c.codingStream({ repo: "/path/to/repo", task: "Add pagination", onEvent: (ev) => console.log(ev.event, ev.data) });
+```
+
+- Python:
+
+```python
+from clients.python.agentic_ai_client import AgenticAIClient
+import anyio
+
+async def run():
+    async with AgenticAIClient("http://127.0.0.1:8000") as c:
+        await c.coding_stream(repo="/path/to/repo", github="owner/repo#123", on_event=lambda ev, data: print(ev, data))
+anyio.run(run)
+```
+
+See root README “Client SDKs” for more capabilities and examples.
+
+
 ## Repo & Task Intake
 
 Repository input:

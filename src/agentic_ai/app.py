@@ -1,5 +1,5 @@
 from __future__ import annotations
-import os, uuid, json, asyncio
+import os, uuid, json, asyncio, io
 from fastapi import FastAPI, Request, Body, HTTPException
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from sse_starlette.sse import EventSourceResponse

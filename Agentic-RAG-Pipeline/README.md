@@ -221,6 +221,37 @@ All ingestion routes chunk text and add it to the in-memory FAISS index with met
 
 ---
 
+## Client SDKs
+
+Call the RAG endpoints from the monorepo SDKs:
+
+- TypeScript:
+
+```ts
+import { AgenticAIClient } from "../clients/ts/src/client";
+const c = new AgenticAIClient({ baseUrl: "http://127.0.0.1:8000" });
+const { session_id } = await c.ragNewSession();
+await c.ragAskStream({ session_id, question: "Summarize topic X", onEvent: (ev) => console.log(ev.event, ev.data) });
+await c.ragIngestText({ url: "https://example.com" });
+```
+
+- Python:
+
+```python
+from clients.python.agentic_ai_client import AgenticAIClient
+import anyio
+
+async def run():
+    async with AgenticAIClient("http://127.0.0.1:8000") as c:
+        sess = await c.rag_new_session()
+        await c.rag_ask_stream("Summarize topic X", session_id=sess["session_id"], on_event=lambda ev, d: print(ev, d))
+        await c.rag_ingest_text(url="https://example.com")
+anyio.run(run)
+```
+
+See root README “Client SDKs” for more capabilities and examples.
+
+
 ## How it works (step-by-step)
 
 1. **Intent Router** classifies the task (answer/plan/code/etc.) and flags safety concerns.
