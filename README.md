@@ -21,6 +21,10 @@
 [![Open Source](https://img.shields.io/badge/Open%20Source-Community-FF5722?logo=open-source-initiative&logoColor=white)](#)
 [![Shell](https://img.shields.io/badge/Shell-CLI%20Tools-4EAA25?logo=gnu-bash&logoColor=white)](#)
 [![AWS](https://img.shields.io/badge/AWS-Cloud%20Ready-FF9900?logo=amazonaws&logoColor=white)](#)
+[![Vue.js](https://img.shields.io/badge/Vue.js-Web%20UI-4FC08D?logo=vue.js&logoColor=white)](#)
+[![JavaScript](https://img.shields.io/badge/JavaScript-Frontend-F7DF1E?logo=javascript&logoColor=black)](#)
+[![HTML5](https://img.shields.io/badge/HTML5-Markup-E34F26?logo=html5&logoColor=white)](#)
+[![CSS3](https://img.shields.io/badge/CSS3-Stylesheet-1572B6?logo=css3&logoColor=white)](#)
 [![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker&logoColor=white)](#)
 [![Ansible](https://img.shields.io/badge/Ansible-Configuration%20Management-EE0000?logo=ansible&logoColor=white)](#)
 
@@ -38,10 +42,14 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [Quickstart](#quickstart)
 * [Configuration](#configuration)
 * [Running](#running)
+* [Web UI](#web-ui)
 * [CLI Utilities](#cli-utilities)
 * [HTTP API](#http-api)
+* [Client SDKs](#client-sdks)
+* [MCP Server](#mcp-server)
 * [Tools & Capabilities](#tools--capabilities)
 * [Memory & Feedback](#memory--feedback)
+* [MCP Server](#mcp-server)
 * [Extending the System](#extending-the-system)
 * [Testing & Quality](#testing--quality)
 * [GitHub Actions](#github-actions)
@@ -52,7 +60,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 ## Key Features
 
 * **Multi‑stage reasoning & planning** with **LangGraph** state machine (plan → decide → act → tools → reflect → finalize).
-* **Autonomous tool use & tool‑chaining** (web search, URL fetch, calculator, file write, email draft, KB search/add).
+* **Autonomous tool use & tool‑chaining** (web search, URL fetch, calculator, file write, email draft, KB - Knowledge Base - search/add).
 * **Two memory systems**:
 
   * **SQLite** conversation store (turn history, feedback).
@@ -240,6 +248,7 @@ This design ensures that each step is clear and focused, allowing for easy debug
 
 ```
 Agentic-RAG-Pipeline/     # Bonus: full agentic RAG pipeline in addition to this bot
+Agentic-Coding-Pipeline/  # Bonus: autonomous coding assistant pipeline
 Makefile                  # Common tasks (setup, ingest, run, test)
 requirements.txt          # Python dependencies
 src/
@@ -409,6 +418,36 @@ uvicorn src.agentic_ai.app:app --host
 
 This will start the FastAPI server on `http://localhost:8000`, where you can interact with the agent via the web UI or API.
 
+## Web UI
+
+A zero-build, single-page chat UI is included for the Research & Outreach Agent.
+
+- Start the server (any of):
+
+```bash
+make run
+# or
+uvicorn src.agentic_ai.app:app --host 0.0.0.0 --port 8000
+```
+
+- Open `http://127.0.0.1:8000`.
+- Enter your prompt and click Send; responses stream live via SSE.
+
+Features
+- Live streaming chat (SSE parsing) with “New Chat” and “Clear”.
+- Knowledge Base ingest:
+  - Paste text → POST `/api/ingest`
+  - Ingest from URL → POST `/api/ingest_url`
+  - Upload files (.txt/.md/.pdf/.docx/.png/.jpg) → POST `/api/ingest_file`
+- Feedback buttons (👍/👎) posting to `/api/feedback`.
+- Copy last assistant message.
+- No build step required — Vue 3 + Marked via CDN.
+
+Implementation Files
+- `web/index.html`:1 — Vue SPA markup.
+- `web/app.js`:1 — Chat logic, SSE parsing, ingest + feedback helpers.
+- `web/styles.css`:1 — Dark, minimal theme.
+
 ## CLI Utilities
 
 This repository also provides a CLI for quick interactions and ingestion of knowledge:
@@ -451,6 +490,87 @@ Add an internal KB document.
 ```json
 { "id": "doc-123", "text": "content...", "metadata": { "source": "..." } }
 ```
+
+### `POST /api/ingest_url`
+
+Add content from a URL (fetch + extract)
+
+```json
+{ "url": "https://example.com/article", "id": null, "metadata": { "tags": ["acme", "market"] } }
+```
+
+### `POST /api/ingest_file`
+
+Upload a document to extract and index (.txt/.md/.pdf/.docx/.png/.jpg)
+
+Form fields: `file`, `id?`, `tags?`
+
+## Client SDKs
+
+Two SDKs live under `clients/` to integrate with this server and the sibling pipelines:
+
+- TypeScript (Node/Browser): `clients/ts`
+- Python (async): `clients/python`
+
+TypeScript usage (Node 18+)
+
+```ts
+import { AgenticAIClient } from "./clients/ts/src/client";
+
+const client = new AgenticAIClient({ baseUrl: "http://127.0.0.1:8000" });
+
+// Root chat
+const { chat_id } = await client.newChat();
+await client.chatStream({ chat_id, message: "Brief ACME Robotics", onToken: t => process.stdout.write(t) });
+
+// Root ingestion
+await client.ingest("text to index", { tags: ["acme"] });
+await client.ingestUrl("https://example.com/article", { tags: ["market"] });
+// await client.ingestFile(fileBlob, { filename: "doc.pdf", tags: ["pdf"] });
+
+// Coding pipeline
+await client.codingStream({ repo: "/path/to/repo", github: "owner/repo#123", onEvent: ev => console.log(ev.event, ev.data) });
+const result = await client.codingRun({ task: "Implement caching" });
+
+// RAG pipeline
+const sess = await client.ragNewSession();
+await client.ragAskStream({ session_id: sess.session_id, question: "Summarize X", onEvent: ev => console.log(ev.event, ev.data) });
+await client.ragIngestText({ url: "https://example.com" });
+```
+
+Python usage
+
+```python
+import anyio
+from clients.python.agentic_ai_client import AgenticAIClient
+
+async def main():
+    async with AgenticAIClient("http://127.0.0.1:8000") as c:
+        # Root chat
+        meta = await c.new_chat()
+        await c.chat_stream("Brief ACME Robotics", chat_id=meta["chat_id"], on_token=lambda t: print(t, end=""))
+
+        # Root ingestion
+        await c.ingest("notes", {"tags":["kb"]})
+        await c.ingest_url("https://example.com/article", {"tags":["market"]})
+        # await c.ingest_file("/path/to/file.pdf", title="Whitepaper", tags=["pdf"])  # optional deps required
+
+        # Coding pipeline
+        await c.coding_stream(repo="/path/to/repo", task="Implement X", on_event=lambda ev, data: print(ev, data))
+        out = await c.coding_run(task="Refactor Y")
+
+        # RAG pipeline
+        sess = await c.rag_new_session()
+        await c.rag_ask_stream("Summarize Z", session_id=sess["session_id"], on_event=lambda ev, data: print(ev, data))
+        await c.rag_ingest_text(url="https://example.com")
+
+anyio.run(main)
+```
+
+Build scripts
+- Export OpenAPI: `python scripts/export_openapi.py` → `openapi.json`
+- Build TS SDK: `bash scripts/install_ts_client.sh`
+- Regenerate Python client from OpenAPI (optional): `bash scripts/gen_client.sh`
 
 ### `POST /api/feedback`
 
@@ -515,6 +635,28 @@ CREATE TABLE IF NOT EXISTS feedback (
 ```
 
 Feel free to extend the memory layer with additional tables or fields as needed. The agent can use this memory to maintain context across interactions, allowing for more coherent and informed responses. More details on the memory layer can be found in `src/agentic_ai/memory/`.
+
+## MCP Server
+
+A shared control plane that exposes common tools and pipeline dispatch over HTTP for all subsystems (Research/Outreach, RAG, Coding, Data).
+
+- Run locally:
+
+```bash
+uvicorn mcp.server:create_app --factory --reload
+# Explore: http://127.0.0.1:8000/pipelines
+```
+
+- Key endpoints:
+  - `/pipelines` – list registered names
+  - `/pipeline/coding/stream` – stream logs/results (SSE)
+  - `/pipeline/rag/ask` – stream answer/sources (SSE)
+  - `/llm/{provider}` and `/llm/summarize`
+  - `/search`, `/browse`, `/research`
+  - `/kb/add`, `/kb/search`
+  - `/fs/write`, `/fs/read` (sandboxed to `data/agent_output`)
+
+See `mcp/README.md` for diagrams, examples, and deployment options.
 
 ## Extending the System
 

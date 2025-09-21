@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Agentic Coding Pipeline</title>
+  <link rel="stylesheet" href="/coding/styles.css"/>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/marked@12/marked.min.js"></script>
+</head>
+<body>
+  <div id="app" class="shell">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">⚙️</div>
+        <div>
+          <h1>Agentic Coding Pipeline</h1>
+          <p>Multi-agent coding loop: code → format → tests → QA</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel inputs">
+      <div class="field">
+        <label>Repository (URL or local path)</label>
+        <input v-model="repo" type="text" placeholder="https://github.com/owner/repo or /path/to/project"/>
+      </div>
+      <div class="field">
+        <label>Task Source</label>
+        <div class="tabs">
+          <button :class="{active: source==='text'}" @click="source='text'">Text</button>
+          <button :class="{active: source==='github'}" @click="source='github'">GitHub Issue</button>
+          <button :class="{active: source==='jira'}" @click="source='jira'">Jira Ticket</button>
+        </div>
+        <div v-if="source==='text'">
+          <textarea v-model="task" rows="4" placeholder="Describe the coding task..."></textarea>
+        </div>
+        <div v-if="source==='github'">
+          <input v-model="github" type="text" placeholder="https://github.com/owner/repo/issues/123 or owner/repo#123"/>
+        </div>
+        <div v-if="source==='jira'">
+          <input v-model="jira" type="text" placeholder="https://yourdomain.atlassian.net/browse/KEY-123 or KEY-123"/>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" :disabled="busy" @click="run">Run Pipeline</button>
+        <button class="ghost" :disabled="busy" @click="clearChat">Clear</button>
+      </div>
+    </section>
+
+    <main class="panel chat">
+      <div class="messages" ref="msgWrap">
+        <div v-for="(m, i) in messages" :key="i" class="msg" :class="m.role">
+          <div class="bubble" v-html="m.html"></div>
+        </div>
+      </div>
+      <form class="composer" @submit.prevent="sendQuick">
+        <input v-model="quick" type="text" placeholder="Quick message to append to task (optional)"/>
+        <button :disabled="busy">Send</button>
+      </form>
+    </main>
+  </div>
+
+  <script src="/coding/app.js"></script>
+  <script>
+    const { createApp, ref, onMounted, nextTick } = Vue;
+    createApp({
+      setup(){
+        const repo = ref("");
+        const source = ref("text");
+        const task = ref("");
+        const github = ref("");
+        const jira = ref("");
+        const quick = ref("");
+        const messages = ref([]);
+        const busy = ref(false);
+        const msgWrap = ref(null);
+
+        function scrollToBottom(){
+          nextTick(() => {
+            if (msgWrap.value) {
+              msgWrap.value.scrollTop = msgWrap.value.scrollHeight;
+            }
+          });
+        }
+
+        function add(role, text){
+          const html = window.renderMarkdown(text);
+          messages.value.push({ role, html });
+          scrollToBottom();
+        }
+        function clearChat(){
+          messages.value = [];
+        }
+
+        async function stream(payload){
+          busy.value = true;
+          try {
+            const resp = await fetch('/api/coding/stream', {
+              method: 'POST', headers: { 'Content-Type':'application/json' },
+              body: JSON.stringify(payload),
+            });
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buf = '';
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              buf += decoder.decode(value, { stream: true });
+              let i;
+              while ((i = buf.indexOf('\n\n')) >= 0) {
+                const block = buf.slice(0, i); buf = buf.slice(i+2);
+                const ev = (block.match(/event:(.*)/)||[])[1]?.trim();
+                const data = (block.match(/data:(.*)/s)||[])[1] || '';
+                if (ev === 'log') {
+                  add('bot', data);
+                } else if (ev === 'done') {
+                  try {
+                    const j = JSON.parse(data);
+                    add('bot', `Completed with status: ${j.status}`);
+                  } catch {}
+                }
+              }
+            }
+          } finally {
+            busy.value = false;
+          }
+        }
+
+        async function run(){
+          clearChat();
+          add('user', buildTaskPreview());
+          const payload = {
+            repo: repo.value || null,
+            task: source.value === 'text' ? task.value : null,
+            github: source.value === 'github' ? github.value : null,
+            jira: source.value === 'jira' ? jira.value : null,
+          };
+          await stream(payload);
+        }
+
+        function buildTaskPreview(){
+          if (source.value === 'github') return `Run on GitHub issue: ${github.value}`;
+          if (source.value === 'jira') return `Run on Jira ticket: ${jira.value}`;
+          return task.value || '(no task text)';
+        }
+
+        async function sendQuick(){
+          if (!quick.value.trim()) return;
+          add('user', quick.value);
+          // Append to task text and re-run quickly
+          task.value = (task.value ? task.value + '\n' : '') + quick.value;
+          quick.value = '';
+        }
+
+        onMounted(() => {
+          add('bot', 'Welcome! Provide a repository and task source, then Run Pipeline.');
+        });
+
+        return { repo, source, task, github, jira, quick, busy, messages, msgWrap, run, sendQuick, clearChat };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
+

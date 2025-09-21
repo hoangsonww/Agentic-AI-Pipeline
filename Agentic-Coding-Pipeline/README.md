@@ -3,6 +3,8 @@
 An end-to-end, production-ready **agentic coding** loop that continuously drafts, formats, tests, and reviews code until quality gates pass.
 It orchestrates **specialized LLM agents**, **local developer tooling**, and **git-friendly utilities** so you can ship reliable patches on autopilot.
 
+Paste in your task (Jira, GitHub, or free text) and a repository (URL or local path), and watch GPT and Claude coders collaborate to deliver a ready-to-commit patch!
+
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
 [![Poetry](https://img.shields.io/badge/Poetry-Environment%20Mgmt-60A5FA?logo=poetry&logoColor=white)](#)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT%20Coders-412991?logo=openai&logoColor=white)](#)
@@ -28,6 +30,9 @@ It orchestrates **specialized LLM agents**, **local developer tooling**, and **g
 * [Install](#install)
 * [Configure](#configure)
 * [Run](#run)
+* [Web UI](#web-ui)
+* [HTTP API](#http-api)
+* [Repo & Task Intake](#repo--task-intake)
 * [How it works (step-by-step)](#how-it-works-step-by-step)
 * [State contract](#state-contract)
 * [Project structure](#project-structure)
@@ -197,9 +202,14 @@ Set credentials as environment variables (or drop them into a `.env` loaded by y
 export OPENAI_API_KEY=sk-...
 export ANTHROPIC_API_KEY=sk-...
 export GOOGLE_API_KEY=sk-...
+# Optional: enable GitHub/Jira issue intake
+export GITHUB_TOKEN=ghp_...                      # increases GitHub API rate limits
+export JIRA_BASE_URL=https://yourcompany.atlassian.net
+export JIRA_EMAIL=you@yourcompany.com
+export JIRA_API_TOKEN=atlassian_pat_or_api_token
 ```
 
-Each agent reads from these keys when instantiated, so they must be available before running the CLI or creating the pipeline.
+Each agent reads from these keys when instantiated, so they must be available before running the CLI or creating the pipeline. GitHub/Jira variables are only required if you plan to resolve tasks from issues/tickets.
 
 ### Configuration reference
 
@@ -208,6 +218,10 @@ Each agent reads from these keys when instantiated, so they must be available be
 | `OPENAI_API_KEY` | env var | – | Authenticates the GPT-based `CodingAgent`. |
 | `ANTHROPIC_API_KEY` | env var | – | Powers the Claude-based coder and testing agent. |
 | `GOOGLE_API_KEY` | env var | – | Enables Gemini QA review verdicts. |
+| `GITHUB_TOKEN` | env var | optional | Increases GitHub API rate limits for issue fetches. |
+| `JIRA_BASE_URL` | env var | optional | Base URL for your Jira (e.g., `https://yourcompany.atlassian.net`). |
+| `JIRA_EMAIL` | env var | optional | Account email used for Jira API authentication. |
+| `JIRA_API_TOKEN` | env var | optional | Atlassian API token or personal access token. |
 | `max_iterations` | `AgenticCodingPipeline(max_iterations=...)` | `3` | Caps retries before marking the run as failed. |
 | `coders`/`formatters`/`testers`/`reviewers` | Constructor args | see CLI defaults | Controls which agents participate in the loop. |
 
@@ -218,12 +232,24 @@ Each agent reads from these keys when instantiated, so they must be available be
 ### CLI (batteries included)
 
 ```bash
-cd Agentic-AI-Pipeline/Agentic-Coding-Pipeline
+cd Agentic-Coding-Pipeline
+# Text task only
 python run.py "Add pagination support to the API client"
+
+# With repository (URL or local path)
+python run.py --repo https://github.com/owner/repo.git "Implement caching for search"
+python run.py --repo /path/to/local/repo "Refactor auth middleware"
+
+# Resolve task from GitHub or Jira
+python run.py --repo /path/to/repo --github owner/repo#123
+python run.py --repo https://github.com/owner/repo.git --jira PROJ-456
 ```
 
-The CLI wires up OpenAI + Claude coders, a Ruff formatter, Claude-powered tester, and Gemini reviewer in one command.
-The script prints the final status and any captured feedback (failed tests, QA findings) for quick triage.
+- `--repo` accepts a Git URL or a local directory path. Git URLs are cloned shallowly to a temp workspace.
+- `--github` accepts `https://github.com/owner/repo/issues/123` or `owner/repo#123` (uses `GITHUB_TOKEN` if provided).
+- `--jira` accepts a Jira URL like `https://yourcompany.atlassian.net/browse/KEY-123` or a bare key `KEY-123` (requires `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`).
+
+The CLI streams human-friendly progress logs and prints the final status. Failed tests or QA commentary appear inline for quick triage.
 
 ### Programmatic usage
 
@@ -249,9 +275,101 @@ The return value is a serializable dict suitable for downstream orchestration (C
 
 ---
 
+## Web UI
+
+A zero-build Vue 3 chat-style UI ships with the pipeline.
+
+- Start the server from the repo root:
+
+```bash
+uvicorn agentic_ai.app:app --reload
+```
+
+- Open `http://127.0.0.1:8000/coding` to access the UI.
+- Enter a repository (URL or local path), pick a task source (Text, GitHub Issue, or Jira Ticket), and click “Run Pipeline”.
+- Logs stream in the chat as agents progress through code → format → tests → QA.
+
+Files:
+- `Agentic-Coding-Pipeline/ui/index.html` – UI markup powered by Vue via CDN.
+- `Agentic-Coding-Pipeline/ui/app.js` – Markdown rendering helper.
+- `Agentic-Coding-Pipeline/ui/styles.css` – Dark, minimal theme.
+
+---
+
+## HTTP API
+
+The backend exposes both streaming and non-streaming endpoints for the coding pipeline.
+
+- POST `/api/coding/stream` – SSE-style stream useful for chat UIs.
+- POST `/api/coding/run` – One-shot execution returning final JSON.
+
+Request body (both endpoints):
+
+```json
+{
+  "repo": "https://github.com/owner/repo.git" | "/path/to/local/repo" | null,
+  "github": "https://github.com/owner/repo/issues/123" | "owner/repo#123" | null,
+  "jira": "https://your.atlassian.net/browse/KEY-123" | "KEY-123" | null,
+  "task": "Free-text task" | null
+}
+```
+
+Streaming response events:
+- `event: log` with `data: <human-friendly progress>\n`
+- `event: done` with `data: {"status": "completed|failed", "repo": {...}, "task": {...}}`
+
+Implementation:
+- UI routes: `/coding`, `/coding/app.js`, `/coding/styles.css`.
+- Endpoints live in `src/agentic_ai/app.py` and delegate to shared services at `Agentic-Coding-Pipeline/services.py`.
+
+---
+
+## Client SDKs
+
+Use the monorepo SDKs to call the coding endpoints directly:
+
+- TypeScript:
+
+```ts
+import { AgenticAIClient } from "../clients/ts/src/client";
+const c = new AgenticAIClient({ baseUrl: "http://127.0.0.1:8000" });
+await c.codingStream({ repo: "/path/to/repo", task: "Add pagination", onEvent: (ev) => console.log(ev.event, ev.data) });
+```
+
+- Python:
+
+```python
+from clients.python.agentic_ai_client import AgenticAIClient
+import anyio
+
+async def run():
+    async with AgenticAIClient("http://127.0.0.1:8000") as c:
+        await c.coding_stream(repo="/path/to/repo", github="owner/repo#123", on_event=lambda ev, data: print(ev, data))
+anyio.run(run)
+```
+
+See root README “Client SDKs” for more capabilities and examples.
+
+
+## Repo & Task Intake
+
+Repository input:
+- Git URL (with or without `.git`) → shallow clone to a temp folder.
+- Local directory path → validated and analyzed in-place.
+- Analysis produces a short summary (language histogram + key file snippets) injected into the task prompt.
+
+Task input (priority):
+1) GitHub issue (URL or `owner/repo#123`). Uses `GITHUB_TOKEN` if provided.
+2) Jira ticket (URL or `KEY-123`). Requires `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`.
+3) Free-text task. The first line is treated as the title; the rest as description.
+
+Shared logic lives in `Agentic-Coding-Pipeline/services.py` and is used by both CLI and HTTP API, ensuring consistent behavior across interfaces.
+
+---
+
 ## How it works (step-by-step)
 
-1. **Task ingestion** – CLI seeds a shared state dict with the human request.
+1. **Intake** – Resolve task (GitHub, Jira, or text) and analyze repository context (URL clone or local path).
 2. **First coder pass** – GPT-based agent drafts an initial solution (or improves an existing snippet).
 3. **Second coder pass** – Claude-based agent refines the proposal, incorporating earlier feedback or failures.
 4. **Formatter pass** – Ruff auto-fixes lint/style deviations before any tests run.
@@ -288,6 +406,11 @@ Agentic-Coding-Pipeline/
 ├── __init__.py                   # Package marker
 ├── pipeline.py                   # Iterative orchestration logic
 ├── run.py                        # CLI entry point
+├── services.py                   # Shared repo/task intake + streaming runner
+├── ui/                           # Zero-build Vue-based chat UI
+│   ├── index.html                # Mounted at /coding
+│   ├── app.js                    # Markdown helper
+│   └── styles.css                # UI styles
 ├── agents/                       # Role-specific LLM wrappers
 │   ├── base.py                   # Agent protocol + base dataclass
 │   ├── coding.py                 # Code synthesis agents
@@ -415,6 +538,8 @@ To plug this pipeline into the MCP network:
 | QA always fails with "PASS" missing | Reviewer prompt/casing changed | Ensure reviewer returns a string containing `PASS` on success or tweak condition accordingly. |
 | Pipeline stops after coder stage | An agent returned an empty string | Inspect `reason` for `"coder did not return code"` and adjust prompts or guardrails. |
 | Iterations never succeed | Feedback not consumed by coders | Make coder prompts reference `feedback` to incorporate failures when you extend the pipeline. |
+| GitHub issue not resolved | Missing/low GitHub rate limit | Set `GITHUB_TOKEN` to raise limits or try again later. |
+| Jira ticket not resolved | Missing Jira credentials | Set `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`. |
 
 ---
 
