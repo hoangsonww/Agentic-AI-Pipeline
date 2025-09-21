@@ -22,12 +22,13 @@ It orchestrates **specialized LLM agents**, **local developer tooling**, and **g
 
 ## Contents
 
+* [Overview](#overview)
 * [What you get](#what-you-get)
 * [Architecture](#architecture)
 * [Prerequisites](#prerequisites)
 * [Install](#install)
 * [Configure](#configure)
-* [Run](#run)
+* [Running the Pipeline](#running-the-pipeline)
 * [Control room UI](#control-room-ui)
 * [How it works (step-by-step)](#how-it-works-step-by-step)
 * [State contract](#state-contract)
@@ -37,12 +38,22 @@ It orchestrates **specialized LLM agents**, **local developer tooling**, and **g
 * [Test orchestration](#test-orchestration)
 * [Formatting & patch hygiene](#formatting--patch-hygiene)
 * [Tooling & integration patterns](#tooling--integration-patterns)
-* [MCP integration](#mcp-integration)
-* [Extending & customization](#extending--customization)
+* [MCP Server Integration](#mcp-server-integration)
+* [Extending](#extending)
 * [Operations & observability](#operations--observability)
 * [Quality control & failure handling](#quality-control--failure-handling)
+* [Tests](#tests)
 * [Troubleshooting](#troubleshooting)
 * [FAQ](#faq)
+
+---
+
+## Overview
+
+This pipeline combines multiple specialized agents with developer tooling to ship reliable patches autonomously. Coding agents
+draft and refine changes, a formatter normalizes style, a testing agent authorizes pytest suites, and a QA reviewer enforces a
+final human-like gate. The orchestrator loops through these stages until every check passes or retries are exhausted, mirroring
+the design documented in the Agentic RAG Pipeline guide so both experiences share a consistent operational feel.
 
 ---
 
@@ -211,7 +222,7 @@ Each agent reads from these keys when instantiated, so they must be available be
 
 ---
 
-## Run
+## Running the Pipeline
 
 ### CLI (batteries included)
 
@@ -413,7 +424,7 @@ Swap or augment these strings in custom agents to target different languages, fr
 
 ---
 
-## MCP integration
+## MCP Server Integration
 
 This pipeline registers with the shared [`mcp`](../mcp) package. The FastAPI-backed **MCPServer** exposes a unified toolbox (web search, browsing, direct LLM calls) so any pipeline in the monorepo can dispatch coding tasks remotely or as part of a larger workflow.
 
@@ -426,7 +437,7 @@ To plug this pipeline into the MCP network:
 
 ---
 
-## Extending & customization
+## Extending
 
 * **Swap models** – Pass alternative `LLMClient` implementations when constructing agents (e.g., Azure OpenAI, local models).
 * **Add new stages** – Extend the `formatters`, `testers`, or `reviewers` lists with additional agents (docs generation, security scans, benchmarks).
@@ -452,6 +463,19 @@ To plug this pipeline into the MCP network:
 * Test and QA failures attach their raw outputs to `feedback`, giving subsequent iterations or humans concrete guidance.
 * Exhausting the iteration budget marks the run as `failed`, preserving the last known state for inspection.
 * Unit tests validate that the orchestrator reaches a completed state with deterministic mock responses, preventing regressions in the loop contract.
+
+---
+
+## Tests
+
+Run the bundled checks to verify the pipeline end-to-end:
+
+```bash
+ruff check Agentic-Coding-Pipeline
+pytest Agentic-Coding-Pipeline/tests/test_pipeline.py
+```
+
+Pair these with the control room UI or CLI examples above when validating changes locally.
 
 ---
 
