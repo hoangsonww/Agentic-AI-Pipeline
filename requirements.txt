@@ -30,6 +30,13 @@ chromadb>=0.5.5
 SQLAlchemy>=2.0.32
 aiosqlite>=0.20.0
 
+# Social Media Automation
+tweepy>=4.14.0
+python-linkedin-v2>=0.9.4
+facebook-sdk>=3.1.0
+pillow>=10.0.0
+schedule>=1.2.0
+
 # Dev & QA
 pytest>=8.2.0
 ruff>=0.6.2

@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Automation Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            background: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .card p {
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .badge-scheduled {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .badge-published {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-draft {
+            background: #6c757d;
+            color: white;
+        }
+
+        .badge-failed {
+            background: #dc3545;
+            color: white;
+        }
+
+        .platform-icon {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .success-message, .error-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .post-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .post-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .post-item:hover {
+            background: #e9ecef;
+        }
+
+        .hashtags {
+            margin-top: 10px;
+        }
+
+        .hashtag {
+            display: inline-block;
+            background: #e7f0ff;
+            color: #667eea;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin-right: 5px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Social Media Automation</h1>
+            <p>AI-Powered Social Media Management & Content Generation</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab" onclick="switchTab('create-post')">Create Post</button>
+            <button class="tab" onclick="switchTab('campaigns')">Campaigns</button>
+            <button class="tab" onclick="switchTab('content-gen')">Generate Content</button>
+            <button class="tab" onclick="switchTab('scheduled')">Scheduled Posts</button>
+            <button class="tab" onclick="switchTab('analytics')">Analytics</button>
+        </div>
+
+        <div class="content">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <h2>Dashboard</h2>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <h4>Total Posts</h4>
+                        <div class="value" id="totalPosts">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Active Campaigns</h4>
+                        <div class="value" id="activeCampaigns">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Scheduled</h4>
+                        <div class="value" id="scheduledPosts">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Published</h4>
+                        <div class="value" id="publishedPosts">0</div>
+                    </div>
+                </div>
+
+                <h3>Recent Activity</h3>
+                <div id="recentActivity" class="post-list">
+                    <div class="loading">Loading recent activity...</div>
+                </div>
+            </div>
+
+            <!-- Create Post Tab -->
+            <div id="create-post" class="tab-content">
+                <h2>Create Post</h2>
+                <div id="createPostMessage"></div>
+                <form id="createPostForm">
+                    <div class="form-group">
+                        <label for="platform">Platform</label>
+                        <select id="platform" required>
+                            <option value="twitter">Twitter/X</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="facebook">Facebook</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content">Content</label>
+                        <textarea id="content" required placeholder="Enter your post content..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hashtags">Hashtags (comma-separated)</label>
+                        <input type="text" id="hashtags" placeholder="AI, Technology, Innovation">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="scheduledTime">Schedule Time (Optional)</label>
+                        <input type="datetime-local" id="scheduledTime">
+                    </div>
+
+                    <button type="submit" class="btn">Post / Schedule</button>
+                </form>
+            </div>
+
+            <!-- Campaigns Tab -->
+            <div id="campaigns" class="tab-content">
+                <h2>Campaigns</h2>
+                <button class="btn" onclick="showCreateCampaignForm()">+ Create New Campaign</button>
+
+                <div id="createCampaignForm" style="display: none; margin-top: 20px;">
+                    <h3>Create New Campaign</h3>
+                    <form id="campaignForm">
+                        <div class="form-group">
+                            <label for="campaignName">Campaign Name</label>
+                            <input type="text" id="campaignName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="campaignDesc">Description</label>
+                            <textarea id="campaignDesc" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="campaignTopic">Topic</label>
+                            <input type="text" id="campaignTopic" required placeholder="e.g., AI Innovation, Product Launch">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Platforms</label>
+                            <div>
+                                <label><input type="checkbox" name="platforms" value="twitter"> Twitter/X</label><br>
+                                <label><input type="checkbox" name="platforms" value="linkedin"> LinkedIn</label><br>
+                                <label><input type="checkbox" name="platforms" value="instagram"> Instagram</label><br>
+                                <label><input type="checkbox" name="platforms" value="facebook"> Facebook</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="durationDays">Duration (days)</label>
+                            <input type="number" id="durationDays" value="7" min="1" max="90">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="postsPerDay">Posts per day</label>
+                            <input type="number" id="postsPerDay" value="2" min="1" max="10">
+                        </div>
+
+                        <button type="submit" class="btn">Create Campaign</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideCreateCampaignForm()">Cancel</button>
+                    </form>
+                </div>
+
+                <div id="campaignsList" class="grid" style="margin-top: 20px;">
+                    <div class="loading">Loading campaigns...</div>
+                </div>
+            </div>
+
+            <!-- Content Generation Tab -->
+            <div id="content-gen" class="tab-content">
+                <h2>Generate Content with AI</h2>
+                <div id="contentGenMessage"></div>
+
+                <form id="contentGenForm">
+                    <div class="form-group">
+                        <label for="genPlatform">Platform</label>
+                        <select id="genPlatform" required>
+                            <option value="twitter">Twitter/X</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="facebook">Facebook</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="genTopic">Topic</label>
+                        <input type="text" id="genTopic" required placeholder="e.g., AI in Healthcare">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="genTone">Tone</label>
+                        <select id="genTone">
+                            <option value="professional">Professional</option>
+                            <option value="casual">Casual</option>
+                            <option value="enthusiastic">Enthusiastic</option>
+                            <option value="informative">Informative</option>
+                            <option value="humorous">Humorous</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="genCount">Number of suggestions</label>
+                        <input type="number" id="genCount" value="3" min="1" max="10">
+                    </div>
+
+                    <button type="submit" class="btn">Generate Content</button>
+                </form>
+
+                <div id="generatedContent" style="margin-top: 30px;"></div>
+            </div>
+
+            <!-- Scheduled Posts Tab -->
+            <div id="scheduled" class="tab-content">
+                <h2>Scheduled Posts</h2>
+                <div class="form-group">
+                    <label for="filterPlatform">Filter by Platform</label>
+                    <select id="filterPlatform" onchange="loadScheduledPosts()">
+                        <option value="">All Platforms</option>
+                        <option value="twitter">Twitter/X</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="facebook">Facebook</option>
+                    </select>
+                </div>
+
+                <div id="scheduledPostsList" class="post-list">
+                    <div class="loading">Loading scheduled posts...</div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics" class="tab-content">
+                <h2>Analytics & Performance</h2>
+                <div id="analyticsData">
+                    <div class="loading">Loading analytics...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/social';
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            // Load data when switching to certain tabs
+            if (tabName === 'dashboard') loadDashboard();
+            if (tabName === 'campaigns') loadCampaigns();
+            if (tabName === 'scheduled') loadScheduledPosts();
+            if (tabName === 'analytics') loadAnalytics();
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/posts?limit=100`);
+                const data = await response.json();
+
+                // Update stats
+                const statusCounts = {};
+                data.posts.forEach(post => {
+                    statusCounts[post.status] = (statusCounts[post.status] || 0) + 1;
+                });
+
+                document.getElementById('totalPosts').textContent = data.count;
+                document.getElementById('scheduledPosts').textContent = statusCounts.scheduled || 0;
+                document.getElementById('publishedPosts').textContent = statusCounts.published || 0;
+
+                // Load campaigns count
+                const campaignsResponse = await fetch(`${API_BASE}/campaigns?status=active`);
+                const campaignsData = await campaignsResponse.json();
+                document.getElementById('activeCampaigns').textContent = campaignsData.count;
+
+                // Show recent activity
+                const recentPosts = data.posts.slice(0, 10);
+                const activityHtml = recentPosts.map(post => `
+                    <div class="post-item">
+                        <span class="badge badge-${post.status}">${post.status}</span>
+                        <strong>${post.platform.toUpperCase()}</strong>
+                        <p>${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}</p>
+                        <small>Scheduled: ${new Date(post.scheduled_time).toLocaleString()}</small>
+                    </div>
+                `).join('');
+
+                document.getElementById('recentActivity').innerHTML = activityHtml || '<p>No recent activity</p>';
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.getElementById('recentActivity').innerHTML = '<p class="error-message">Error loading dashboard</p>';
+            }
+        }
+
+        // Create post form submission
+        document.getElementById('createPostForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const platform = document.getElementById('platform').value;
+            const content = document.getElementById('content').value;
+            const hashtagsInput = document.getElementById('hashtags').value;
+            const scheduledTime = document.getElementById('scheduledTime').value;
+
+            const hashtags = hashtagsInput ? hashtagsInput.split(',').map(tag => tag.trim()) : [];
+
+            try {
+                const response = await fetch(`${API_BASE}/post`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        platform,
+                        content,
+                        hashtags,
+                        scheduled_time: scheduledTime || null,
+                        media_urls: []
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('createPostMessage').innerHTML =
+                        '<div class="success-message">Post created successfully!</div>';
+                    document.getElementById('createPostForm').reset();
+
+                    setTimeout(() => {
+                        document.getElementById('createPostMessage').innerHTML = '';
+                    }, 3000);
+                } else {
+                    throw new Error(result.detail || 'Failed to create post');
+                }
+            } catch (error) {
+                document.getElementById('createPostMessage').innerHTML =
+                    `<div class="error-message">Error: ${error.message}</div>`;
+            }
+        });
+
+        // Campaign functions
+        function showCreateCampaignForm() {
+            document.getElementById('createCampaignForm').style.display = 'block';
+        }
+
+        function hideCreateCampaignForm() {
+            document.getElementById('createCampaignForm').style.display = 'none';
+            document.getElementById('campaignForm').reset();
+        }
+
+        document.getElementById('campaignForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('campaignName').value;
+            const description = document.getElementById('campaignDesc').value;
+            const topic = document.getElementById('campaignTopic').value;
+            const durationDays = parseInt(document.getElementById('durationDays').value);
+            const postsPerDay = parseInt(document.getElementById('postsPerDay').value);
+
+            const platforms = Array.from(document.querySelectorAll('input[name="platforms"]:checked'))
+                .map(cb => cb.value);
+
+            if (platforms.length === 0) {
+                alert('Please select at least one platform');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/campaigns`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        description,
+                        topic,
+                        platforms,
+                        duration_days: durationDays,
+                        posts_per_day: postsPerDay
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(`Campaign created! ${result.posts_created} posts scheduled.`);
+                    hideCreateCampaignForm();
+                    loadCampaigns();
+                } else {
+                    throw new Error(result.detail || 'Failed to create campaign');
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        });
+
+        async function loadCampaigns() {
+            try {
+                const response = await fetch(`${API_BASE}/campaigns`);
+                const data = await response.json();
+
+                const campaignsHtml = data.campaigns.map(campaign => `
+                    <div class="card">
+                        <h3>${campaign.name}</h3>
+                        <p>${campaign.description}</p>
+                        <p><strong>Platforms:</strong> ${campaign.platforms.join(', ')}</p>
+                        <p><strong>Status:</strong> <span class="badge badge-${campaign.status}">${campaign.status}</span></p>
+                        <p><small>Created: ${new Date(campaign.created_at).toLocaleDateString()}</small></p>
+                    </div>
+                `).join('');
+
+                document.getElementById('campaignsList').innerHTML = campaignsHtml || '<p>No campaigns yet</p>';
+            } catch (error) {
+                console.error('Error loading campaigns:', error);
+                document.getElementById('campaignsList').innerHTML = '<p class="error-message">Error loading campaigns</p>';
+            }
+        }
+
+        // Content generation
+        document.getElementById('contentGenForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const platform = document.getElementById('genPlatform').value;
+            const topic = document.getElementById('genTopic').value;
+            const count = parseInt(document.getElementById('genCount').value);
+
+            document.getElementById('generatedContent').innerHTML = '<div class="loading">Generating content...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/generate-content`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ platform, topic, count })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.suggestions) {
+                    const contentHtml = result.suggestions.map((suggestion, idx) => `
+                        <div class="card">
+                            <h3>Idea ${idx + 1}: ${suggestion.title || 'Suggestion'}</h3>
+                            <p><strong>Content:</strong></p>
+                            <p>${suggestion.content}</p>
+                            ${suggestion.reasoning ? `<p><small><strong>Why it works:</strong> ${suggestion.reasoning}</small></p>` : ''}
+                        </div>
+                    `).join('');
+
+                    document.getElementById('generatedContent').innerHTML =
+                        `<h3>Generated Content Ideas</h3><div class="grid">${contentHtml}</div>`;
+                } else {
+                    throw new Error('Failed to generate content');
+                }
+            } catch (error) {
+                document.getElementById('generatedContent').innerHTML =
+                    `<div class="error-message">Error: ${error.message}</div>`;
+            }
+        });
+
+        // Load scheduled posts
+        async function loadScheduledPosts() {
+            const platform = document.getElementById('filterPlatform').value;
+            const url = platform ? `${API_BASE}/posts?platform=${platform}&status=scheduled` : `${API_BASE}/posts?status=scheduled`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const postsHtml = data.posts.map(post => `
+                    <div class="post-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span class="badge badge-${post.status}">${post.status}</span>
+                                <strong>${post.platform.toUpperCase()}</strong>
+                            </div>
+                            <button class="btn btn-danger btn-sm" onclick="deletePost('${post.id}')">Delete</button>
+                        </div>
+                        <p>${post.content}</p>
+                        ${post.hashtags.length > 0 ? `
+                            <div class="hashtags">
+                                ${post.hashtags.map(tag => `<span class="hashtag">#${tag}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        <small>Scheduled: ${new Date(post.scheduled_time).toLocaleString()}</small>
+                    </div>
+                `).join('');
+
+                document.getElementById('scheduledPostsList').innerHTML = postsHtml || '<p>No scheduled posts</p>';
+            } catch (error) {
+                console.error('Error loading scheduled posts:', error);
+                document.getElementById('scheduledPostsList').innerHTML = '<p class="error-message">Error loading posts</p>';
+            }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('Are you sure you want to delete this post?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/posts/${postId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadScheduledPosts();
+                }
+            } catch (error) {
+                alert('Error deleting post');
+            }
+        }
+
+        // Load analytics
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`${API_BASE}/analytics?days=30`);
+                const data = await response.json();
+
+                const analyticsHtml = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>Total Posts (30 days)</h4>
+                            <div class="value">${data.total_posts || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Platforms Used</h4>
+                            <div class="value">${data.platforms_used || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Avg Posts/Day</h4>
+                            <div class="value">${(data.avg_posts_per_day || 0).toFixed(1)}</div>
+                        </div>
+                    </div>
+
+                    ${data.platform_breakdown ? `
+                        <h3>Platform Breakdown</h3>
+                        <div class="grid">
+                            ${Object.entries(data.platform_breakdown).map(([platform, stats]) => `
+                                <div class="card">
+                                    <h3>${platform.toUpperCase()}</h3>
+                                    <p><strong>Posts:</strong> ${stats.posts}</p>
+                                    <p><strong>Percentage:</strong> ${stats.percentage.toFixed(1)}%</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                `;
+
+                document.getElementById('analyticsData').innerHTML = analyticsHtml;
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                document.getElementById('analyticsData').innerHTML = '<p class="error-message">Error loading analytics</p>';
+            }
+        }
+
+        // Load initial data
+        loadDashboard();
+    </script>
+</body>
+</html>

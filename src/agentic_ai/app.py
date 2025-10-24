@@ -14,6 +14,20 @@ from .tools.webtools import WebFetch
 
 app = FastAPI(title="Agentic Multi-Stage Bot")
 
+# Initialize social media services on startup
+from .social_media_api import router as social_media_router, init_social_media_services
+
+app.include_router(social_media_router)
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    try:
+        init_social_media_services()
+        logger.info("Social media services initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize social media services: {e}")
+
 # ---------- Static ----------
 @app.get("/", response_class=HTMLResponse)
 def index():
@@ -39,6 +53,17 @@ def css():
     fp = root_css if root_css.exists() else src_css
     with open(fp, "r", encoding="utf-8") as f:
         return PlainTextResponse(f.read(), media_type="text/css")
+
+# ---------- Social Media Automation UI ----------
+@app.get("/social_media.html", response_class=HTMLResponse)
+def social_media_ui():
+    root_html = Path(__file__).resolve().parents[2] / "web" / "social_media.html"
+    src_html = Path(__file__).resolve().parents[1] / "web" / "social_media.html"
+    fp = root_html if root_html.exists() else src_html
+    if not fp.exists():
+        raise HTTPException(status_code=404, detail="Social Media UI not found")
+    with open(fp, "r", encoding="utf-8") as f:
+        return HTMLResponse(f.read())
 
 # ---------- Agentic Coding Pipeline UI ----------
 
