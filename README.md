@@ -55,6 +55,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [GitHub Actions](#github-actions)
 * [Security & Ops](#security--ops)
 * [Troubleshooting](#troubleshooting)
+* [Bonus: Agentic Social Media Automation](#bonus-agentic-social-media-automation-)
 * [Roadmap Ideas](#roadmap-ideas)
 
 ## Key Features
@@ -71,6 +72,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * **Batteries‑included tests** (unit + smoke), lint, formatting, and ready Makefile targets.
 * **Opinionated architecture**: 7‑layer separation, single action per step, reflect‑first finalization.
 * **Extensible**: add new tools, nodes, or agent profiles without breaking the core.
+* **
 * **Production ready**: designed for real‑world use with security, observability, and extensibility in mind.
 * **Open Source**: Apache licensed, built with community contributions in mind.
 
@@ -774,6 +776,42 @@ If you encounter issues while running the agent, here are some common troublesho
 * **Tool misuse**: update DECIDE prompt and `ACT` mapping to strongly bias the correct tool.
 
 If you still have issues, feel free to open an issue on GitHub with details about your setup and the error messages you're encountering. The community is here to help!
+
+## Bonus: Agentic Social Media Automation 🌐
+
+A newly integrated **social media automation system** extends the Agentic AI Pipeline with full-featured, AI-powered content creation and campaign management across major platforms.
+
+**Highlights**
+
+* 🤖 **AI-powered content generation** (GPT-4, Claude)
+* 📅 **Smart scheduling** with optimal posting times
+* 📊 **Analytics and performance tracking**
+* 📢 **Multi-platform support** — Twitter/X, LinkedIn, Instagram, Facebook
+* 🧠 **Campaign orchestration** (multi-day, multi-platform)
+* 🧵 **Thread generation**, **hashtag recommendations**, and **content optimization**
+* 🗂️ **Persistent SQLite storage**
+* 🧭 **Beautiful web dashboard** + **comprehensive REST API**
+
+**Tech Integration**
+
+* New modules: `social_media_tools.py`, `content_generation.py`, `social_media_scheduler.py`, and `social_media_api.py`
+* Integrated directly with the existing **FastAPI app**
+* Web dashboard: `web/social_media.html`
+* API endpoints: `/api/social/*`
+* Config template: `.env.social_media.example`
+* Docs: `docs/SOCIAL_MEDIA_AUTOMATION.md`
+
+To get started:
+
+```bash
+# Copy example env
+cp .env.social_media.example .env
+
+# Run FastAPI app
+make run
+# Open dashboard:
+# http://localhost:8000/social
+```
 
 ## Roadmap Ideas
 
