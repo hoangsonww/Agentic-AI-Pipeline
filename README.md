@@ -55,6 +55,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [GitHub Actions](#github-actions)
 * [Security & Ops](#security--ops)
 * [Troubleshooting](#troubleshooting)
+* [Bonus: Agentic Social Media Automation](#bonus-agentic-social-media-automation-)
 * [Roadmap Ideas](#roadmap-ideas)
 
 ## Key Features
