@@ -1,0 +1,33 @@
+---
+# Kustomization for blue/green deployment
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: agentic-ai-blue-green
+  namespace: flux-system
+spec:
+  interval: 5m
+  path: ./k8s/blue-green
+  prune: false  # Don't auto-prune blue/green deployments
+  sourceRef:
+    kind: GitRepository
+    name: agentic-ai
+  validation: client
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: agentic-ai-blue
+      namespace: default
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: agentic-ai-green
+      namespace: default
+  timeout: 10m
+  retryInterval: 2m
+  # Post-build variable substitution
+  postBuild:
+    substitute:
+      CLUSTER_ENV: "production"
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-vars

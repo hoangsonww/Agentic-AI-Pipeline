@@ -1,0 +1,47 @@
+---
+# Kustomization for canary deployment
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: agentic-ai-canary
+  namespace: flux-system
+spec:
+  interval: 3m
+  path: ./k8s/canary
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: agentic-ai
+  validation: client
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: agentic-ai-stable
+      namespace: default
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: agentic-ai-canary
+      namespace: default
+  timeout: 8m
+  retryInterval: 1m
+
+  # Dependency on Flagger installation
+  dependsOn:
+    - name: flagger
+
+---
+# Flagger installation
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flagger
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./k8s/flagger
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: agentic-ai
+  validation: client
+  timeout: 5m

@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentic-ai-canary
+  labels:
+    app: agentic-ai
+    track: canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agentic-ai
+      track: canary
+  template:
+    metadata:
+      labels:
+        app: agentic-ai
+        track: canary
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: app
+          image: agentic-ai:canary
+          imagePullPolicy: Always
+          env:
+            - name: MODEL_PROVIDER
+              valueFrom: { secretKeyRef: { name: agentic-ai-secrets, key: MODEL_PROVIDER } }
+            - name: OPENAI_API_KEY
+              valueFrom: { secretKeyRef: { name: agentic-ai-secrets, key: OPENAI_API_KEY } }
+            - name: CHROMA_DIR
+              value: /data/chroma
+            - name: SQLITE_PATH
+              value: /data/sqlite/agent.db
+            - name: APP_HOST
+              value: 0.0.0.0
+            - name: APP_PORT
+              value: "8000"
+            - name: DEPLOYMENT_TRACK
+              value: "canary"
+          ports:
+            - containerPort: 8000
+              name: http
+          volumeMounts:
+            - name: chroma
+              mountPath: /data/chroma
+            - name: sqlite
+              mountPath: /data/sqlite
+          livenessProbe:
+            httpGet:
+              path: /api/new_chat
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/new_chat
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+      volumes:
+        - name: chroma
+          persistentVolumeClaim:
+            claimName: agentic-ai-chroma-pvc
+        - name: sqlite
+          persistentVolumeClaim:
+            claimName: agentic-ai-sqlite-pvc

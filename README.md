@@ -39,6 +39,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * [Repository Layout](#repository-layout)
 * [Bonus: Agentic RAG](#bonus-agentic-rag)
 * [Bonus: Agentic Coding Pipeline](#bonus-agentic-coding-pipeline)
+* [Advanced Deployments & DevOps](#advanced-deployments--devops)
 * [Quickstart](#quickstart)
 * [Configuration](#configuration)
 * [Running](#running)
@@ -343,6 +344,51 @@ flowchart TD
 cd Agentic-Coding-Pipeline
 python run.py "Add pagination support to the API client"
 ```
+
+## Advanced Deployments & DevOps
+
+This repository includes **production-grade deployment strategies** and **DevOps automation** for zero-downtime deployments, progressive rollouts, and GitOps-driven continuous delivery.
+
+### Deployment Strategies
+
+* **Blue/Green Deployments**: Zero-downtime deployments with instant rollback capability (Kubernetes + AWS ECS)
+* **Canary Deployments**: Progressive traffic shifting with automated health checks and metrics analysis
+* **GitOps**: Declarative deployments with ArgoCD and Flux v2, including image automation
+* **Automated Monitoring**: Continuous health checks with auto-rollback on failures
+* **Infrastructure as Code**: Terraform modules for AWS ECS with CodeDeploy integration
+
+### Quick Examples
+
+```bash
+# Blue/Green deployment (Kubernetes)
+./scripts/blue_green_deploy.sh green agentic-ai:v1.2.0
+
+# Canary deployment with Flagger
+kubectl apply -f k8s/canary/flagger-canary.yaml
+kubectl set image deployment/agentic-ai app=agentic-ai:v1.2.0
+
+# GitOps with ArgoCD
+kubectl apply -f gitops/argocd/application.yaml
+
+# Monitor deployment with auto-rollback
+ROLLBACK_ENABLED=true ./scripts/deployment_monitor.sh agentic-ai
+```
+
+### Documentation
+
+> [!TIP]
+> **For comprehensive deployment guides, see:**
+> - **[Advanced Deployments Guide](docs/ADVANCED_DEPLOYMENTS.md)** - Complete documentation for all deployment strategies
+> - **[Deployment Quick Start](docs/DEPLOYMENT_QUICKSTART.md)** - Quick reference and common commands
+> - **[Deployments Overview](DEPLOYMENTS_README.md)** - Summary of all deployment capabilities
+
+**Features:**
+- Kubernetes manifests for blue/green and canary deployments
+- Terraform modules for AWS ECS with blue/green (CodeDeploy) and canary (weighted routing)
+- Automated deployment scripts with health validation
+- GitOps configurations for ArgoCD and Flux
+- Monitoring and rollback automation
+- HPA and Flagger integration
 
 ## Quickstart
 

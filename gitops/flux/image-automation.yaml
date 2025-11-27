@@ -1,0 +1,89 @@
+---
+# Image repository scanner
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: agentic-ai
+  namespace: flux-system
+spec:
+  image: your-registry/agentic-ai
+  interval: 5m
+  secretRef:
+    name: registry-credentials
+
+---
+# Image policy (semantic versioning)
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: agentic-ai-semver
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: agentic-ai
+  policy:
+    semver:
+      range: '>=1.0.0 <2.0.0'
+
+---
+# Image policy (latest tag)
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: agentic-ai-latest
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: agentic-ai
+  policy:
+    alphabetical:
+      order: asc
+  filterTags:
+    pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
+    extract: '$ts'
+
+---
+# Image update automation
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImageUpdateAutomation
+metadata:
+  name: agentic-ai
+  namespace: flux-system
+spec:
+  interval: 30m
+  sourceRef:
+    kind: GitRepository
+    name: agentic-ai
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        email: fluxbot@users.noreply.github.com
+        name: FluxBot
+      messageTemplate: |
+        Automated image update
+
+        Automation name: {{ .AutomationObject }}
+
+        Files:
+        {{ range $filename, $_ := .Updated.Files -}}
+        - {{ $filename }}
+        {{ end -}}
+
+        Objects:
+        {{ range $resource, $_ := .Updated.Objects -}}
+        - {{ $resource.Kind }} {{ $resource.Name }}
+        {{ end -}}
+
+        Images:
+        {{ range .Updated.Images -}}
+        - {{.}} ({{.Policy.Name}})
+        {{ end -}}
+    push:
+      branch: main
+
+  update:
+    path: ./k8s
+    strategy: Setters

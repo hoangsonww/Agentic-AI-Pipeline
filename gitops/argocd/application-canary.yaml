@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: agentic-ai-canary
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: agentic-ai-deployments
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/your-org/Research-Outreach-Agentic-AI.git
+    targetRevision: main
+    path: k8s/canary
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+
+  # Ignore canary-specific fields managed by Flagger
+  ignoreDifferences:
+    - group: networking.k8s.io
+      kind: Ingress
+      name: agentic-ai-canary
+      jsonPointers:
+        - /metadata/annotations/nginx.ingress.kubernetes.io~1canary-weight
+    - group: apps
+      kind: Deployment
+      name: agentic-ai-canary
+      jsonPointers:
+        - /spec/replicas
+        - /spec/template/spec/containers/0/image
+
+  revisionHistoryLimit: 10

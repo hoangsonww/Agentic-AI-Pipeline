@@ -1,0 +1,82 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: agentic-ai-project
+  namespace: argocd
+spec:
+  description: Agentic AI Research & Outreach Application
+
+  # Source repositories
+  sourceRepos:
+    - https://github.com/your-org/Research-Outreach-Agentic-AI.git
+    - https://charts.bitnami.com/bitnami  # For any Helm charts
+
+  # Destinations
+  destinations:
+    - namespace: default
+      server: https://kubernetes.default.svc
+    - namespace: agentic-ai-*
+      server: https://kubernetes.default.svc
+
+  # Allowed cluster resources
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: 'rbac.authorization.k8s.io'
+      kind: ClusterRole
+    - group: 'rbac.authorization.k8s.io'
+      kind: ClusterRoleBinding
+
+  # Allowed namespace resources
+  namespaceResourceWhitelist:
+    - group: 'apps'
+      kind: Deployment
+    - group: 'apps'
+      kind: StatefulSet
+    - group: ''
+      kind: Service
+    - group: ''
+      kind: ConfigMap
+    - group: ''
+      kind: Secret
+    - group: ''
+      kind: PersistentVolumeClaim
+    - group: 'networking.k8s.io'
+      kind: Ingress
+    - group: 'autoscaling'
+      kind: HorizontalPodAutoscaler
+    - group: 'flagger.app'
+      kind: Canary
+
+  # Sync windows
+  syncWindows:
+    - kind: allow
+      schedule: '0 9-17 * * 1-5'  # Business hours Mon-Fri
+      duration: 8h
+      applications:
+        - '*'
+      manualSync: true
+    - kind: deny
+      schedule: '0 0-6 * * *'  # Deny automated sync during night
+      duration: 6h
+      applications:
+        - '*'
+      manualSync: false
+
+  # Role bindings
+  roles:
+    - name: developer
+      description: Developer role with view and sync permissions
+      policies:
+        - p, proj:agentic-ai-project:developer, applications, get, agentic-ai-project/*, allow
+        - p, proj:agentic-ai-project:developer, applications, sync, agentic-ai-project/*, allow
+      groups:
+        - developers
+
+    - name: operator
+      description: Operator role with full permissions
+      policies:
+        - p, proj:agentic-ai-project:operator, applications, *, agentic-ai-project/*, allow
+      groups:
+        - operators
+        - sre

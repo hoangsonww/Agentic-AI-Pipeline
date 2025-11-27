@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: agentic-ai-blue-green
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/your-org/Research-Outreach-Agentic-AI.git
+    targetRevision: main
+    path: k8s/blue-green
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: false  # Don't auto-prune for blue/green
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+    # Manual sync waves for controlled rollout
+    syncOptions:
+      - RespectIgnoreDifferences=true
+
+  # Preserve blue and green deployments
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: agentic-ai-blue
+      jsonPointers:
+        - /spec/replicas
+        - /spec/template/spec/containers/0/image
+    - group: apps
+      kind: Deployment
+      name: agentic-ai-green
+      jsonPointers:
+        - /spec/replicas
+        - /spec/template/spec/containers/0/image
+    - group: v1
+      kind: Service
+      name: agentic-ai
+      jsonPointers:
+        - /spec/selector/version
+
+  revisionHistoryLimit: 10
