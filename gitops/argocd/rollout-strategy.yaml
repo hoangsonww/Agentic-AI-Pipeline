@@ -1,0 +1,121 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: agentic-ai-rollout
+  namespace: default
+spec:
+  replicas: 3
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: agentic-ai
+
+  template:
+    metadata:
+      labels:
+        app: agentic-ai
+    spec:
+      containers:
+        - name: app
+          image: agentic-ai:latest
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: APP_HOST
+              value: "0.0.0.0"
+            - name: APP_PORT
+              value: "8000"
+          livenessProbe:
+            httpGet:
+              path: /api/new_chat
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/new_chat
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+  # Progressive delivery strategy
+  strategy:
+    canary:
+      # Canary service (receives canary traffic)
+      canaryService: agentic-ai-canary
+      # Stable service (receives stable traffic)
+      stableService: agentic-ai-stable
+
+      # Traffic routing
+      trafficRouting:
+        nginx:
+          stableIngress: agentic-ai-stable
+          annotationPrefix: nginx.ingress.kubernetes.io
+
+      # Analysis during rollout
+      analysis:
+        templates:
+          - templateName: success-rate
+          - templateName: latency
+        startingStep: 2
+        args:
+          - name: service-name
+            value: agentic-ai-canary
+
+      # Canary steps (progressive traffic shift)
+      steps:
+        - setWeight: 10
+        - pause: { duration: 2m }
+        - setWeight: 20
+        - pause: { duration: 2m }
+        - setWeight: 40
+        - pause: { duration: 3m }
+        - setWeight: 60
+        - pause: { duration: 3m }
+        - setWeight: 80
+        - pause: { duration: 2m }
+---
+# Analysis template for success rate
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate
+  namespace: default
+spec:
+  args:
+    - name: service-name
+  metrics:
+    - name: success-rate
+      interval: 1m
+      successCondition: result >= 0.95
+      failureLimit: 3
+      provider:
+        prometheus:
+          address: http://prometheus:9090
+          query: |
+            sum(rate(http_requests_total{service="{{args.service-name}}",status!~"5.."}[1m]))
+            /
+            sum(rate(http_requests_total{service="{{args.service-name}}"}[1m]))
+---
+# Analysis template for latency
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: latency
+  namespace: default
+spec:
+  args:
+    - name: service-name
+  metrics:
+    - name: latency-p99
+      interval: 1m
+      successCondition: result < 500
+      failureLimit: 3
+      provider:
+        prometheus:
+          address: http://prometheus:9090
+          query: |
+            histogram_quantile(0.99,
+              sum(rate(http_request_duration_seconds_bucket{service="{{args.service-name}}"}[1m])) by (le)
+            ) * 1000

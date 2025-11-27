@@ -1,0 +1,36 @@
+---
+# GitRepository source
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: agentic-ai
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://github.com/your-org/Research-Outreach-Agentic-AI.git
+  ref:
+    branch: main
+  secretRef:
+    name: github-credentials
+---
+# Kustomization for main deployment
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: agentic-ai
+  namespace: flux-system
+spec:
+  interval: 5m
+  path: ./k8s
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: agentic-ai
+  validation: client
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: agentic-ai
+      namespace: default
+  timeout: 5m
+  retryInterval: 1m

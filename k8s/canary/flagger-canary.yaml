@@ -1,0 +1,92 @@
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: agentic-ai
+  namespace: default
+spec:
+  # Deployment reference
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: agentic-ai
+
+  # Progressive delivery settings
+  progressDeadlineSeconds: 600
+
+  # Service configuration
+  service:
+    port: 8000
+    targetPort: 8000
+    portName: http
+    gateways:
+      - public-gateway
+    hosts:
+      - agentic-ai.example.com
+
+  # Traffic routing
+  analysis:
+    # Schedule interval (default 1m)
+    interval: 1m
+    # Max number of failed metric checks before rollback
+    threshold: 5
+    # Max traffic percentage routed to canary
+    maxWeight: 50
+    # Canary increment step
+    stepWeight: 10
+    # Metrics for analysis
+    metrics:
+      # Request success rate (>99%)
+      - name: request-success-rate
+        thresholdRange:
+          min: 99
+        interval: 1m
+
+      # Request duration P99 (<500ms)
+      - name: request-duration
+        thresholdRange:
+          max: 500
+        interval: 30s
+
+      # Custom metric: API response time
+      - name: api-response-time
+        query: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket{
+              app="agentic-ai"
+            }[1m])) by (le)
+          )
+        thresholdRange:
+          max: 0.5
+        interval: 1m
+
+    # Webhooks for custom checks
+    webhooks:
+      # Pre-rollout webhook (smoke tests)
+      - name: smoke-test
+        type: pre-rollout
+        url: http://flagger-loadtester/
+        timeout: 15s
+        metadata:
+          type: bash
+          cmd: "curl -sd 'test' http://agentic-ai-canary:8000/api/new_chat | grep -q 'chat_id'"
+
+      # Load testing during canary
+      - name: load-test
+        type: rollout
+        url: http://flagger-loadtester/
+        timeout: 5s
+        metadata:
+          type: cmd
+          cmd: "hey -z 1m -q 10 -c 2 http://agentic-ai-canary:8000/api/new_chat"
+
+      # Post-rollout confirmation webhook
+      - name: confirmation
+        type: confirm-rollout
+        url: http://flagger-loadtester/
+        timeout: 10s
+
+  # Autoscaling configuration
+  autoscalerRef:
+    apiVersion: autoscaling/v2
+    kind: HorizontalPodAutoscaler
+    name: agentic-ai

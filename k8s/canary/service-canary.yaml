@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: agentic-ai-canary
+  labels:
+    app: agentic-ai
+    track: canary
+spec:
+  type: ClusterIP
+  selector:
+    app: agentic-ai
+    track: canary
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      name: http
