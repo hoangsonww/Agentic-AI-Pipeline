@@ -6,20 +6,20 @@
     <meta name="description" content="Agentic Multi-Stage Bot - A full-fledged research and outreach agent with 7-layer architecture, LangGraph orchestration, and autonomous tool use.">
     <meta name="keywords" content="AI, Agents, LangGraph, LangChain, FastAPI, RAG, ChromaDB, Autonomous, Multi-Stage">
     <meta name="author" content="Agentic AI Team">
-    
+
     <title>Agentic Multi-Stage Bot | Research & Outreach Agent Wiki</title>
-    
+
     <!-- Styles -->
     <link rel="stylesheet" href="packages/styles.css">
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-    
+
     <!-- Mermaid for Diagrams -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    
+
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
 </head>
@@ -55,7 +55,7 @@
             <h1>🤖 Agentic Multi‑Stage Bot</h1>
             <p class="subtitle">A Research & Outreach Agent That Thinks, Plans, and Acts</p>
             <p class="description">
-                Full-fledged multi-stage agentic chatbot with autonomous reasoning, tool chaining, 
+                Full-fledged multi-stage agentic chatbot with autonomous reasoning, tool chaining,
                 and persistent memory. Built on LangGraph, FastAPI, and ChromaDB for production-ready deployments.
             </p>
             <div class="cta-buttons">
@@ -98,13 +98,13 @@
                     Enterprise-grade agentic system with multi-stage reasoning, autonomous tool use, and production-ready infrastructure
                 </p>
             </div>
-            
+
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">🧠</div>
                     <h3 class="feature-title">Multi-Stage Reasoning</h3>
                     <p class="feature-description">
-                        LangGraph-powered state machine with plan → decide → act → reflect → finalize workflow. 
+                        LangGraph-powered state machine with plan → decide → act → reflect → finalize workflow.
                         Single atomic actions per step for deterministic traces.
                     </p>
                 </div>
@@ -113,7 +113,7 @@
                     <div class="feature-icon">🔧</div>
                     <h3 class="feature-title">Autonomous Tool Use</h3>
                     <p class="feature-description">
-                        Web search, URL fetch, calculator, file write, email drafting, and KB search/add. 
+                        Web search, URL fetch, calculator, file write, email drafting, and KB search/add.
                         Tools chain automatically based on agent decisions.
                     </p>
                 </div>
@@ -122,7 +122,7 @@
                     <div class="feature-icon">💾</div>
                     <h3 class="feature-title">Dual Memory Systems</h3>
                     <p class="feature-description">
-                        SQLite for conversation history and feedback. ChromaDB vector store for RAG and 
+                        SQLite for conversation history and feedback. ChromaDB vector store for RAG and
                         persistent knowledge with semantic search.
                     </p>
                 </div>
@@ -131,7 +131,7 @@
                     <div class="feature-icon">🌐</div>
                     <h3 class="feature-title">Web Experience Layer</h3>
                     <p class="feature-description">
-                        FastAPI backend with SSE streaming. Zero-build Vue.js UI with real-time chat, 
+                        FastAPI backend with SSE streaming. Zero-build Vue.js UI with real-time chat,
                         KB ingestion, and feedback collection.
                     </p>
                 </div>
@@ -140,7 +140,7 @@
                     <div class="feature-icon">🔒</div>
                     <h3 class="feature-title">Production Security</h3>
                     <p class="feature-description">
-                        Rate limiting, rotating logs, secrets management, and audit trails. 
+                        Rate limiting, rotating logs, secrets management, and audit trails.
                         Docker containerization with Kubernetes manifests included.
                     </p>
                 </div>
@@ -149,7 +149,7 @@
                     <div class="feature-icon">🧪</div>
                     <h3 class="feature-title">Batteries Included</h3>
                     <p class="feature-description">
-                        Comprehensive test suite (pytest), code quality tools (Ruff), CI/CD pipelines, 
+                        Comprehensive test suite (pytest), code quality tools (Ruff), CI/CD pipelines,
                         and extensive documentation for rapid development.
                     </p>
                 </div>
@@ -158,7 +158,7 @@
                     <div class="feature-icon">📱</div>
                     <h3 class="feature-title">Social Media Automation</h3>
                     <p class="feature-description">
-                        AI-powered content generation for Twitter, LinkedIn, Instagram, and Facebook. 
+                        AI-powered content generation for Twitter, LinkedIn, Instagram, and Facebook.
                         Smart scheduling, analytics, and multi-platform campaigns.
                     </p>
                 </div>
@@ -167,7 +167,7 @@
                     <div class="feature-icon">🚀</div>
                     <h3 class="feature-title">Advanced Deployments</h3>
                     <p class="feature-description">
-                        Blue/green and canary deployments. GitOps with ArgoCD/Flux. 
+                        Blue/green and canary deployments. GitOps with ArgoCD/Flux.
                         Automated health checks and rollback capabilities.
                     </p>
                 </div>
@@ -176,7 +176,7 @@
                     <div class="feature-icon">🔌</div>
                     <h3 class="feature-title">Extensible Architecture</h3>
                     <p class="feature-description">
-                        7-layer modular design. Add new tools, nodes, or agent profiles without 
+                        7-layer modular design. Add new tools, nodes, or agent profiles without
                         breaking core functionality. Client SDKs for Python and TypeScript.
                     </p>
                 </div>
@@ -246,7 +246,7 @@
 
                 <div class="mt-4 text-center">
                     <p class="text-secondary" style="max-width: 700px; margin: 0 auto;">
-                        Each layer has a specific role and communicates through well-defined interfaces, 
+                        Each layer has a specific role and communicates through well-defined interfaces,
                         allowing for independent evolution while maintaining clear contracts.
                     </p>
                 </div>
@@ -301,7 +301,7 @@ flowchart LR
     IN --> RL
     RL -->|ok| START
     RL -->|429| HALT[Backoff]
-    
+
     START --> PLAN
     PLAN --> DECIDE
     DECIDE -->|search/fetch/kb/calc/write/email| ACT
@@ -312,7 +312,7 @@ flowchart LR
     REFLECT -->|continue| DECIDE
 
     TOOLS --> TSEARCH & TFETCH & TKBS & TKBADD & TCALC & TWRITE & TEMAIL
-    
+
     PLAN -.-> VEC
     FINALIZE --> SQL
     STREAM --> FB
@@ -376,7 +376,7 @@ flowchart LR
                     <div class="feature-icon">📚</div>
                     <h3 class="feature-title">Agentic RAG Pipeline</h3>
                     <p class="feature-description">
-                        Full agentic RAG with multi-step plan → retrieve → reflect → verify → answer. 
+                        Full agentic RAG with multi-step plan → retrieve → reflect → verify → answer.
                         Includes memory, tool use, quality checks, and dual retrieval (vector + web).
                     </p>
                     <div class="mt-4">
@@ -403,7 +403,7 @@ flowchart TD
                     <div class="feature-icon">💻</div>
                     <h3 class="feature-title">Agentic Coding Pipeline</h3>
                     <p class="feature-description">
-                        Autonomous coding assistant that drafts patches, formats code, synthesizes tests, 
+                        Autonomous coding assistant that drafts patches, formats code, synthesizes tests,
                         and iterates until quality gates pass. Multi-LLM coordination (GPT + Claude).
                     </p>
                     <div class="mt-4">
@@ -751,7 +751,7 @@ async with AgenticAIClient("http://localhost:8000") as c:
         chat_id=meta["chat_id"],
         on_token=lambda t: print(t, end="")
     )
-    
+
     # Ingest content
     await c.ingest("text", {"tags": ["kb"]})
     await c.ingest_url("https://example.com")</code></pre>
@@ -842,14 +842,13 @@ RATE_LIMIT_REFILL_RATE=10</code></pre>
 
         <div class="footer-bottom">
             <p>
-                Built with ❤️ using LangGraph, FastAPI, and ChromaDB | 
-                Licensed under Apache 2.0 | 
+                Built with ❤️ using LangGraph, FastAPI, and ChromaDB |
+                Licensed under Apache 2.0 |
                 © 2024 Agentic AI Team
             </p>
         </div>
     </footer>
 
-    <!-- Scripts -->
     <script src="packages/script.js"></script>
 </body>
 </html>
