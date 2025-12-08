@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Agentic Multi-Stage Bot - A full-fledged research and outreach agent with 7-layer architecture, LangGraph orchestration, and autonomous tool use.">
+    <meta name="keywords" content="AI, Agents, LangGraph, LangChain, FastAPI, RAG, ChromaDB, Autonomous, Multi-Stage">
+    <meta name="author" content="Agentic AI Team">
+    
+    <title>Agentic Multi-Stage Bot | Research & Outreach Agent Wiki</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="packages/styles.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Mermaid for Diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+</head>
+<body>
+
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress-bar">
+        <div class="scroll-progress-fill"></div>
+    </div>
+
+    <!-- Header & Navigation -->
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🤖</span>
+                <span>Agentic AI</span>
+            </div>
+            <!-- Mobile menu toggle will be inserted here by JavaScript -->
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#pipelines">Pipelines</a></li>
+                <li><a href="#deployment">Deployment</a></li>
+                <li><a href="#quickstart">Quick Start</a></li>
+                <li><a href="#docs">Documentation</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>🤖 Agentic Multi‑Stage Bot</h1>
+            <p class="subtitle">A Research & Outreach Agent That Thinks, Plans, and Acts</p>
+            <p class="description">
+                Full-fledged multi-stage agentic chatbot with autonomous reasoning, tool chaining, 
+                and persistent memory. Built on LangGraph, FastAPI, and ChromaDB for production-ready deployments.
+            </p>
+            <div class="cta-buttons">
+                <a href="#quickstart" class="btn btn-primary">
+                    🚀 Get Started
+                </a>
+                <a href="https://github.com/yourusername/Research-Outreach-Agentic-AI" class="btn btn-secondary">
+                    📦 View on GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Badges Section -->
+    <section class="badges">
+        <div class="badges-container">
+            <span class="badge">🐍 Python 3.10+</span>
+            <span class="badge">⚡ FastAPI</span>
+            <span class="badge">🔗 LangGraph</span>
+            <span class="badge">🦜 LangChain</span>
+            <span class="badge">🧠 OpenAI/Anthropic</span>
+            <span class="badge">🔍 ChromaDB</span>
+            <span class="badge">💾 SQLite</span>
+            <span class="badge">🔄 SSE Streaming</span>
+            <span class="badge">🐳 Docker Ready</span>
+            <span class="badge">☸️ Kubernetes</span>
+            <span class="badge">🔐 Production Ready</span>
+            <span class="badge">📖 Open Source</span>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container">
+
+        <!-- Key Features Section -->
+        <section id="features" class="section">
+            <div class="section-header">
+                <h2 class="section-title">✨ Key Features</h2>
+                <p class="section-subtitle">
+                    Enterprise-grade agentic system with multi-stage reasoning, autonomous tool use, and production-ready infrastructure
+                </p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3 class="feature-title">Multi-Stage Reasoning</h3>
+                    <p class="feature-description">
+                        LangGraph-powered state machine with plan → decide → act → reflect → finalize workflow. 
+                        Single atomic actions per step for deterministic traces.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3 class="feature-title">Autonomous Tool Use</h3>
+                    <p class="feature-description">
+                        Web search, URL fetch, calculator, file write, email drafting, and KB search/add. 
+                        Tools chain automatically based on agent decisions.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3 class="feature-title">Dual Memory Systems</h3>
+                    <p class="feature-description">
+                        SQLite for conversation history and feedback. ChromaDB vector store for RAG and 
+                        persistent knowledge with semantic search.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3 class="feature-title">Web Experience Layer</h3>
+                    <p class="feature-description">
+                        FastAPI backend with SSE streaming. Zero-build Vue.js UI with real-time chat, 
+                        KB ingestion, and feedback collection.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3 class="feature-title">Production Security</h3>
+                    <p class="feature-description">
+                        Rate limiting, rotating logs, secrets management, and audit trails. 
+                        Docker containerization with Kubernetes manifests included.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🧪</div>
+                    <h3 class="feature-title">Batteries Included</h3>
+                    <p class="feature-description">
+                        Comprehensive test suite (pytest), code quality tools (Ruff), CI/CD pipelines, 
+                        and extensive documentation for rapid development.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3 class="feature-title">Social Media Automation</h3>
+                    <p class="feature-description">
+                        AI-powered content generation for Twitter, LinkedIn, Instagram, and Facebook. 
+                        Smart scheduling, analytics, and multi-platform campaigns.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">Advanced Deployments</h3>
+                    <p class="feature-description">
+                        Blue/green and canary deployments. GitOps with ArgoCD/Flux. 
+                        Automated health checks and rollback capabilities.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔌</div>
+                    <h3 class="feature-title">Extensible Architecture</h3>
+                    <p class="feature-description">
+                        7-layer modular design. Add new tools, nodes, or agent profiles without 
+                        breaking core functionality. Client SDKs for Python and TypeScript.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
+        <section id="architecture" class="section">
+            <div class="section-header">
+                <h2 class="section-title">🏗️ 7-Layer Architecture</h2>
+                <p class="section-subtitle">
+                    Clear separation of concerns with well-defined interfaces between layers
+                </p>
+            </div>
+
+            <div class="architecture-section">
+                <div class="layer-stack">
+                    <div class="layer">
+                        <div class="layer-title">1️⃣ Experience Layer</div>
+                        <div class="layer-description">
+                            FastAPI + SSE streaming → Web UI, CLI, REST API endpoints
+                        </div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="layer-title">2️⃣ Discovery Layer</div>
+                        <div class="layer-description">
+                            WebSearch (DuckDuckGo), WebFetch (URL extraction), KB semantic search (RAG)
+                        </div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="layer-title">3️⃣ Agent Composition</div>
+                        <div class="layer-description">
+                            Agent profiles with persona, objectives, capabilities, and safety constraints
+                        </div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="layer-title">4️⃣ Reasoning & Planning</div>
+                        <div class="layer-description">
+                            LangGraph state machine: plan → decide → act → reflect → finalize
+                        </div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="layer-title">5️⃣ Tool & API Layer</div>
+                        <div class="layer-description">
+                            Calculator, FileWrite, Emailer, Web tools, KB add/search with structured I/O
+                        </div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="layer-title">6️⃣ Memory & Feedback</div>
+                        <div class="layer-description">
+                            SQLite (turns, feedback), ChromaDB (vector KB), Citations store
+                        </div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="layer-title">7️⃣ Infrastructure</div>
+                        <div class="layer-description">
+                            Logging, rate limiting, config management, packaging, observability hooks
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <p class="text-secondary" style="max-width: 700px; margin: 0 auto;">
+                        Each layer has a specific role and communicates through well-defined interfaces, 
+                        allowing for independent evolution while maintaining clear contracts.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Agent Graph Section -->
+        <section id="graph" class="section">
+            <div class="section-header">
+                <h2 class="section-title">🔄 Agent Graph (LangGraph)</h2>
+                <p class="section-subtitle">
+                    Typed state machine driving LLM and tool orchestration with single atomic actions per step
+                </p>
+            </div>
+
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart LR
+    subgraph EXP[Experience Layer]
+        IN[User prompt]
+        RL{Rate limit}
+        STREAM[SSE stream]
+        FB[Feedback API]
+    end
+
+    subgraph MEM[Memory Layer]
+        SQL[(SQLite)]
+        VEC[(ChromaDB)]
+        CIT[Citations]
+    end
+
+    subgraph GRAPH[Reasoning & Planning]
+        START((START))
+        PLAN[PLAN]
+        DECIDE{DECIDE}
+        ACT[ACT]
+        TOOLS((ToolNode))
+        REFLECT[REFLECT]
+        FINALIZE([FINALIZE])
+    end
+
+    subgraph TOOLS_LAYER[Tool Layer]
+        TSEARCH[web_search]
+        TFETCH[web_fetch]
+        TKBS[kb_search]
+        TKBADD[kb_add]
+        TCALC[calculator]
+        TWRITE[file_write]
+        TEMAIL[emailer]
+    end
+
+    IN --> RL
+    RL -->|ok| START
+    RL -->|429| HALT[Backoff]
+    
+    START --> PLAN
+    PLAN --> DECIDE
+    DECIDE -->|search/fetch/kb/calc/write/email| ACT
+    DECIDE -->|finalize| FINALIZE
+    ACT --> TOOLS
+    TOOLS --> REFLECT
+    REFLECT -->|done| FINALIZE
+    REFLECT -->|continue| DECIDE
+
+    TOOLS --> TSEARCH & TFETCH & TKBS & TKBADD & TCALC & TWRITE & TEMAIL
+    
+    PLAN -.-> VEC
+    FINALIZE --> SQL
+    STREAM --> FB
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h3 style="text-align: center; margin-bottom: 1rem;">Key Nodes</h3>
+                <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                    <div class="feature-card">
+                        <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">PLAN</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                            Creates 3-6 step action plan with KB context pre-retrieval
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">DECIDE</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                            Selects next atomic action: search, fetch, calculate, write, etc.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">ACT</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                            Binds LLM to tool schema and forces single precise call
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">TOOLS</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                            Executes tool calls via LangGraph ToolNode
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">REFLECT</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                            Emits BRIEFING (final) or NEXT action token
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">FINALIZE</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                            Completes execution and persists results
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bonus Pipelines Section -->
+        <section id="pipelines" class="section">
+            <div class="section-header">
+                <h2 class="section-title">🎁 Bonus: Additional Pipelines</h2>
+                <p class="section-subtitle">
+                    Two powerful companion pipelines for RAG and autonomous coding
+                </p>
+            </div>
+
+            <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
+                <div class="feature-card">
+                    <div class="feature-icon">📚</div>
+                    <h3 class="feature-title">Agentic RAG Pipeline</h3>
+                    <p class="feature-description">
+                        Full agentic RAG with multi-step plan → retrieve → reflect → verify → answer. 
+                        Includes memory, tool use, quality checks, and dual retrieval (vector + web).
+                    </p>
+                    <div class="mt-4">
+                        <div class="diagram-container">
+                            <div class="mermaid">
+flowchart TD
+    U[User] --> IR[Intent Router]
+    IR --> PL[Planner]
+    PL --> RP[Retrieval Planner]
+    RP --> R1[Vector Retriever]
+    RP --> R2[Web Retriever]
+    R1 --> W[Writer]
+    R2 --> W
+    W --> C[Critic]
+    C -->|follow-ups| RP
+    W --> G[Guardrails]
+    G --> A[Answer + Evidence]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💻</div>
+                    <h3 class="feature-title">Agentic Coding Pipeline</h3>
+                    <p class="feature-description">
+                        Autonomous coding assistant that drafts patches, formats code, synthesizes tests, 
+                        and iterates until quality gates pass. Multi-LLM coordination (GPT + Claude).
+                    </p>
+                    <div class="mt-4">
+                        <div class="diagram-container">
+                            <div class="mermaid">
+flowchart TD
+    T[Task] --> OR[Pipeline]
+    OR --> C1[GPT Coder]
+    OR --> C2[Claude Coder]
+    C1 --> OR
+    C2 --> OR
+    OR --> F[Ruff Format]
+    F --> OR
+    OR --> TS[Test + Pytest]
+    TS --> OR
+    OR --> QA[Gemini QA]
+    QA --> OUT[Patch]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deployment Section -->
+        <section id="deployment" class="section">
+            <div class="section-header">
+                <h2 class="section-title">🚀 Advanced Deployment Strategies</h2>
+                <p class="section-subtitle">
+                    Production-grade deployment with zero-downtime, progressive rollouts, and GitOps
+                </p>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Strategy</th>
+                            <th>Use Case</th>
+                            <th>Rollback Speed</th>
+                            <th>Traffic Control</th>
+                            <th>Automation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Blue/Green</strong></td>
+                            <td>Major releases, DB migrations</td>
+                            <td>⚡ Instant</td>
+                            <td>All-or-nothing</td>
+                            <td>Script-based</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Canary (Manual)</strong></td>
+                            <td>Gradual validation</td>
+                            <td>⚡ Fast</td>
+                            <td>Progressive</td>
+                            <td>Interactive</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Canary (Flagger)</strong></td>
+                            <td>Automated delivery</td>
+                            <td>⚡⚡ Very Fast</td>
+                            <td>Progressive</td>
+                            <td>Fully automated</td>
+                        </tr>
+                        <tr>
+                            <td><strong>GitOps (ArgoCD)</strong></td>
+                            <td>Declarative, auditable</td>
+                            <td>⚡ Fast</td>
+                            <td>Configurable</td>
+                            <td>Git-driven</td>
+                        </tr>
+                        <tr>
+                            <td><strong>GitOps (Flux)</strong></td>
+                            <td>Image-driven, automated</td>
+                            <td>⚡ Fast</td>
+                            <td>Configurable</td>
+                            <td>Fully automated</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="features-grid mt-4">
+                <div class="feature-card">
+                    <h4 style="color: var(--success-color); margin-bottom: 0.5rem;">✅ Zero-Downtime</h4>
+                    <p style="font-size: 0.9rem;">Traffic switching with no service interruption</p>
+                </div>
+                <div class="feature-card">
+                    <h4 style="color: var(--success-color); margin-bottom: 0.5rem;">✅ Health Validation</h4>
+                    <p style="font-size: 0.9rem;">Automated checks before traffic switch</p>
+                </div>
+                <div class="feature-card">
+                    <h4 style="color: var(--success-color); margin-bottom: 0.5rem;">✅ Progressive Rollouts</h4>
+                    <p style="font-size: 0.9rem;">Gradual traffic increase for risk mitigation</p>
+                </div>
+                <div class="feature-card">
+                    <h4 style="color: var(--success-color); margin-bottom: 0.5rem;">✅ Quick Rollback</h4>
+                    <p style="font-size: 0.9rem;">One-command rollback procedures</p>
+                </div>
+                <div class="feature-card">
+                    <h4 style="color: var(--success-color); margin-bottom: 0.5rem;">✅ Infrastructure as Code</h4>
+                    <p style="font-size: 0.9rem;">Terraform modules for AWS resources</p>
+                </div>
+                <div class="feature-card">
+                    <h4 style="color: var(--success-color); margin-bottom: 0.5rem;">✅ Auto-Monitoring</h4>
+                    <p style="font-size: 0.9rem;">Continuous health checks with rollback</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section id="quickstart" class="section">
+            <div class="section-header">
+                <h2 class="section-title">⚡ Quick Start</h2>
+                <p class="section-subtitle">
+                    Get up and running in minutes with our streamlined setup process
+                </p>
+            </div>
+
+            <div class="code-section">
+                <div class="code-header">
+                    <span class="code-language">bash</span>
+                    <button class="copy-btn">📋 Copy</button>
+                </div>
+                <pre><code># 1) Create virtual environment & install dependencies
+python -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install -r requirements.txt
+
+# 2) Configure API keys
+cp .env.example .env
+# Edit .env with your OPENAI_API_KEY or ANTHROPIC_API_KEY
+
+# 3) Ingest seed knowledge into vector store
+make ingest
+
+# 4) Run the server
+make run
+
+# Open http://localhost:8000 and start chatting!
+# Try: "Build a competitive briefing on ACME Robotics"</code></pre>
+            </div>
+
+            <div class="mt-4">
+                <h3 style="margin-bottom: 1rem;">CLI Demo</h3>
+                <div class="code-section">
+                    <div class="code-header">
+                        <span class="code-language">bash</span>
+                        <button class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>source .venv/bin/activate
+python -m agentic_ai.cli demo "Summarize top AMR vendors with citations"</code></pre>
+                </div>
+            </div>
+
+            <div class="stats-grid mt-4">
+                <div class="stat-card">
+                    <div class="stat-number" data-target="7">7</div>
+                    <div class="stat-label">Architecture Layers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" data-target="15+">15+</div>
+                    <div class="stat-label">Built-in Tools</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" data-target="100%">100%</div>
+                    <div class="stat-label">Type Safe</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" data-target="3">3</div>
+                    <div class="stat-label">Deployment Strategies</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tools & Capabilities -->
+        <section id="tools" class="section">
+            <div class="section-header">
+                <h2 class="section-title">🔧 Tools & Capabilities</h2>
+                <p class="section-subtitle">
+                    Atomic tools designed for specific purposes, chainable for complex tasks
+                </p>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            <th>Purpose</th>
+                            <th>Input</th>
+                            <th>Output</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>web_search</code></td>
+                            <td>General discovery via DuckDuckGo</td>
+                            <td>Natural language query</td>
+                            <td>JSON list of results</td>
+                        </tr>
+                        <tr>
+                            <td><code>web_fetch</code></td>
+                            <td>Extract readable text from URL</td>
+                            <td>URL string</td>
+                            <td>Clean text content</td>
+                        </tr>
+                        <tr>
+                            <td><code>kb_search</code></td>
+                            <td>Vector KB semantic search</td>
+                            <td>Natural language query</td>
+                            <td>JSON: {id, text, metadata}</td>
+                        </tr>
+                        <tr>
+                            <td><code>kb_add</code></td>
+                            <td>Add document to knowledge base</td>
+                            <td>JSON: {id, text, metadata}</td>
+                            <td>"ok" confirmation</td>
+                        </tr>
+                        <tr>
+                            <td><code>calculator</code></td>
+                            <td>Safe math via Python math module</td>
+                            <td>Math expression</td>
+                            <td>Result string</td>
+                        </tr>
+                        <tr>
+                            <td><code>file_write</code></td>
+                            <td>Persist artifacts to disk</td>
+                            <td>JSON: {path, content}</td>
+                            <td>Absolute file path</td>
+                        </tr>
+                        <tr>
+                            <td><code>emailer</code></td>
+                            <td>Draft/queue email as .eml</td>
+                            <td>JSON: {to, subject, body}</td>
+                            <td>.eml file path</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- API Documentation -->
+        <section id="docs" class="section">
+            <div class="section-header">
+                <h2 class="section-title">📖 HTTP API Reference</h2>
+                <p class="section-subtitle">
+                    RESTful API with SSE streaming for real-time interactions
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4 style="color: var(--accent-color); margin-bottom: 0.5rem;">GET /api/new_chat</h4>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Create a new chat session</p>
+                    <code style="font-size: 0.85rem; color: var(--text-muted);">Returns: {"chat_id": "uuid"}</code>
+                </div>
+
+                <div class="feature-card">
+                    <h4 style="color: var(--accent-color); margin-bottom: 0.5rem;">POST /api/chat</h4>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Send message with SSE streaming</p>
+                    <code style="font-size: 0.85rem; color: var(--text-muted);">Body: {"chat_id", "message"}</code>
+                </div>
+
+                <div class="feature-card">
+                    <h4 style="color: var(--accent-color); margin-bottom: 0.5rem;">POST /api/ingest</h4>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Add document to KB</p>
+                    <code style="font-size: 0.85rem; color: var(--text-muted);">Body: {"id", "text", "metadata"}</code>
+                </div>
+
+                <div class="feature-card">
+                    <h4 style="color: var(--accent-color); margin-bottom: 0.5rem;">POST /api/ingest_url</h4>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Ingest content from URL</p>
+                    <code style="font-size: 0.85rem; color: var(--text-muted);">Body: {"url", "metadata"}</code>
+                </div>
+
+                <div class="feature-card">
+                    <h4 style="color: var(--accent-color); margin-bottom: 0.5rem;">POST /api/ingest_file</h4>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Upload file to KB</p>
+                    <code style="font-size: 0.85rem; color: var(--text-muted);">Form: file, id, tags</code>
+                </div>
+
+                <div class="feature-card">
+                    <h4 style="color: var(--accent-color); margin-bottom: 0.5rem;">POST /api/feedback</h4>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Submit rating & comment</p>
+                    <code style="font-size: 0.85rem; color: var(--text-muted);">Body: {"chat_id", "rating"}</code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Client SDKs -->
+        <section id="sdks" class="section">
+            <div class="section-header">
+                <h2 class="section-title">🔌 Client SDKs</h2>
+                <p class="section-subtitle">
+                    TypeScript and Python SDKs for seamless integration
+                </p>
+            </div>
+
+            <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
+                <div class="feature-card">
+                    <h3 style="margin-bottom: 1rem;">TypeScript/Node.js</h3>
+                    <div class="code-section">
+                        <div class="code-header">
+                            <span class="code-language">typescript</span>
+                            <button class="copy-btn">📋 Copy</button>
+                        </div>
+                        <pre><code>import { AgenticAIClient } from "./clients/ts";
+
+const client = new AgenticAIClient({
+  baseUrl: "http://localhost:8000"
+});
+
+// Start chat
+const { chat_id } = await client.newChat();
+await client.chatStream({
+  chat_id,
+  message: "Brief ACME Robotics",
+  onToken: t => process.stdout.write(t)
+});
+
+// Ingest content
+await client.ingest("text", { tags: ["kb"] });
+await client.ingestUrl("https://example.com");</code></pre>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3 style="margin-bottom: 1rem;">Python (Async)</h3>
+                    <div class="code-section">
+                        <div class="code-header">
+                            <span class="code-language">python</span>
+                            <button class="copy-btn">📋 Copy</button>
+                        </div>
+                        <pre><code>from clients.python import AgenticAIClient
+
+async with AgenticAIClient("http://localhost:8000") as c:
+    # Start chat
+    meta = await c.new_chat()
+    await c.chat_stream(
+        "Brief ACME Robotics",
+        chat_id=meta["chat_id"],
+        on_token=lambda t: print(t, end="")
+    )
+    
+    # Ingest content
+    await c.ingest("text", {"tags": ["kb"]})
+    await c.ingest_url("https://example.com")</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration -->
+        <section id="config" class="section">
+            <div class="section-header">
+                <h2 class="section-title">⚙️ Configuration</h2>
+                <p class="section-subtitle">
+                    Pydantic-based settings with .env support for easy configuration
+                </p>
+            </div>
+
+            <div class="code-section">
+                <div class="code-header">
+                    <span class="code-language">bash</span>
+                    <button class="copy-btn">📋 Copy</button>
+                </div>
+                <pre><code># Model Configuration
+MODEL_PROVIDER=openai          # openai | anthropic
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL_CHAT=gpt-4o-mini
+OPENAI_MODEL_EMBED=text-embedding-3-small
+
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL_CHAT=claude-3-5-sonnet-latest
+
+# Storage
+CHROMA_DIR=.chroma
+SQLITE_PATH=.sqlite/agent.db
+
+# Server
+APP_HOST=0.0.0.0
+APP_PORT=8000
+
+# Rate Limiting
+RATE_LIMIT_TOKENS=100
+RATE_LIMIT_REFILL_RATE=10</code></pre>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>🤖 Agentic AI</h3>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                    Production-ready multi-stage agentic system with autonomous reasoning and tool use.
+                </p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="#quickstart">Quick Start Guide</a></li>
+                    <li><a href="#docs">API Documentation</a></li>
+                    <li><a href="https://github.com">GitHub Repository</a></li>
+                    <li><a href="#architecture">Architecture Guide</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Pipelines</h3>
+                <ul>
+                    <li><a href="#pipelines">Agentic RAG Pipeline</a></li>
+                    <li><a href="#pipelines">Agentic Coding Pipeline</a></li>
+                    <li><a href="#">Social Media Automation</a></li>
+                    <li><a href="#">MCP Server</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Deployment</h3>
+                <ul>
+                    <li><a href="#deployment">Blue/Green Deployment</a></li>
+                    <li><a href="#deployment">Canary Deployment</a></li>
+                    <li><a href="#deployment">GitOps (ArgoCD/Flux)</a></li>
+                    <li><a href="#">Kubernetes Manifests</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>
+                Built with ❤️ using LangGraph, FastAPI, and ChromaDB | 
+                Licensed under Apache 2.0 | 
+                © 2024 Agentic AI Team
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="packages/script.js"></script>
+</body>
+</html>
