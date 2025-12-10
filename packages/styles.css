@@ -812,6 +812,15 @@ tr:hover {
         width: 100%;
         justify-content: center;
     }
+
+    /* Client SDKs specific override for smaller screens */
+    #sdks .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+    }
+
+    #pipelines .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+    }
 }
 
 /* ================================================
