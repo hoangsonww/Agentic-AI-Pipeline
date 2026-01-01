@@ -10,10 +10,11 @@ from pathlib import Path
 from typing import Any
 
 from langchain.tools import BaseTool
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
 
 _TOOL_IO: "ToolIO | None" = None
+_TASK_USER_TEXT = ""
 
 
 def _send(payload: dict[str, Any]) -> None:
@@ -73,18 +74,21 @@ def _messages_text(messages: Any) -> str:
     return "\n".join(str(p) for p in parts if p)
 
 
+def _find_repo_root(script_path: Path) -> Path:
+    for parent in script_path.parents:
+        if (parent / "pyproject.toml").is_file() and (parent / "src").is_dir():
+            return parent
+    parents = list(script_path.parents)
+    return parents[3] if len(parents) > 3 else script_path.parent
+
+
 def _last_user_text(messages: Any) -> str:
-    if isinstance(messages, list):
-        for message in reversed(messages):
-            message_type = getattr(message, "type", None)
-            if message_type == "human":
-                return str(getattr(message, "content", "")).strip()
-            if message.__class__.__name__.lower().startswith("human"):
-                return str(getattr(message, "content", "")).strip()
-        if messages:
-            return str(getattr(messages[-1], "content", "")).strip()
-        return ""
-    return str(getattr(messages, "content", "")).strip()
+    if not isinstance(messages, list):
+        messages = [messages]
+    for message in reversed(messages):
+        if isinstance(message, HumanMessage):
+            return str(message.content).strip()
+    return ""
 
 
 class FakeLLM:
@@ -101,7 +105,7 @@ class FakeLLM:
         if "Choose ONE token from" in text:
             return AIMessage(content="search")
         if "You MUST call exactly one tool" in text:
-            user_text = _last_user_text(messages)
+            user_text = _TASK_USER_TEXT or _last_user_text(messages)
             return AIMessage(
                 content="",
                 tool_calls=[
@@ -159,7 +163,7 @@ async def _run_chat(chat_id: str, user_text: str) -> str:
 
 
 def main() -> int:
-    global _TOOL_IO
+    global _TOOL_IO, _TASK_USER_TEXT
 
     task_start: dict[str, Any] | None = None
     for line in sys.stdin:
@@ -177,8 +181,9 @@ def main() -> int:
     input_payload = task_start.get("input") or {}
     chat_id = str(input_payload.get("chat_id") or task_start.get("task_id") or "runledger")
     user_text = str(input_payload.get("user_text") or input_payload.get("ticket") or "")
+    _TASK_USER_TEXT = user_text
 
-    repo_root = Path(__file__).resolve().parents[3]
+    repo_root = _find_repo_root(Path(__file__).resolve())
     sys.path.insert(0, str(repo_root / "src"))
 
     _TOOL_IO = ToolIO()
