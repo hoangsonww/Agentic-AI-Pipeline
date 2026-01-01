@@ -1,0 +1,170 @@
+{
+  "aggregates": {
+    "cases_error": 0,
+    "cases_fail": 0,
+    "cases_pass": 1,
+    "cases_total": 1,
+    "metrics": {
+      "cost_usd": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "p50": null,
+        "p95": null
+      },
+      "steps": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "p50": null,
+        "p95": null
+      },
+      "tokens_in": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "p50": null,
+        "p95": null
+      },
+      "tokens_out": {
+        "max": null,
+        "mean": null,
+        "min": null,
+        "p50": null,
+        "p95": null
+      },
+      "tool_calls": {
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "p50": 1.0,
+        "p95": 1.0
+      },
+      "tool_errors": {
+        "max": 0.0,
+        "mean": 0.0,
+        "min": 0.0,
+        "p50": 0.0,
+        "p95": 0.0
+      },
+      "wall_ms": {
+        "max": 13149.0,
+        "mean": 13149.0,
+        "min": 13149.0,
+        "p50": 13149.0,
+        "p95": 13149.0
+      }
+    },
+    "pass_rate": 1.0
+  },
+  "cases": [
+    {
+      "assertions": {
+        "failed": 0,
+        "total": 3
+      },
+      "cost_usd": null,
+      "failed_assertions": null,
+      "failure_reason": null,
+      "id": "t1",
+      "replay": {
+        "cassette_path": "evals/runledger/cassettes/t1.jsonl",
+        "cassette_sha256": "c1e2a4d482df8ae927b78e659afcae166cfa8d1150d076cbedf27e9f57b36b81"
+      },
+      "status": "pass",
+      "steps": null,
+      "tokens_in": null,
+      "tokens_out": null,
+      "tool_calls": 1,
+      "tool_calls_by_name": {
+        "web_search": 1
+      },
+      "tool_errors": 0,
+      "tool_errors_by_name": {},
+      "wall_ms": 13149
+    }
+  ],
+  "generated_at": "2026-01-01T21:42:04.115060Z",
+  "policy_snapshot": {
+    "thresholds": {
+      "min_pass_rate": 1.0
+    }
+  },
+  "regression": {
+    "baseline_path": "baselines/runledger-demo.json",
+    "case_diffs": {
+      "missing_in_current": [],
+      "new_in_current": [],
+      "status_changed": []
+    },
+    "checks": [
+      {
+        "baseline": 1.0,
+        "current": 1.0,
+        "delta": 0.0,
+        "id": "min_pass_rate",
+        "status": "pass",
+        "threshold": 1.0
+      },
+      {
+        "baseline": 43.0,
+        "current": 13149.0,
+        "delta_pct": 304.7906976744186,
+        "id": "max_avg_wall_ms_delta_pct",
+        "note": "No max_avg_wall_ms_delta_pct configured.",
+        "status": "skipped",
+        "threshold": null
+      },
+      {
+        "baseline": 43.0,
+        "current": 13149.0,
+        "delta_pct": 304.7906976744186,
+        "id": "max_p95_wall_ms_delta_pct",
+        "note": "No max_p95_wall_ms_delta_pct configured.",
+        "status": "skipped",
+        "threshold": null
+      }
+    ],
+    "metrics": {
+      "pass_rate": {
+        "baseline": 1.0,
+        "current": 1.0,
+        "delta": 0.0
+      },
+      "wall_ms": {
+        "mean": {
+          "baseline": 43.0,
+          "current": 13149.0,
+          "delta_pct": 304.7906976744186
+        },
+        "p95": {
+          "baseline": 43.0,
+          "current": 13149.0,
+          "delta_pct": 304.7906976744186
+        }
+      }
+    },
+    "passed": true,
+    "warnings": []
+  },
+  "run": {
+    "ci": null,
+    "exit_status": "success",
+    "git_sha": null,
+    "mode": "replay",
+    "run_id": "20260101-214204-e82ad9"
+  },
+  "runledger_version": "0.1.0",
+  "schema_version": 1,
+  "suite": {
+    "agent_command": [
+      "python",
+      "evals/runledger/agent/agent.py"
+    ],
+    "cases_total": 1,
+    "name": "runledger-demo",
+    "suite_config_hash": null,
+    "suite_path": "evals/runledger/suite.yaml",
+    "tool_mode": "replay"
+  }
+}

@@ -922,3 +922,22 @@ If you have any questions, suggestions, or contributions, please feel free to op
 ---
 
 **Happy building!** We hope this repository serves as a useful resource for your agentic AI projects. If you have any questions or suggestions, feel free to reach out or contribute!
+
+<!-- runledger:note:start -->
+## RunLedger deterministic CI check (optional)
+
+This repo includes a small RunLedger suite under `evals/runledger` for deterministic CI checks of tool-using agents (record once, replay in CI).
+
+Run locally:
+
+```bash
+runledger run evals/runledger --mode replay --baseline baselines/runledger-demo.json
+```
+
+This replays recorded tool calls from a cassette (no live calls) and fails on mismatches, assertion failures, or budget regressions.
+
+To wire this to a real agent, update `agent_command` in `evals/runledger/suite.yaml` to point at your agent entrypoint (or a thin adapter) that speaks the RunLedger JSONL protocol.
+
+See `evals/runledger/INTEGRATION.md` for repo-specific wiring hints (detected from config files and example folders).
+<!-- runledger:note:end -->
+
