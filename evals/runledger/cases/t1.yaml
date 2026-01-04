@@ -1,0 +1,11 @@
+id: t1
+description: deterministic smoke test (core chat graph)
+input:
+  chat_id: t1
+  user_text: reset password
+cassette: cassettes/t1.jsonl
+assertions:
+- type: required_fields
+  fields:
+  - category
+  - reply
