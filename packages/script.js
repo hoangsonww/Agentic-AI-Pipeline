@@ -158,9 +158,10 @@ function initMobileMenu() {
 // Mermaid Diagrams
 // ================================================
 
-function initDiagrams() {
+async function initDiagrams() {
     if (typeof mermaid !== 'undefined') {
         mermaid.initialize({
+            startOnLoad: false,
             theme: 'dark',
             themeVariables: {
                 primaryColor: '#667eea',
@@ -193,6 +194,10 @@ function initDiagrams() {
                 messageMargin: 35
             }
         });
+
+        if (document.fonts && document.fonts.ready) {
+            await document.fonts.ready;
+        }
 
         // Render all mermaid diagrams
         mermaid.run({
