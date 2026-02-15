@@ -275,18 +275,24 @@ class GatherAPI:
     async def _authenticate(self) -> None:
         """Authenticate via Ed25519 challenge-response to get a JWT."""
         if not self.config.gather_private_key_path or not self.config.gather_public_key_path:
-            return
+            raise RuntimeError(
+                "Gather.is requires both gather_private_key_path and gather_public_key_path"
+            )
 
         try:
             from cryptography.hazmat.primitives.serialization import load_pem_private_key
         except ImportError:
-            logger.warning("cryptography package required for Gather.is auth: pip install cryptography")
-            return
+            raise RuntimeError(
+                "cryptography package required for Gather.is auth: pip install cryptography"
+            )
 
-        with open(self.config.gather_private_key_path, "rb") as f:
-            private_key = load_pem_private_key(f.read(), password=None)
-        with open(self.config.gather_public_key_path, "r") as f:
-            public_pem = f.read()
+        try:
+            with open(self.config.gather_private_key_path, "rb") as f:
+                private_key = load_pem_private_key(f.read(), password=None)
+            with open(self.config.gather_public_key_path, "r") as f:
+                public_pem = f.read()
+        except FileNotFoundError as e:
+            raise RuntimeError(f"Gather.is key file not found: {e}")
 
         async with httpx.AsyncClient() as client:
             resp = await client.post(
@@ -311,6 +317,8 @@ class GatherAPI:
         """Return auth headers, authenticating if needed."""
         if not self._token:
             await self._authenticate()
+        if not self._token:
+            raise RuntimeError("Gather.is authentication failed: no token received")
         return {"Authorization": f"Bearer {self._token}", "Content-Type": "application/json"}
 
     async def _solve_pow(self, purpose: str = "post") -> Tuple[str, str]:
@@ -331,7 +339,8 @@ class GatherAPI:
         target_bytes = difficulty // 8
         target_bits = difficulty % 8
 
-        for i in range(50_000_000):
+        max_pow_iterations = 50_000_000
+        for i in range(max_pow_iterations):
             h = hashlib.sha256(f"{challenge}:{i}".encode()).digest()
             if all(h[j] == 0 for j in range(target_bytes)):
                 if target_bits == 0 or (h[target_bytes] & (0xFF << (8 - target_bits))) == 0:
@@ -341,7 +350,7 @@ class GatherAPI:
 
     async def post(self, title: str, content: str, tags: Optional[List[str]] = None) -> Dict[str, Any]:
         """Post to the Gather.is feed."""
-        if not self.config.gather_private_key_path:
+        if not self.config.gather_private_key_path or not self.config.gather_public_key_path:
             logger.warning("Gather.is credentials not configured")
             return {
                 "status": "simulated",
