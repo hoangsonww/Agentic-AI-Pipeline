@@ -5,7 +5,7 @@ An AI-powered social media automation system built on the Agentic AI Pipeline.
 ## 🚀 Features
 
 - **AI Content Generation**: Create engaging posts with GPT-4 or Claude
-- **Multi-Platform Support**: Twitter, LinkedIn, Instagram, Facebook
+- **Multi-Platform Support**: Twitter, LinkedIn, Instagram, Facebook, and Gather.is.
 - **Smart Scheduling**: Post at optimal times automatically
 - **Campaign Management**: Run multi-day, multi-platform campaigns
 - **Thread Generation**: Create Twitter threads automatically

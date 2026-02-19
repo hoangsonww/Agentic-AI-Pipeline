@@ -7,6 +7,8 @@ LinkedIn, Instagram, and Facebook.
 """
 
 import asyncio
+import base64
+import hashlib
 import json
 import logging
 import os
@@ -27,6 +29,7 @@ class SocialPlatform(str, Enum):
     LINKEDIN = "linkedin"
     INSTAGRAM = "instagram"
     FACEBOOK = "facebook"
+    GATHER = "gather"
 
 
 class PostType(str, Enum):
@@ -74,6 +77,10 @@ class SocialMediaConfig:
         # Facebook API credentials
         self.facebook_access_token = os.getenv("FACEBOOK_ACCESS_TOKEN", "")
         self.facebook_page_id = os.getenv("FACEBOOK_PAGE_ID", "")
+
+        # Gather.is credentials (Ed25519 keypair paths)
+        self.gather_private_key_path = os.getenv("GATHER_PRIVATE_KEY_PATH", "")
+        self.gather_public_key_path = os.getenv("GATHER_PUBLIC_KEY_PATH", "")
 
 
 class TwitterAPI:
@@ -253,13 +260,161 @@ class InstagramAPI:
         }
 
 
+class GatherAPI:
+    """Gather.is API integration — social platform for AI agents.
+
+    Gather.is uses Ed25519 challenge-response authentication and proof-of-work
+    anti-spam. See https://gather.is/help for full API docs.
+    """
+
+    def __init__(self, config: SocialMediaConfig):
+        self.config = config
+        self.base_url = "https://gather.is"
+        self._token: Optional[str] = None
+
+    async def _authenticate(self) -> None:
+        """Authenticate via Ed25519 challenge-response to get a JWT."""
+        if not self.config.gather_private_key_path or not self.config.gather_public_key_path:
+            raise RuntimeError(
+                "Gather.is requires both gather_private_key_path and gather_public_key_path"
+            )
+
+        try:
+            from cryptography.hazmat.primitives.serialization import load_pem_private_key
+        except ImportError:
+            raise RuntimeError(
+                "cryptography package required for Gather.is auth: pip install cryptography"
+            )
+
+        try:
+            with open(self.config.gather_private_key_path, "rb") as f:
+                private_key = load_pem_private_key(f.read(), password=None)
+            with open(self.config.gather_public_key_path, "r") as f:
+                public_pem = f.read()
+        except FileNotFoundError as e:
+            raise RuntimeError(f"Gather.is key file not found: {e}")
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{self.base_url}/api/agents/challenge",
+                json={"public_key": public_pem},
+                timeout=10.0,
+            )
+            resp.raise_for_status()
+            nonce_bytes = base64.b64decode(resp.json()["nonce"])
+
+            signature = base64.b64encode(private_key.sign(nonce_bytes)).decode()
+
+            resp = await client.post(
+                f"{self.base_url}/api/agents/authenticate",
+                json={"public_key": public_pem, "signature": signature},
+                timeout=10.0,
+            )
+            resp.raise_for_status()
+            self._token = resp.json()["token"]
+
+    async def _headers(self) -> Dict[str, str]:
+        """Return auth headers, authenticating if needed."""
+        if not self._token:
+            await self._authenticate()
+        if not self._token:
+            raise RuntimeError("Gather.is authentication failed: no token received")
+        return {"Authorization": f"Bearer {self._token}", "Content-Type": "application/json"}
+
+    async def _solve_pow(self, purpose: str = "post") -> Tuple[str, str]:
+        """Solve proof-of-work challenge required for posting."""
+        headers = await self._headers()
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{self.base_url}/api/pow/challenge",
+                json={"purpose": purpose},
+                headers=headers,
+                timeout=10.0,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+        challenge = data["challenge"]
+        difficulty = data["difficulty"]
+        target_bytes = difficulty // 8
+        target_bits = difficulty % 8
+
+        max_pow_iterations = 50_000_000
+        for i in range(max_pow_iterations):
+            h = hashlib.sha256(f"{challenge}:{i}".encode()).digest()
+            if all(h[j] == 0 for j in range(target_bytes)):
+                if target_bits == 0 or (h[target_bytes] & (0xFF << (8 - target_bits))) == 0:
+                    return challenge, str(i)
+
+        raise RuntimeError(f"Failed to solve PoW (difficulty={difficulty})")
+
+    async def post(self, title: str, content: str, tags: Optional[List[str]] = None) -> Dict[str, Any]:
+        """Post to the Gather.is feed."""
+        if not self.config.gather_private_key_path or not self.config.gather_public_key_path:
+            logger.warning("Gather.is credentials not configured")
+            return {
+                "status": "simulated",
+                "message": f"Gather post simulated: {title[:50]}...",
+                "data": {"id": f"sim_gather_{datetime.now().timestamp()}"}
+            }
+
+        headers = await self._headers()
+        challenge, nonce = await self._solve_pow()
+
+        payload = {
+            "title": title[:200],
+            "summary": content[:500],
+            "body": content[:10000],
+            "tags": (tags or ["ai-agent"])[:5],
+            "pow_challenge": challenge,
+            "pow_nonce": nonce,
+        }
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{self.base_url}/api/posts",
+                json=payload,
+                headers=headers,
+                timeout=30.0,
+            )
+            resp.raise_for_status()
+            return resp.json()
+
+    async def get_feed(self, limit: int = 25, sort: str = "hot") -> List[Dict[str, Any]]:
+        """Fetch posts from the Gather.is feed."""
+        headers = await self._headers()
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{self.base_url}/api/posts",
+                params={"limit": limit, "sort": sort},
+                headers=headers,
+                timeout=10.0,
+            )
+            resp.raise_for_status()
+            return resp.json().get("posts", [])
+
+    async def discover_agents(self) -> List[Dict[str, Any]]:
+        """Discover other agents on the platform."""
+        headers = await self._headers()
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{self.base_url}/api/agents",
+                headers=headers,
+                timeout=10.0,
+            )
+            resp.raise_for_status()
+            return resp.json().get("agents", [])
+
+
 class SocialMediaPostTool(BaseTool):
     """Tool for posting content to social media platforms"""
 
     name: str = "social_media_post"
-    description: str = """Post content to social media platforms (Twitter, LinkedIn, Instagram, Facebook).
+    description: str = """Post content to social media platforms (Twitter, LinkedIn, Instagram, Facebook, Gather).
     Input should be a JSON string with: platform, content, media_urls (optional), hashtags (optional).
+    For Gather.is (AI agent social platform), also include title and tags.
     Example: {"platform": "twitter", "content": "Check out our latest AI update!", "hashtags": ["AI", "Tech"]}
+    Example: {"platform": "gather", "title": "My Agent Update", "content": "What I built today...", "tags": ["ai-agent"]}
     """
 
     config: SocialMediaConfig = Field(default_factory=SocialMediaConfig)
@@ -294,6 +449,11 @@ class SocialMediaPostTool(BaseTool):
                     result = await instagram_api.post_photo(media_urls[0], content)
                 else:
                     result = {"status": "error", "message": "Instagram requires at least one image"}
+            elif platform == SocialPlatform.GATHER:
+                gather_api = GatherAPI(self.config)
+                title = data.get("title", content[:200])
+                tags = data.get("tags", hashtags or ["ai-agent"])
+                result = await gather_api.post(title, content, tags)
 
             return json.dumps(result, indent=2)
         except Exception as e:
