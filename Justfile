@@ -6,36 +6,39 @@ alias r := run
 alias t := test
 
 setup:
-\tpython -m venv {{venv}}
-\t. {{venv}}/bin/activate && pip install -U pip && pip install -r requirements.txt
-\t@[ -f .env ] || cp .env.example .env
+	python -m venv {{venv}}
+	. {{venv}}/bin/activate && pip install -U pip && pip install -r requirements.txt
+	@[ -f .env ] || cp .env.example .env
 
 run:
-\t. {{venv}}/bin/activate && uvicorn agentic_ai.app:app --reload --host {{env_var("APP_HOST","0.0.0.0")}} --port {{env_var("APP_PORT","8000")}}
+	. {{venv}}/bin/activate && PYTHONPATH=src uvicorn agentic_ai.app:app --reload --host {{env_var_or_default("APP_HOST","0.0.0.0")}} --port {{env_var_or_default("APP_PORT","8000")}}
 
 ingest:
-\t. {{venv}}/bin/activate && python -m agentic_ai.cli ingest "./data/seed"
+	. {{venv}}/bin/activate && PYTHONPATH=src python -m agentic_ai.cli ingest "./data/seed"
 
 demo *ARGS:
-\t. {{venv}}/bin/activate && python -m agentic_ai.cli demo {{join(ARGS, " ")}}
+	. {{venv}}/bin/activate && PYTHONPATH=src python -m agentic_ai.cli demo {{ARGS}}
 
 test:
-\t. {{venv}}/bin/activate && pytest -q
+	. {{venv}}/bin/activate && PYTHONPATH=src pytest -q --tb=short
 
 fmt:
-\t. {{venv}}/bin/activate && ruff check --select I --fix src tests && ruff format src tests
+	. {{venv}}/bin/activate && ruff check --select I --fix src tests mcp && ruff format src tests mcp
 
 lint:
-\t. {{venv}}/bin/activate && ruff check src tests && ruff format --check src tests
+	. {{venv}}/bin/activate && ruff check src tests mcp && ruff format --check src tests mcp
+
+health:
+	@curl -fsS http://localhost:${APP_PORT:-8000}/health && echo " OK"
 
 docker-build:
-\tdocker build -t agentic-ai:dev .
+	docker build -t agentic-ai:latest .
 
 docker-run:
-\tIMAGE=agentic-ai:dev bash scripts/run_docker.sh
+	docker run --rm -p 8000:8000 --env-file .env agentic-ai:latest
 
 compose-up:
-\tdocker compose up --build -d
+	docker compose up --build -d
 
 compose-down:
-\tdocker compose down -v
+	docker compose down -v

@@ -1,6 +1,7 @@
-# MCP Server (Monorepo Control Plane)
+# MCP Server (Model Context Protocol)
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
+[![Model%20Context%20Protocol](https://img.shields.io/badge/MCP-Model%20Context%20Protocol-6F42C1?logo=modelcontextprotocol&logoColor=white)](#)
 [![FastAPI](https://img.shields.io/badge/FastAPI-API%20Server-009688?logo=fastapi&logoColor=white)](#)
 [![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI-222222?logo=python&logoColor=white)](#)
 [![SSE](https://img.shields.io/badge/SSE-Streaming-5C5C5C?logo=electron&logoColor=white)](#)
@@ -10,8 +11,11 @@
 [![OpenAI](https://img.shields.io/badge/OpenAI-LLM-412991?logo=openai&logoColor=white)](#)
 [![Anthropic](https://img.shields.io/badge/Anthropic-LLM-18181B)](#)
 [![Google%20Gemini](https://img.shields.io/badge/Gemini-LLM-4285F4?logo=google&logoColor=white)](#)
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-282828?logo=databricks&logoColor=white)](#)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](#)
+[![Pydantic](https://img.shields.io/badge/Pydantic-v2-0E7C86?logo=pydantic&logoColor=white)](#)
 
-A shared control plane exposing common tools and pipeline dispatch over HTTP, so all agentic subsystems (Research/Outreach agent, Agentic‑RAG, Agentic‑Coding) reuse the same toolbox and can be orchestrated from one place.
+A shared control-plane server exposing common tools and pipeline dispatch over HTTP, so all agentic subsystems (Research/Outreach agent, Agentic-RAG, Agentic-Coding, Data) reuse the same toolbox and can be orchestrated from one place. Runs as a standalone service on port **8001** alongside the main app via Docker Compose.
 
 ## Contents
 
@@ -128,17 +132,25 @@ PY
 Serve as an ASGI app:
 
 ```bash
-uvicorn mcp.server:create_app --factory --reload
-# Then:  http://127.0.0.1:8000/pipelines
+# Standalone
+PYTHONPATH=src uvicorn mcp.server:create_app --factory --reload --port 8001
+# Then:  http://127.0.0.1:8001/pipelines
+
+# Via Docker Compose (runs alongside main app on port 8001)
+docker compose up --build -d
+curl http://localhost:8001/status
 ```
 
 ## Endpoints
 
+- Status
+  - GET  `/status` — server health + registered pipelines (used as Docker health check)
 - Pipelines
   - POST `/pipeline/{name}` — call a registered handler `{ task }`
   - GET  `/pipelines` — list available names
   - POST `/pipeline/coding/stream` — stream logs/results (SSE)
   - POST `/pipeline/rag/ask` — stream answer/sources (SSE)
+  - POST `/pipeline/data/analyze` — stream data pipeline analysis (SSE)
 - LLM
   - POST `/llm/{provider}` — `{ prompt, model? }`
   - POST `/llm/summarize` — `{ text, provider?, model? }`

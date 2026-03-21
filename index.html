@@ -43,8 +43,9 @@
                 <li><a href="#architecture">Architecture</a></li>
                 <li><a href="#pipelines">Pipelines</a></li>
                 <li><a href="#deployment">Deployment</a></li>
+                <li><a href="#docker">Docker</a></li>
                 <li><a href="#quickstart">Quick Start</a></li>
-                <li><a href="#docs">Documentation</a></li>
+                <li><a href="#docs">API Docs</a></li>
             </ul>
         </nav>
     </header>
@@ -62,7 +63,7 @@
                 <a href="#quickstart" class="btn btn-primary">
                     🚀 Get Started
                 </a>
-                <a href="https://github.com/yourusername/Research-Outreach-Agentic-AI" class="btn btn-secondary">
+                <a href="https://github.com/hoangsonww/Agentic-AI-Pipeline" class="btn btn-secondary">
                     📦 View on GitHub
                 </a>
             </div>
@@ -76,12 +77,17 @@
             <span class="badge">⚡ FastAPI</span>
             <span class="badge">🔗 LangGraph</span>
             <span class="badge">🦜 LangChain</span>
-            <span class="badge">🧠 OpenAI/Anthropic</span>
+            <span class="badge">🧠 OpenAI GPT-4o</span>
+            <span class="badge">🟣 Anthropic Claude</span>
+            <span class="badge">💎 Google Gemini</span>
             <span class="badge">🔍 ChromaDB</span>
             <span class="badge">💾 SQLite</span>
             <span class="badge">🔄 SSE Streaming</span>
-            <span class="badge">🐳 Docker Ready</span>
+            <span class="badge">🐳 Docker Multi-Stage</span>
             <span class="badge">☸️ Kubernetes</span>
+            <span class="badge">🔌 MCP Server</span>
+            <span class="badge">🏗️ Terraform</span>
+            <span class="badge">📦 .NET 8 SDK</span>
             <span class="badge">🔐 Production Ready</span>
             <span class="badge">📖 Open Source</span>
         </div>
@@ -177,7 +183,7 @@
                     <h3 class="feature-title">Extensible Architecture</h3>
                     <p class="feature-description">
                         7-layer modular design. Add new tools, nodes, or agent profiles without
-                        breaking core functionality. Client SDKs for Python and TypeScript.
+                        breaking core functionality. Client SDKs for Python, TypeScript, and .NET 8.
                     </p>
                 </div>
             </div>
@@ -530,24 +536,21 @@ flowchart TD
                     <span class="code-language">bash</span>
                     <button class="copy-btn">📋 Copy</button>
                 </div>
-                <pre><code># 1) Create virtual environment & install dependencies
-python -m venv .venv
-source .venv/bin/activate
-pip install -U pip
-pip install -r requirements.txt
-
-# 2) Configure API keys
-cp .env.example .env
+                <pre><code># 1) Setup (venv + deps + .env)
+make setup
 # Edit .env with your OPENAI_API_KEY or ANTHROPIC_API_KEY
 
-# 3) Ingest seed knowledge into vector store
+# 2) Ingest seed knowledge into vector store
 make ingest
 
-# 4) Run the server
+# 3) Run the server
 make run
-
 # Open http://localhost:8000 and start chatting!
-# Try: "Build a competitive briefing on ACME Robotics"</code></pre>
+
+# -- OR with Docker Compose --
+cp .env.example .env     # edit with your API key
+docker compose up --build -d
+# Open http://localhost:8000</code></pre>
             </div>
 
             <div class="mt-4">
@@ -576,7 +579,7 @@ python -m agentic_ai.cli demo "Summarize top AMR vendors with citations"</code><
                     <div class="stat-label">Type Safe</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" data-target="3">3</div>
+                    <div class="stat-number" data-target="5">5</div>
                     <div class="stat-label">Deployment Strategies</div>
                 </div>
             </div>
@@ -660,6 +663,12 @@ python -m agentic_ai.cli demo "Summarize top AMR vendors with citations"</code><
 
             <div class="features-grid">
                 <div class="feature-card">
+                    <h4 style="color: var(--accent-color); margin-bottom: 0.5rem;">GET /health</h4>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Health probe for load balancers</p>
+                    <code style="font-size: 0.85rem; color: var(--text-muted);">Returns: {"status": "ok", "version": "0.4.0"}</code>
+                </div>
+
+                <div class="feature-card">
                     <h4 style="color: var(--accent-color); margin-bottom: 0.5rem;">GET /api/new_chat</h4>
                     <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">Create a new chat session</p>
                     <code style="font-size: 0.85rem; color: var(--text-muted);">Returns: {"chat_id": "uuid"}</code>
@@ -702,7 +711,7 @@ python -m agentic_ai.cli demo "Summarize top AMR vendors with citations"</code><
             <div class="section-header">
                 <h2 class="section-title">🔌 Client SDKs</h2>
                 <p class="section-subtitle">
-                    TypeScript and Python SDKs for seamless integration
+                    TypeScript, Python, and .NET SDKs for seamless integration
                 </p>
             </div>
 
@@ -757,6 +766,146 @@ async with AgenticAIClient("http://localhost:8000") as c:
     await c.ingest_url("https://example.com")</code></pre>
                     </div>
                 </div>
+
+                <div class="feature-card">
+                    <h3 style="margin-bottom: 1rem;">.NET 8 (C#)</h3>
+                    <div class="code-section">
+                        <div class="code-header">
+                            <span class="code-language">csharp</span>
+                            <button class="copy-btn">📋 Copy</button>
+                        </div>
+                        <pre><code>using AgenticAI.Client;
+
+using var client = new AgenticAIClient();
+
+// Start chat with SSE streaming
+var chat = await client.NewChatAsync();
+await foreach (var evt in client.ChatStreamAsync(
+    chat.ChatId, "Brief ACME Robotics"))
+{
+    if (evt.Event == "token")
+        Console.Write(evt.Data);
+}
+
+// Ingest content
+await client.IngestAsync("text to index");
+await client.IngestUrlAsync("https://example.com");
+
+// Send feedback
+await client.SendFeedbackAsync(chat.ChatId, 5);</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Docker Section -->
+        <section id="docker" class="section">
+            <div class="section-header">
+                <h2 class="section-title">🐳 Docker & Services</h2>
+                <p class="section-subtitle">
+                    Production-grade multi-stage Docker build with App + MCP server orchestration
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3 style="margin-bottom: 1rem;">Docker Compose</h3>
+                    <div class="code-section">
+                        <div class="code-header">
+                            <span class="code-language">bash</span>
+                            <button class="copy-btn">📋 Copy</button>
+                        </div>
+                        <pre><code># Build and run (app + MCP server)
+docker compose up --build -d
+
+# Verify health
+curl http://localhost:8000/health
+curl http://localhost:8001/status
+
+# View logs
+docker compose logs -f app
+
+# Tear down
+docker compose down -v</code></pre>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3 style="margin-bottom: 1rem;">Services</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr><th>Service</th><th>Port</th><th>Health</th><th>Purpose</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>app</code></td><td>8000</td><td><code>/health</code></td><td>FastAPI gateway + Web UI</td></tr>
+                                <tr><td><code>mcp</code></td><td>8001</td><td><code>/status</code></td><td>MCP control plane</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 1rem;">
+                        Multi-stage Dockerfile with non-root user, shared ChromaDB/SQLite volumes,
+                        resource limits (2G/2CPU), and restart policies.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h3 style="text-align: center; margin-bottom: 1rem;">System Topology</h3>
+                <div class="diagram-container">
+                    <div class="mermaid">
+flowchart TB
+    subgraph Clients["Client SDKs"]
+        direction LR
+        PY["Python"]
+        TS["TypeScript"]
+        NET[".NET 8"]
+        WEB["Web UI"]
+    end
+
+    subgraph Gateway["FastAPI Gateway :8000"]
+        HEALTH["/health"]
+        CHAT["/api/chat SSE"]
+        SOCIAL["/api/social/*"]
+        CODING["/api/coding/*"]
+        RAG["/api/rag/*"]
+    end
+
+    subgraph Core["Core Agent LangGraph"]
+        PLAN["Plan"] --> DECIDE["Decide"]
+        DECIDE --> ACT["Act"]
+        ACT --> TOOLS["ToolNode"]
+        TOOLS --> REFLECT["Reflect"]
+        REFLECT --> FINAL["Finalize"]
+    end
+
+    subgraph MCP["MCP Server :8001"]
+        PIPE["/pipeline/*"]
+        LLM["/llm/*"]
+        SEARCH["/search /browse"]
+        KB["/kb/add /kb/search"]
+    end
+
+    subgraph Pipelines["Sub-Pipelines"]
+        ACP["Coding Pipeline"]
+        ARP["RAG Pipeline"]
+    end
+
+    subgraph Storage["Persistence"]
+        CHROMA[("ChromaDB")]
+        SQLITE[("SQLite")]
+    end
+
+    Clients --> Gateway
+    CHAT --> Core
+    CODING --> ACP
+    RAG --> ARP
+    Gateway --> MCP
+    Core --> Storage
+    ACP --> MCP
+    ARP --> MCP
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -783,6 +932,8 @@ OPENAI_MODEL_EMBED=text-embedding-3-small
 ANTHROPIC_API_KEY=sk-ant-...
 ANTHROPIC_MODEL_CHAT=claude-3-5-sonnet-latest
 
+GOOGLE_API_KEY=                # optional, for MCP Gemini adapter
+
 # Storage
 CHROMA_DIR=.chroma
 SQLITE_PATH=.sqlite/agent.db
@@ -791,9 +942,9 @@ SQLITE_PATH=.sqlite/agent.db
 APP_HOST=0.0.0.0
 APP_PORT=8000
 
-# Rate Limiting
-RATE_LIMIT_TOKENS=100
-RATE_LIMIT_REFILL_RATE=10</code></pre>
+# Logging
+LOG_LEVEL=INFO                 # DEBUG | INFO | WARNING | ERROR
+LOG_DIR=.logs</code></pre>
             </div>
         </section>
 
@@ -814,7 +965,7 @@ RATE_LIMIT_REFILL_RATE=10</code></pre>
                 <ul>
                     <li><a href="#quickstart">Quick Start Guide</a></li>
                     <li><a href="#docs">API Documentation</a></li>
-                    <li><a href="https://github.com">GitHub Repository</a></li>
+                    <li><a href="https://github.com/hoangsonww/Agentic-AI-Pipeline">GitHub Repository</a></li>
                     <li><a href="#architecture">Architecture Guide</a></li>
                 </ul>
             </div>
@@ -844,7 +995,7 @@ RATE_LIMIT_REFILL_RATE=10</code></pre>
             <p>
                 Built with ❤️ using LangGraph, FastAPI, and ChromaDB |
                 Licensed under MIT License |
-                © 2025 <a href="https://sonnguyenhoang.com" style="color: var(--primary-color);">Son Nguyen</a>
+                &copy; 2025-2026 <a href="https://sonnguyenhoang.com" style="color: var(--primary-color);">Son Nguyen</a>
             </p>
         </div>
     </footer>

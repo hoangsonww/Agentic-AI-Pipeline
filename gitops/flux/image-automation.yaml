@@ -6,7 +6,7 @@ metadata:
   name: agentic-ai
   namespace: flux-system
 spec:
-  image: your-registry/agentic-ai
+  image: ghcr.io/hoangsonww/agentic-ai
   interval: 5m
   secretRef:
     name: registry-credentials

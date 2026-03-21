@@ -22,4 +22,3 @@ async def fetch_page(url: str) -> str:
         soup = BeautifulSoup(resp.text, "lxml")
         text = soup.get_text(" ", strip=True)
     return text or ""
-

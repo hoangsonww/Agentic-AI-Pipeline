@@ -1,120 +1,216 @@
 from __future__ import annotations
-import os, uuid, json, asyncio, io
-from fastapi import FastAPI, Request, Body, HTTPException
-from fastapi.responses import HTMLResponse, PlainTextResponse
-from sse_starlette.sse import EventSourceResponse
-from pathlib import Path
+
+import io
+import json
 import sys
+import uuid
+from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Optional
+
+from fastapi import Body, FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from sse_starlette.sse import EventSourceResponse
+
+from .config import settings
 from .graph import run_chat
-from .layers import memory as mem
-from .infra.rate_limit import allow
 from .infra.logging import logger
+from .infra.rate_limit import allow
+from .layers import memory as mem
 from .tools.webtools import WebFetch
 
-app = FastAPI(title="Agentic Multi-Stage Bot")
+# ---------------------------------------------------------------------------
+# Path helpers
+# ---------------------------------------------------------------------------
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_WEB_DIR = _PROJECT_ROOT / "web"
 
-# Initialize social media services on startup
-from .social_media_api import router as social_media_router, init_social_media_services
 
-app.include_router(social_media_router)
+def _resolve_static(directory: Path, filename: str) -> Path:
+    """Resolve a static file; raise 404 if missing."""
+    fp = directory / filename
+    if not fp.exists():
+        raise HTTPException(status_code=404, detail=f"{filename} not found")
+    return fp
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize services on startup"""
+
+# ---------------------------------------------------------------------------
+# Lifespan (replaces deprecated @app.on_event)
+# ---------------------------------------------------------------------------
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application startup / shutdown lifecycle."""
+    # --- startup ---
     try:
+        from .social_media_api import init_social_media_services
+
         init_social_media_services()
         logger.info("Social media services initialized")
-    except Exception as e:
-        logger.error(f"Failed to initialize social media services: {e}")
+    except Exception as exc:
+        logger.warning("Social media services unavailable (non-fatal): %s", exc)
+    logger.info("Agentic AI server started on %s:%s", settings.APP_HOST, settings.APP_PORT)
+    yield
+    # --- shutdown ---
+    logger.info("Agentic AI server shutting down")
 
-# ---------- Static ----------
+
+# ---------------------------------------------------------------------------
+# FastAPI app
+# ---------------------------------------------------------------------------
+app = FastAPI(
+    title="Agentic Multi-Stage Bot",
+    version="0.4.0",
+    lifespan=lifespan,
+)
+
+# Include social media router
+try:
+    from .social_media_api import router as social_media_router
+
+    app.include_router(social_media_router)
+except Exception as exc:
+    logger.warning("Social media router unavailable: %s", exc)
+
+
+# ---------------------------------------------------------------------------
+# Health
+# ---------------------------------------------------------------------------
+@app.get("/health", response_class=JSONResponse)
+def health():
+    """Lightweight health probe for load balancers and container orchestrators."""
+    return {"status": "ok", "version": "0.4.0"}
+
+
+# ---------------------------------------------------------------------------
+# Static UI routes
+# ---------------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def index():
-    # Prefer root web/ if present; otherwise fall back to src/web
-    root_web = Path(__file__).resolve().parents[2] / "web" / "index.html"
-    src_web = Path(__file__).resolve().parents[1] / "web" / "index.html"
-    fp = root_web if root_web.exists() else src_web
-    with open(fp, "r", encoding="utf-8") as f:
-        return HTMLResponse(f.read())
+    fp = _resolve_static(_WEB_DIR, "index.html")
+    return HTMLResponse(fp.read_text(encoding="utf-8"))
+
 
 @app.get("/app.js", response_class=PlainTextResponse)
 def js():
-    root_js = Path(__file__).resolve().parents[2] / "web" / "app.js"
-    src_js = Path(__file__).resolve().parents[1] / "web" / "app.js"
-    fp = root_js if root_js.exists() else src_js
-    with open(fp, "r", encoding="utf-8") as f:
-        return PlainTextResponse(f.read(), media_type="application/javascript")
+    fp = _resolve_static(_WEB_DIR, "app.js")
+    return PlainTextResponse(fp.read_text(encoding="utf-8"), media_type="application/javascript")
+
 
 @app.get("/styles.css", response_class=PlainTextResponse)
 def css():
-    root_css = Path(__file__).resolve().parents[2] / "web" / "styles.css"
-    src_css = Path(__file__).resolve().parents[1] / "web" / "styles.css"
-    fp = root_css if root_css.exists() else src_css
-    with open(fp, "r", encoding="utf-8") as f:
-        return PlainTextResponse(f.read(), media_type="text/css")
+    fp = _resolve_static(_WEB_DIR, "styles.css")
+    return PlainTextResponse(fp.read_text(encoding="utf-8"), media_type="text/css")
 
-# ---------- Social Media Automation UI ----------
+
 @app.get("/social_media.html", response_class=HTMLResponse)
 def social_media_ui():
-    root_html = Path(__file__).resolve().parents[2] / "web" / "social_media.html"
-    src_html = Path(__file__).resolve().parents[1] / "web" / "social_media.html"
-    fp = root_html if root_html.exists() else src_html
-    if not fp.exists():
-        raise HTTPException(status_code=404, detail="Social Media UI not found")
-    with open(fp, "r", encoding="utf-8") as f:
-        return HTMLResponse(f.read())
+    fp = _resolve_static(_WEB_DIR, "social_media.html")
+    return HTMLResponse(fp.read_text(encoding="utf-8"))
 
-# ---------- Agentic Coding Pipeline UI ----------
 
-def _acp_ui_root() -> Path:
-    # Locate monorepo root, then Agentic-Coding-Pipeline/ui
-    return Path(__file__).resolve().parents[2] / "Agentic-Coding-Pipeline" / "ui"
+# ---- Agentic Coding Pipeline UI ----
+_ACP_UI = _PROJECT_ROOT / "Agentic-Coding-Pipeline" / "ui"
 
 
 @app.get("/coding", response_class=HTMLResponse)
 def coding_index():
-    fp = _acp_ui_root() / "index.html"
-    if not fp.exists():
-        raise HTTPException(status_code=404, detail="Coding UI not found")
-    return HTMLResponse(fp.read_text(encoding="utf-8"))
+    return HTMLResponse(_resolve_static(_ACP_UI, "index.html").read_text(encoding="utf-8"))
 
 
 @app.get("/coding/app.js", response_class=PlainTextResponse)
 def coding_js():
-    fp = _acp_ui_root() / "app.js"
-    if not fp.exists():
-        raise HTTPException(status_code=404, detail="/coding/app.js not found")
-    return PlainTextResponse(fp.read_text(encoding="utf-8"), media_type="application/javascript")
+    return PlainTextResponse(
+        _resolve_static(_ACP_UI, "app.js").read_text(encoding="utf-8"),
+        media_type="application/javascript",
+    )
 
 
 @app.get("/coding/styles.css", response_class=PlainTextResponse)
 def coding_css():
-    fp = _acp_ui_root() / "styles.css"
-    if not fp.exists():
-        raise HTTPException(status_code=404, detail="/coding/styles.css not found")
-    return PlainTextResponse(fp.read_text(encoding="utf-8"), media_type="text/css")
+    return PlainTextResponse(
+        _resolve_static(_ACP_UI, "styles.css").read_text(encoding="utf-8"),
+        media_type="text/css",
+    )
 
-# ---------- Chat ----------
+
+# ---- Agentic RAG Pipeline UI ----
+_RAG_UI = _PROJECT_ROOT / "Agentic-RAG-Pipeline" / "ui"
+
+
+@app.get("/rag", response_class=HTMLResponse)
+def rag_index():
+    return HTMLResponse(_resolve_static(_RAG_UI, "index.html").read_text(encoding="utf-8"))
+
+
+@app.get("/rag/app.js", response_class=PlainTextResponse)
+def rag_js():
+    return PlainTextResponse(
+        _resolve_static(_RAG_UI, "app.js").read_text(encoding="utf-8"),
+        media_type="application/javascript",
+    )
+
+
+@app.get("/rag/styles.css", response_class=PlainTextResponse)
+def rag_css():
+    return PlainTextResponse(
+        _resolve_static(_RAG_UI, "styles.css").read_text(encoding="utf-8"),
+        media_type="text/css",
+    )
+
+
+# ---- Agentic Data Pipeline UI ----
+_DATA_UI = _PROJECT_ROOT / "Agentic-Data-Pipeline" / "ui"
+
+
+@app.get("/data", response_class=HTMLResponse)
+def data_index():
+    return HTMLResponse(_resolve_static(_DATA_UI, "index.html").read_text(encoding="utf-8"))
+
+
+@app.get("/data/app.js", response_class=PlainTextResponse)
+def data_js():
+    return PlainTextResponse(
+        _resolve_static(_DATA_UI, "app.js").read_text(encoding="utf-8"),
+        media_type="application/javascript",
+    )
+
+
+@app.get("/data/styles.css", response_class=PlainTextResponse)
+def data_css():
+    return PlainTextResponse(
+        _resolve_static(_DATA_UI, "styles.css").read_text(encoding="utf-8"),
+        media_type="text/css",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Core Chat API
+# ---------------------------------------------------------------------------
 @app.get("/api/new_chat")
 def new_chat():
     return {"chat_id": str(uuid.uuid4())}
 
+
 @app.post("/api/chat")
 async def api_chat(payload: dict = Body(...)):
     chat_id = payload.get("chat_id") or str(uuid.uuid4())
-    message = payload.get("message","").strip()
+    message = (payload.get("message") or "").strip()
     if not message:
         raise HTTPException(status_code=400, detail="message required")
     if not allow(chat_id):
         raise HTTPException(status_code=429, detail="rate limited")
+
     async def gen():
         async for chunk in run_chat(chat_id, message):
             yield {"event": "token", "data": chunk}
         yield {"event": "done", "data": json.dumps({"chat_id": chat_id})}
+
     return EventSourceResponse(gen())
 
-# ---------- KB Ingestion ----------
+
+# ---------------------------------------------------------------------------
+# KB Ingestion
+# ---------------------------------------------------------------------------
 @app.post("/api/ingest")
 def ingest(payload: dict = Body(...)):
     doc_id = payload.get("id") or str(uuid.uuid4())
@@ -124,6 +220,7 @@ def ingest(payload: dict = Body(...)):
     meta = payload.get("metadata") or {}
     mem.kb_add(doc_id, text, meta)
     return {"ok": True, "id": doc_id}
+
 
 @app.post("/api/ingest_url")
 def ingest_url(payload: dict = Body(...)):
@@ -153,28 +250,29 @@ def _extract_text_from_upload(filename: str, data: bytes) -> Optional[str]:
     if ext == ".pdf":
         try:
             from pypdf import PdfReader
+
             rdr = PdfReader(io.BytesIO(data))
-            out = []
-            for p in rdr.pages:
-                out.append(p.extract_text() or "")
-            return "\n".join(out)
+            return "\n".join(p.extract_text() or "" for p in rdr.pages)
         except Exception:
             try:
                 from pdfminer.high_level import extract_text
+
                 return extract_text(io.BytesIO(data))
             except Exception:
                 return None
     if ext == ".docx":
         try:
             import docx
+
             d = docx.Document(io.BytesIO(data))
             return "\n".join(p.text for p in d.paragraphs)
         except Exception:
             return None
     if ext in {".png", ".jpg", ".jpeg", ".tif", ".tiff"}:
         try:
-            from PIL import Image
             import pytesseract
+            from PIL import Image
+
             img = Image.open(io.BytesIO(data))
             return pytesseract.image_to_string(img)
         except Exception:
@@ -191,13 +289,17 @@ async def ingest_file(request: Request):
             raise HTTPException(status_code=400, detail="file required")
         filename = getattr(f, "filename", "upload")
         data = await f.read()
-        import io
         text = _extract_text_from_upload(filename, data)
         if not text:
-            raise HTTPException(status_code=415, detail="unsupported file type or missing optional deps")
+            raise HTTPException(
+                status_code=415, detail="unsupported file type or missing optional deps"
+            )
         doc_id = form.get("id") or f"file:{filename}:{uuid.uuid4()}"
         tags_s = form.get("tags") or ""
-        meta = {"filename": filename, "tags": [t.strip() for t in str(tags_s).split(",") if t.strip()]}
+        meta = {
+            "filename": filename,
+            "tags": [t.strip() for t in str(tags_s).split(",") if t.strip()],
+        }
         mem.kb_add(doc_id, text, meta)
         return {"ok": True, "id": doc_id}
     except HTTPException:
@@ -205,7 +307,10 @@ async def ingest_file(request: Request):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-# ---------- Feedback ----------
+
+# ---------------------------------------------------------------------------
+# Feedback
+# ---------------------------------------------------------------------------
 @app.post("/api/feedback")
 def feedback(payload: dict = Body(...)):
     chat_id = payload.get("chat_id")
@@ -217,25 +322,28 @@ def feedback(payload: dict = Body(...)):
     mem.add_feedback(chat_id, msg_id, rating, comment)
     return {"ok": True}
 
-# ---------- Agentic Coding Pipeline API ----------
 
-try:
-    # Local import; exists within monorepo
-    from Agentic_Coding_Pipeline_services import run_pipeline_stream  # type: ignore
-except Exception:
-    # Fallback relative import using path adjustments
-    root = Path(__file__).resolve().parents[2]
-    sys.path.append(str(root / "Agentic-Coding-Pipeline"))
-    try:  # noqa: SIM105
-        from services import run_pipeline_stream  # type: ignore
-    except Exception as e:  # pragma: no cover - if import fails at runtime
-        run_pipeline_stream = None  # type: ignore
+# ---------------------------------------------------------------------------
+# Agentic Coding Pipeline API
+# ---------------------------------------------------------------------------
+def _import_coding_services():
+    """Lazy-import coding pipeline services."""
+    pipeline_dir = _PROJECT_ROOT / "Agentic-Coding-Pipeline"
+    if str(pipeline_dir) not in sys.path:
+        sys.path.append(str(pipeline_dir))
+    try:
+        from services import run_pipeline_stream  # type: ignore[import-untyped]
+
+        return run_pipeline_stream
+    except Exception:
+        return None
 
 
 @app.post("/api/coding/run")
 def api_coding_run(payload: dict = Body(...)):
+    run_pipeline_stream = _import_coding_services()
     if run_pipeline_stream is None:
-        raise HTTPException(status_code=500, detail="Pipeline services unavailable")
+        raise HTTPException(status_code=503, detail="Coding pipeline services unavailable")
     repo = payload.get("repo")
     jira = payload.get("jira")
     github = payload.get("github")
@@ -253,8 +361,9 @@ def api_coding_run(payload: dict = Body(...)):
 
 @app.post("/api/coding/stream")
 async def api_coding_stream(payload: dict = Body(...)):
+    run_pipeline_stream = _import_coding_services()
     if run_pipeline_stream is None:
-        raise HTTPException(status_code=500, detail="Pipeline services unavailable")
+        raise HTTPException(status_code=503, detail="Coding pipeline services unavailable")
     repo = payload.get("repo")
     jira = payload.get("jira")
     github = payload.get("github")
@@ -266,40 +375,31 @@ async def api_coding_stream(payload: dict = Body(...)):
 
     return EventSourceResponse(gen())
 
-# ---------- Agentic RAG Pipeline UI + API ----------
 
-def _rag_ui_root() -> Path:
-    return Path(__file__).resolve().parents[2] / "Agentic-RAG-Pipeline" / "ui"
-
-
-@app.get("/rag", response_class=HTMLResponse)
-def rag_index():
-    fp = _rag_ui_root() / "index.html"
-    if not fp.exists():
-        raise HTTPException(status_code=404, detail="RAG UI not found")
-    return HTMLResponse(fp.read_text(encoding="utf-8"))
-
-
-@app.get("/rag/app.js", response_class=PlainTextResponse)
-def rag_js():
-    fp = _rag_ui_root() / "app.js"
-    if not fp.exists():
-        raise HTTPException(status_code=404, detail="/rag/app.js not found")
-    return PlainTextResponse(fp.read_text(encoding="utf-8"), media_type="application/javascript")
-
-
-@app.get("/rag/styles.css", response_class=PlainTextResponse)
-def rag_css():
-    fp = _rag_ui_root() / "styles.css"
-    if not fp.exists():
-        raise HTTPException(status_code=404, detail="/rag/styles.css not found")
-    return PlainTextResponse(fp.read_text(encoding="utf-8"), media_type="text/css")
-
-
+# ---------------------------------------------------------------------------
+# Agentic RAG Pipeline API
+# ---------------------------------------------------------------------------
 def _import_rag_services():
-    root = Path(__file__).resolve().parents[2]
-    sys.path.append(str(root / "Agentic-RAG-Pipeline"))
-    from services import new_session as rag_new_session, run_rag_stream, ingest_text as rag_ingest_text, ingest_url as rag_ingest_url, ingest_file as rag_ingest_file  # type: ignore
+    """Lazy-import RAG pipeline services."""
+    pipeline_dir = _PROJECT_ROOT / "Agentic-RAG-Pipeline"
+    if str(pipeline_dir) not in sys.path:
+        sys.path.append(str(pipeline_dir))
+    from services import (  # type: ignore[import-untyped]
+        ingest_file as rag_ingest_file,
+    )
+    from services import (
+        ingest_text as rag_ingest_text,
+    )
+    from services import (
+        ingest_url as rag_ingest_url,
+    )
+    from services import (
+        new_session as rag_new_session,
+    )
+    from services import (
+        run_rag_stream,
+    )
+
     return rag_new_session, run_rag_stream, rag_ingest_text, rag_ingest_url, rag_ingest_file
 
 
@@ -322,72 +422,6 @@ async def api_rag_ask(payload: dict = Body(...)):
             yield {"event": ev, "data": data}
 
     return EventSourceResponse(gen())
-
-# ---------- Agentic Data Pipeline UI + API ----------
-
-def _data_ui_root() -> Path:
-    return Path(__file__).resolve().parents[2] / "Agentic-Data-Pipeline" / "ui"
-
-
-@app.get("/data", response_class=HTMLResponse)
-def data_index():
-    fp = _data_ui_root() / "index.html"
-    if not fp.exists():
-        raise HTTPException(status_code=404, detail="Data UI not found")
-    return HTMLResponse(fp.read_text(encoding="utf-8"))
-
-
-@app.get("/data/app.js", response_class=PlainTextResponse)
-def data_js():
-    fp = _data_ui_root() / "app.js"
-    if not fp.exists():
-        raise HTTPException(status_code=404, detail="/data/app.js not found")
-    return PlainTextResponse(fp.read_text(encoding="utf-8"), media_type="application/javascript")
-
-
-@app.get("/data/styles.css", response_class=PlainTextResponse)
-def data_css():
-    fp = _data_ui_root() / "styles.css"
-    if not fp.exists():
-        raise HTTPException(status_code=404, detail="/data/styles.css not found")
-    return PlainTextResponse(fp.read_text(encoding="utf-8"), media_type="text/css")
-
-
-def _import_data_services():
-    root = Path(__file__).resolve().parents[2]
-    sys.path.append(str(root / "Agentic-Data-Pipeline"))
-    from services import run_data_stream  # type: ignore
-    return run_data_stream
-
-
-@app.post("/api/data/stream")
-async def api_data_stream(payload: dict = Body(...)):
-    run_data_stream = _import_data_services()
-    source = (payload.get("source") or "text").strip()
-    dataset = payload.get("dataset") or ""
-    task = payload.get("task")
-    if not dataset:
-        raise HTTPException(status_code=400, detail="dataset required")
-
-    def gen():
-        for ev, data in run_data_stream(source=source, dataset=dataset, task=task):
-            yield {"event": ev, "data": data}
-    return EventSourceResponse(gen())
-
-
-@app.post("/api/data/run")
-def api_data_run(payload: dict = Body(...)):
-    run_data_stream = _import_data_services()
-    source = (payload.get("source") or "text").strip()
-    dataset = payload.get("dataset") or ""
-    task = payload.get("task")
-    if not dataset:
-        raise HTTPException(status_code=400, detail="dataset required")
-    final_report = None
-    for ev, data in run_data_stream(source=source, dataset=dataset, task=task):
-        if ev == "report":
-            final_report = data
-    return {"report": final_report or "", "ok": True}
 
 
 @app.post("/api/rag/ingest_text")
@@ -417,3 +451,47 @@ async def api_rag_ingest_file(request: Request):
     tags_s = form.get("tags") or ""
     tags = [t.strip() for t in str(tags_s).split(",") if t.strip()]
     return rag_ingest_file(filename=filename, data=data, title=title, tags=tags)
+
+
+# ---------------------------------------------------------------------------
+# Agentic Data Pipeline API
+# ---------------------------------------------------------------------------
+def _import_data_services():
+    """Lazy-import data pipeline services."""
+    pipeline_dir = _PROJECT_ROOT / "Agentic-Data-Pipeline"
+    if str(pipeline_dir) not in sys.path:
+        sys.path.append(str(pipeline_dir))
+    from services import run_data_stream  # type: ignore[import-untyped]
+
+    return run_data_stream
+
+
+@app.post("/api/data/stream")
+async def api_data_stream(payload: dict = Body(...)):
+    run_data_stream = _import_data_services()
+    source = (payload.get("source") or "text").strip()
+    dataset = payload.get("dataset") or ""
+    task = payload.get("task")
+    if not dataset:
+        raise HTTPException(status_code=400, detail="dataset required")
+
+    def gen():
+        for ev, data in run_data_stream(source=source, dataset=dataset, task=task):
+            yield {"event": ev, "data": data}
+
+    return EventSourceResponse(gen())
+
+
+@app.post("/api/data/run")
+def api_data_run(payload: dict = Body(...)):
+    run_data_stream = _import_data_services()
+    source = (payload.get("source") or "text").strip()
+    dataset = payload.get("dataset") or ""
+    task = payload.get("task")
+    if not dataset:
+        raise HTTPException(status_code=400, detail="dataset required")
+    final_report = None
+    for ev, data in run_data_stream(source=source, dataset=dataset, task=task):
+        if ev == "report":
+            final_report = data
+    return {"report": final_report or "", "ok": True}

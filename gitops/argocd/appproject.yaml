@@ -8,7 +8,7 @@ spec:
 
   # Source repositories
   sourceRepos:
-    - https://github.com/your-org/Research-Outreach-Agentic-AI.git
+    - https://github.com/hoangsonww/Agentic-AI-Pipeline.git
     - https://charts.bitnami.com/bitnami  # For any Helm charts
 
   # Destinations

@@ -1,11 +1,15 @@
 from __future__ import annotations
+
 import time
 from collections import defaultdict
 
 # Simple token bucket (per chat_id)
-_BUCKETS: dict[str, tuple[float,int]] = defaultdict(lambda: (time.time(), 5))  # (last_refill, tokens)
-RATE = 5          # tokens
+_BUCKETS: dict[str, tuple[float, int]] = defaultdict(
+    lambda: (time.time(), 5)
+)  # (last_refill, tokens)
+RATE = 5  # tokens
 PER_SECONDS = 10  # window
+
 
 def allow(chat_id: str) -> bool:
     now = time.time()

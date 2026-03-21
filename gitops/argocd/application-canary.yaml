@@ -10,7 +10,7 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/your-org/Research-Outreach-Agentic-AI.git
+    repoURL: https://github.com/hoangsonww/Agentic-AI-Pipeline.git
     targetRevision: main
     path: k8s/canary
 

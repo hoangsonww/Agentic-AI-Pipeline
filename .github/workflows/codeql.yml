@@ -2,7 +2,7 @@ name: CodeQL
 
 on:
   push:
-    branches: [ main ]
+    branches: [master, main]
 
 permissions:
   security-events: write

@@ -1,10 +1,74 @@
-.venv
+# Version control
 .git
+.gitignore
+
+# Python
+.venv
 __pycache__
 *.pyc
-.logs
-.sqlite
+*.pyo
+*.egg-info
+dist
+build
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Runtime data (mounted at runtime via volumes)
 .chroma
+.sqlite
+.logs
+data/agent_output
+data/emails
+
+# Environment files (secrets — provided at runtime)
 .env
-tests
-tooling/postman
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CI / docs / infra configs (not needed in image)
+.github
+docs
+aws
+k8s
+gitops
+ansible
+hashicorp
+tooling
+clients
+examples
+packages
+schemas
+evals
+baselines
+deploy
+scripts
+docker
+.devcontainer
+.config
+
+# Misc
+LICENSE
+CITATION.cff
+Jenkinsfile
+Caddyfile
+Procfile
+_headers
+renovate.json
+.editorconfig
+.shellcheckrc
+.pre-commit-config.yaml
+.coveragerc
+.nvmrc
+.python-version
+poetry.toml
+index.html
+DEPLOYMENTS_README.md
+SOCIAL_MEDIA_README.md

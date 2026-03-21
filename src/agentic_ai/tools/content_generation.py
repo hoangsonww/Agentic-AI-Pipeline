@@ -8,7 +8,6 @@ hashtags, captions, and post ideas across different platforms.
 import json
 import logging
 import re
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from langchain.tools import BaseTool
@@ -30,16 +29,11 @@ class ContentGenerator:
         topic: str,
         platform: str,
         tone: str = "professional",
-        max_length: Optional[int] = None
+        max_length: Optional[int] = None,
     ) -> str:
         """Generate social media post content"""
 
-        platform_limits = {
-            "twitter": 280,
-            "linkedin": 3000,
-            "instagram": 2200,
-            "facebook": 63206
-        }
+        platform_limits = {"twitter": 280, "linkedin": 3000, "instagram": 2200, "facebook": 63206}
 
         char_limit = max_length or platform_limits.get(platform.lower(), 280)
 
@@ -62,14 +56,14 @@ Generate only the post content, nothing else."""
             try:
                 messages = [
                     SystemMessage(content="You are an expert social media content creator."),
-                    HumanMessage(content=prompt)
+                    HumanMessage(content=prompt),
                 ]
                 response = await self.llm.ainvoke(messages)
                 content = response.content.strip()
 
                 # Ensure we're within character limit
                 if len(content) > char_limit:
-                    content = content[:char_limit-3] + "..."
+                    content = content[: char_limit - 3] + "..."
 
                 return content
             except Exception as e:
@@ -80,17 +74,12 @@ Generate only the post content, nothing else."""
             "twitter": f"🚀 Exciting news about {topic}! Learn more about how this is changing the game. #Innovation",
             "linkedin": f"I wanted to share some insights about {topic}.\n\nThis development represents a significant step forward in our industry. What are your thoughts?",
             "instagram": f"Today we're exploring {topic} ✨\n\nSwipe to learn more! 👉",
-            "facebook": f"We're thrilled to share updates about {topic}!\n\nJoin the conversation and let us know what you think. 💭"
+            "facebook": f"We're thrilled to share updates about {topic}!\n\nJoin the conversation and let us know what you think. 💭",
         }
 
         return templates.get(platform.lower(), f"Check out our latest update on {topic}!")
 
-    async def generate_hashtags(
-        self,
-        content: str,
-        platform: str,
-        count: int = 5
-    ) -> List[str]:
+    async def generate_hashtags(self, content: str, platform: str, count: int = 5) -> List[str]:
         """Generate relevant hashtags for content"""
 
         prompt = f"""Generate {count} relevant and popular hashtags for this {platform} post:
@@ -110,18 +99,18 @@ Generate hashtags:"""
             try:
                 messages = [
                     SystemMessage(content="You are an expert in social media hashtag strategy."),
-                    HumanMessage(content=prompt)
+                    HumanMessage(content=prompt),
                 ]
                 response = await self.llm.ainvoke(messages)
                 hashtags_text = response.content.strip()
 
                 # Parse hashtags
                 hashtags = []
-                for line in hashtags_text.split('\n'):
+                for line in hashtags_text.split("\n"):
                     line = line.strip()
                     # Remove # if present, remove numbering, clean up
-                    tag = re.sub(r'^[\d\.\)\-\s#]+', '', line)
-                    tag = tag.replace('#', '').strip()
+                    tag = re.sub(r"^[\d\.\)\-\s#]+", "", line)
+                    tag = tag.replace("#", "").strip()
                     if tag:
                         hashtags.append(tag)
 
@@ -131,16 +120,21 @@ Generate hashtags:"""
 
         # Fallback hashtags based on common keywords
         common_hashtags = [
-            "Innovation", "Technology", "Business", "Growth", "Success",
-            "AI", "MachineLearning", "Automation", "Digital", "Future"
+            "Innovation",
+            "Technology",
+            "Business",
+            "Growth",
+            "Success",
+            "AI",
+            "MachineLearning",
+            "Automation",
+            "Digital",
+            "Future",
         ]
         return common_hashtags[:count]
 
     async def generate_thread(
-        self,
-        topic: str,
-        num_tweets: int = 5,
-        tone: str = "professional"
+        self, topic: str, num_tweets: int = 5, tone: str = "professional"
     ) -> List[str]:
         """Generate a Twitter thread"""
 
@@ -163,14 +157,16 @@ Generate the thread:"""
         if self.llm:
             try:
                 messages = [
-                    SystemMessage(content="You are an expert at creating engaging Twitter threads."),
-                    HumanMessage(content=prompt)
+                    SystemMessage(
+                        content="You are an expert at creating engaging Twitter threads."
+                    ),
+                    HumanMessage(content=prompt),
                 ]
                 response = await self.llm.ainvoke(messages)
                 thread_text = response.content.strip()
 
                 # Parse tweets
-                tweets = [t.strip() for t in thread_text.split('---') if t.strip()]
+                tweets = [t.strip() for t in thread_text.split("---") if t.strip()]
 
                 # Ensure character limits
                 tweets = [t[:277] + "..." if len(t) > 280 else t for t in tweets]
@@ -185,14 +181,11 @@ Generate the thread:"""
             f"2/{num_tweets} This is an important development that's shaping our industry.",
             f"3/{num_tweets} Here's what you need to know about the key benefits and opportunities.",
             f"4/{num_tweets} The implications are far-reaching and will impact how we work.",
-            f"{num_tweets}/{num_tweets} What are your thoughts? Let's discuss in the comments! 💬"
+            f"{num_tweets}/{num_tweets} What are your thoughts? Let's discuss in the comments! 💬",
         ][:num_tweets]
 
     async def optimize_content(
-        self,
-        content: str,
-        platform: str,
-        goal: str = "engagement"
+        self, content: str, platform: str, goal: str = "engagement"
     ) -> Dict[str, Any]:
         """Optimize content for a specific platform and goal"""
 
@@ -215,7 +208,7 @@ Format your response as JSON with keys: optimized_content, best_time, hashtags, 
             try:
                 messages = [
                     SystemMessage(content="You are a social media optimization expert."),
-                    HumanMessage(content=prompt)
+                    HumanMessage(content=prompt),
                 ]
                 response = await self.llm.ainvoke(messages)
 
@@ -237,15 +230,12 @@ Format your response as JSON with keys: optimized_content, best_time, hashtags, 
             "tips": [
                 "Add emojis for visual appeal",
                 "Ask a question to encourage engagement",
-                "Include a call-to-action"
-            ]
+                "Include a call-to-action",
+            ],
         }
 
     async def generate_caption(
-        self,
-        image_description: str,
-        platform: str,
-        tone: str = "casual"
+        self, image_description: str, platform: str, tone: str = "casual"
     ) -> str:
         """Generate a caption for an image post"""
 
@@ -264,8 +254,10 @@ Generate only the caption:"""
         if self.llm:
             try:
                 messages = [
-                    SystemMessage(content="You are an expert at writing engaging social media captions."),
-                    HumanMessage(content=prompt)
+                    SystemMessage(
+                        content="You are an expert at writing engaging social media captions."
+                    ),
+                    HumanMessage(content=prompt),
                 ]
                 response = await self.llm.ainvoke(messages)
                 return response.content.strip()
@@ -307,13 +299,16 @@ class ContentGenerationTool(BaseTool):
             generator = ContentGenerator(self.llm)
             content = await generator.generate_post_content(topic, platform, tone, max_length)
 
-            return json.dumps({
-                "status": "success",
-                "content": content,
-                "platform": platform,
-                "tone": tone,
-                "character_count": len(content)
-            }, indent=2)
+            return json.dumps(
+                {
+                    "status": "success",
+                    "content": content,
+                    "platform": platform,
+                    "tone": tone,
+                    "character_count": len(content),
+                },
+                indent=2,
+            )
         except Exception as e:
             logger.error(f"Error generating content: {e}")
             return json.dumps({"status": "error", "message": str(e)})
@@ -348,11 +343,14 @@ class HashtagGenerationTool(BaseTool):
             generator = ContentGenerator(self.llm)
             hashtags = await generator.generate_hashtags(content, platform, count)
 
-            return json.dumps({
-                "status": "success",
-                "hashtags": hashtags,
-                "formatted": " ".join(f"#{tag}" for tag in hashtags)
-            }, indent=2)
+            return json.dumps(
+                {
+                    "status": "success",
+                    "hashtags": hashtags,
+                    "formatted": " ".join(f"#{tag}" for tag in hashtags),
+                },
+                indent=2,
+            )
         except Exception as e:
             logger.error(f"Error generating hashtags: {e}")
             return json.dumps({"status": "error", "message": str(e)})
@@ -387,12 +385,10 @@ class ThreadGenerationTool(BaseTool):
             generator = ContentGenerator(self.llm)
             tweets = await generator.generate_thread(topic, num_tweets, tone)
 
-            return json.dumps({
-                "status": "success",
-                "topic": topic,
-                "num_tweets": len(tweets),
-                "tweets": tweets
-            }, indent=2)
+            return json.dumps(
+                {"status": "success", "topic": topic, "num_tweets": len(tweets), "tweets": tweets},
+                indent=2,
+            )
         except Exception as e:
             logger.error(f"Error generating thread: {e}")
             return json.dumps({"status": "error", "message": str(e)})
@@ -428,11 +424,10 @@ class ContentOptimizationTool(BaseTool):
             generator = ContentGenerator(self.llm)
             optimization = await generator.optimize_content(content, platform, goal)
 
-            return json.dumps({
-                "status": "success",
-                "original_content": content,
-                "optimization": optimization
-            }, indent=2)
+            return json.dumps(
+                {"status": "success", "original_content": content, "optimization": optimization},
+                indent=2,
+            )
         except Exception as e:
             logger.error(f"Error optimizing content: {e}")
             return json.dumps({"status": "error", "message": str(e)})
@@ -467,12 +462,10 @@ class CaptionGenerationTool(BaseTool):
             generator = ContentGenerator(self.llm)
             caption = await generator.generate_caption(image_description, platform, tone)
 
-            return json.dumps({
-                "status": "success",
-                "caption": caption,
-                "platform": platform,
-                "tone": tone
-            }, indent=2)
+            return json.dumps(
+                {"status": "success", "caption": caption, "platform": platform, "tone": tone},
+                indent=2,
+            )
         except Exception as e:
             logger.error(f"Error generating caption: {e}")
             return json.dumps({"status": "error", "message": str(e)})
@@ -486,5 +479,5 @@ def get_content_generation_tools(llm: Optional[BaseChatModel] = None) -> List[Ba
         HashtagGenerationTool(llm=llm),
         ThreadGenerationTool(llm=llm),
         ContentOptimizationTool(llm=llm),
-        CaptionGenerationTool(llm=llm)
+        CaptionGenerationTool(llm=llm),
     ]
