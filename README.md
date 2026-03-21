@@ -1,33 +1,27 @@
 # Agentic Multi‑Stage Bot - A Research & Outreach Agent 🤖
 
-<!-- Core Stack -->
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.112%2B-009688?logo=fastapi&logoColor=white)](#)
 [![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI%20Server-222222?logo=gunicorn&logoColor=white)](#)
 [![Pydantic](https://img.shields.io/badge/Pydantic-v2-0E7C86?logo=pydantic&logoColor=white)](#)
-<!-- AI / LLM -->
 [![LangGraph](https://img.shields.io/badge/LangGraph-Agent%20Orchestration-5E6AD2?logo=graphql&logoColor=white)](#)
 [![LangChain](https://img.shields.io/badge/LangChain-Tooling%2FRAG-1C3C3C?logo=chainlink&logoColor=white)](#)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?logo=openai&logoColor=white)](#)
 [![Anthropic](https://img.shields.io/badge/Anthropic-Claude-18181B?logo=anthropic&logoColor=white)](#)
 [![Google Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google&logoColor=white)](#)
-<!-- Data & Memory -->
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-282828?logo=databricks&logoColor=white)](#)
 [![SQLite](https://img.shields.io/badge/SQLite-Conversations-003B57?logo=sqlite&logoColor=white)](#)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?logo=databricks&logoColor=white)](#)
 [![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-0467DF?logo=meta&logoColor=white)](#)
-<!-- Discovery & Tools -->
 [![DuckDuckGo](https://img.shields.io/badge/DuckDuckGo-Search-FB542B?logo=duckduckgo&logoColor=white)](#)
 [![SSE](https://img.shields.io/badge/SSE-Streaming-5C5C5C?logo=electron&logoColor=white)](#)
 [![httpx](https://img.shields.io/badge/httpx-HTTP%20Client-3776AB?logo=python&logoColor=white)](#)
 [![Trafilatura](https://img.shields.io/badge/Trafilatura-Web%20Extract-2E7D32?logo=python&logoColor=white)](#)
-<!-- Frontend -->
 [![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?logo=vue.js&logoColor=white)](#)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?logo=javascript&logoColor=black)](#)
 [![HTML5](https://img.shields.io/badge/HTML5-Markup-E34F26?logo=html5&logoColor=white)](#)
 [![CSS3](https://img.shields.io/badge/CSS3-Stylesheet-1572B6?logo=css3&logoColor=white)](#)
 [![Mermaid](https://img.shields.io/badge/Mermaid-Diagrams-FF3670?logo=mermaid&logoColor=white)](#)
-<!-- DevOps & Infra -->
 [![Docker](https://img.shields.io/badge/Docker-Multi--Stage-2496ED?logo=docker&logoColor=white)](#)
 [![Docker Compose](https://img.shields.io/badge/Docker%20Compose-Orchestration-2496ED?logo=docker&logoColor=white)](#)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Deployments-326CE5?logo=kubernetes&logoColor=white)](#)
@@ -41,25 +35,20 @@
 [![Flux](https://img.shields.io/badge/Flux%20v2-GitOps-5468FF?logo=flux&logoColor=white)](#)
 [![Nomad](https://img.shields.io/badge/Nomad-Orchestration-00CA8E?logo=hashicorp&logoColor=white)](#)
 [![Vault](https://img.shields.io/badge/Vault-Secrets-FFEC6E?logo=vault&logoColor=black)](#)
-<!-- QA & CI -->
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI/CD-2088FF?logo=githubactions&logoColor=white)](#)
 [![Pytest](https://img.shields.io/badge/Pytest-Tests-0A9EDC?logo=pytest&logoColor=white)](#)
 [![Ruff](https://img.shields.io/badge/Ruff-Lint%20%2B%20Format-000000?logo=ruff&logoColor=white)](#)
 [![CodeQL](https://img.shields.io/badge/CodeQL-Security-1F2937?logo=github&logoColor=white)](#)
 [![Renovate](https://img.shields.io/badge/Renovate-Deps-1A1F6C?logo=renovatebot&logoColor=white)](#)
-<!-- Build & Tools -->
 [![Makefile](https://img.shields.io/badge/Makefile-Build-000000?logo=make&logoColor=white)](#)
 [![Just](https://img.shields.io/badge/Just-Runner-6E4C13?logo=rust&logoColor=white)](#)
 [![Shell](https://img.shields.io/badge/Shell-Scripts-4EAA25?logo=gnu-bash&logoColor=white)](#)
 [![pre-commit](https://img.shields.io/badge/pre--commit-Hooks-F7B93E?logo=precommit&logoColor=black)](#)
-<!-- Client SDKs -->
 [![TypeScript](https://img.shields.io/badge/TypeScript-Client%20SDK-3178C6?logo=typescript&logoColor=white)](#)
 [![.NET](https://img.shields.io/badge/.NET%208-Client%20SDK-512BD4?logo=dotnet&logoColor=white)](#)
-<!-- Social Media -->
 [![Twitter](https://img.shields.io/badge/Twitter%2FX-API-000000?logo=x&logoColor=white)](#)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-API-0A66C2?logo=linkedin&logoColor=white)](#)
 [![Facebook](https://img.shields.io/badge/Facebook-API-1877F2?logo=facebook&logoColor=white)](#)
-<!-- Meta -->
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](#)
 [![Open Source](https://img.shields.io/badge/Open%20Source-Community-FF5722?logo=open-source-initiative&logoColor=white)](#)
 
@@ -68,6 +57,7 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 
 ## Table of Contents
 
+* [Architecture Guide](ARCHITECTURE.md) — comprehensive system design with Mermaid diagrams
 * [Key Features](#key-features)
 * [7‑Layer Architecture](#7-layer-architecture)
 * [Agent Graph (LangGraph)](#agent-graph-langgraph)
@@ -444,6 +434,7 @@ ROLLBACK_ENABLED=true ./scripts/deployment_monitor.sh agentic-ai
 
 > [!TIP]
 > **For comprehensive deployment guides, see:**
+> - **[Architecture Guide](ARCHITECTURE.md)** - Full system design with 15+ Mermaid diagrams
 > - **[Advanced Deployments Guide](docs/ADVANCED_DEPLOYMENTS.md)** - Complete documentation for all deployment strategies
 > - **[Deployment Quick Start](docs/DEPLOYMENT_QUICKSTART.md)** - Quick reference and common commands
 > - **[Deployments Overview](DEPLOYMENTS_README.md)** - Summary of all deployment capabilities
