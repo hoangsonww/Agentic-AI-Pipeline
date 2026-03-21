@@ -1,12 +1,37 @@
+# Development overrides — automatically loaded by `docker compose up`
 services:
   app:
+    build:
+      context: .
+      target: runtime
+    image: agentic-ai:dev
     environment:
       APP_HOST: 0.0.0.0
       APP_PORT: 8000
       MODEL_PROVIDER: openai
       OPENAI_API_KEY: ${OPENAI_API_KEY:-changeme}
+      LOG_LEVEL: DEBUG
     volumes:
       - ./src:/app/src:ro
       - ./web:/app/web:ro
+      - ./mcp:/app/mcp:ro
       - ./.logs:/app/.logs
       - ./data:/app/data
+      - ./Agentic-Coding-Pipeline:/app/Agentic-Coding-Pipeline:ro
+      - ./Agentic-RAG-Pipeline:/app/Agentic-RAG-Pipeline:ro
+    command: >
+      python -m uvicorn agentic_ai.app:app
+      --host 0.0.0.0 --port 8000 --reload --log-level debug
+
+  mcp:
+    image: agentic-ai:dev
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-changeme}
+      LOG_LEVEL: DEBUG
+    volumes:
+      - ./src:/app/src:ro
+      - ./mcp:/app/mcp:ro
+      - ./data:/app/data
+    command: >
+      python -m uvicorn mcp.server:create_app --factory
+      --host 0.0.0.0 --port 8001 --reload --log-level debug

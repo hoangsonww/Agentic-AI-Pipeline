@@ -1,32 +1,67 @@
 # Agentic Multi‑Stage Bot - A Research & Outreach Agent 🤖
 
+<!-- Core Stack -->
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
-[![FastAPI](https://img.shields.io/badge/FastAPI-API%20Server-009688?logo=fastapi&logoColor=white)](#)
-[![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI%20Server-222222?logo=python&logoColor=white)](#)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.112%2B-009688?logo=fastapi&logoColor=white)](#)
+[![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI%20Server-222222?logo=gunicorn&logoColor=white)](#)
+[![Pydantic](https://img.shields.io/badge/Pydantic-v2-0E7C86?logo=pydantic&logoColor=white)](#)
+<!-- AI / LLM -->
 [![LangGraph](https://img.shields.io/badge/LangGraph-Agent%20Orchestration-5E6AD2?logo=graphql&logoColor=white)](#)
 [![LangChain](https://img.shields.io/badge/LangChain-Tooling%2FRAG-1C3C3C?logo=chainlink&logoColor=white)](#)
-[![OpenAI](https://img.shields.io/badge/OpenAI-Chat%20LLM-412991?logo=openai&logoColor=white)](#)
-[![Anthropic](https://img.shields.io/badge/Anthropic-Chat%20LLM-18181B?logo=apache&logoColor=white)](#)
-[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Memory-282828?logo=databricks&logoColor=white)](#)
-[![SQLite](https://img.shields.io/badge/SQLite-Conversation%20Store-003B57?logo=sqlite&logoColor=white)](#)
-[![DuckDuckGo](https://img.shields.io/badge/DuckDuckGo-Search-FB542B?logo=duckduckgo&logoColor=white)](#)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?logo=openai&logoColor=white)](#)
+[![Anthropic](https://img.shields.io/badge/Anthropic-Claude-18181B?logo=anthropic&logoColor=white)](#)
+[![Google Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google&logoColor=white)](#)
+<!-- Data & Memory -->
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-282828?logo=databricks&logoColor=white)](#)
+[![SQLite](https://img.shields.io/badge/SQLite-Conversations-003B57?logo=sqlite&logoColor=white)](#)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?logo=databricks&logoColor=white)](#)
-[![Pydantic](https://img.shields.io/badge/Pydantic-Config-0E7C86?logo=pydantic&logoColor=white)](#)
-[![Pytest](https://img.shields.io/badge/Pytest-Tests-0A9EDC?logo=pytest&logoColor=white)](#)
-[![Ruff](https://img.shields.io/badge/Ruff-Lint-000000?logo=ruff&logoColor=white)](#)
+[![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-0467DF?logo=meta&logoColor=white)](#)
+<!-- Discovery & Tools -->
+[![DuckDuckGo](https://img.shields.io/badge/DuckDuckGo-Search-FB542B?logo=duckduckgo&logoColor=white)](#)
 [![SSE](https://img.shields.io/badge/SSE-Streaming-5C5C5C?logo=electron&logoColor=white)](#)
-[![Makefile](https://img.shields.io/badge/Makefile-Build%20System-000000?logo=make&logoColor=white)](#)
-[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI/CD-2088FF?logo=githubactions&logoColor=white)](#)
-[![Code Quality](https://img.shields.io/badge/Code%20Quality-Tests%20+%20Lint-4C1?logo=codequality&logoColor=white)](#)
-[![Open Source](https://img.shields.io/badge/Open%20Source-Community-FF5722?logo=open-source-initiative&logoColor=white)](#)
-[![Shell](https://img.shields.io/badge/Shell-CLI%20Tools-4EAA25?logo=gnu-bash&logoColor=white)](#)
-[![AWS](https://img.shields.io/badge/AWS-Cloud%20Ready-FF9900?logo=amazonaws&logoColor=white)](#)
-[![Vue.js](https://img.shields.io/badge/Vue.js-Web%20UI-4FC08D?logo=vue.js&logoColor=white)](#)
-[![JavaScript](https://img.shields.io/badge/JavaScript-Frontend-F7DF1E?logo=javascript&logoColor=black)](#)
+[![httpx](https://img.shields.io/badge/httpx-HTTP%20Client-3776AB?logo=python&logoColor=white)](#)
+[![Trafilatura](https://img.shields.io/badge/Trafilatura-Web%20Extract-2E7D32?logo=python&logoColor=white)](#)
+<!-- Frontend -->
+[![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?logo=vue.js&logoColor=white)](#)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?logo=javascript&logoColor=black)](#)
 [![HTML5](https://img.shields.io/badge/HTML5-Markup-E34F26?logo=html5&logoColor=white)](#)
 [![CSS3](https://img.shields.io/badge/CSS3-Stylesheet-1572B6?logo=css3&logoColor=white)](#)
-[![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker&logoColor=white)](#)
-[![Ansible](https://img.shields.io/badge/Ansible-Configuration%20Management-EE0000?logo=ansible&logoColor=white)](#)
+[![Mermaid](https://img.shields.io/badge/Mermaid-Diagrams-FF3670?logo=mermaid&logoColor=white)](#)
+<!-- DevOps & Infra -->
+[![Docker](https://img.shields.io/badge/Docker-Multi--Stage-2496ED?logo=docker&logoColor=white)](#)
+[![Docker Compose](https://img.shields.io/badge/Docker%20Compose-Orchestration-2496ED?logo=docker&logoColor=white)](#)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Deployments-326CE5?logo=kubernetes&logoColor=white)](#)
+[![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC?logo=terraform&logoColor=white)](#)
+[![Ansible](https://img.shields.io/badge/Ansible-Config%20Mgmt-EE0000?logo=ansible&logoColor=white)](#)
+[![AWS](https://img.shields.io/badge/AWS-ECS%20Fargate-FF9900?logo=amazonaws&logoColor=white)](#)
+[![GCP](https://img.shields.io/badge/GCP-Cloud%20Run-4285F4?logo=googlecloud&logoColor=white)](#)
+[![Azure](https://img.shields.io/badge/Azure-Container%20Apps-0078D4?logo=microsoftazure&logoColor=white)](#)
+[![OCI](https://img.shields.io/badge/OCI-Container%20Instances-F80000?logo=oracle&logoColor=white)](#)
+[![ArgoCD](https://img.shields.io/badge/ArgoCD-GitOps-EF7B4D?logo=argo&logoColor=white)](#)
+[![Flux](https://img.shields.io/badge/Flux%20v2-GitOps-5468FF?logo=flux&logoColor=white)](#)
+[![Nomad](https://img.shields.io/badge/Nomad-Orchestration-00CA8E?logo=hashicorp&logoColor=white)](#)
+[![Vault](https://img.shields.io/badge/Vault-Secrets-FFEC6E?logo=vault&logoColor=black)](#)
+<!-- QA & CI -->
+[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI/CD-2088FF?logo=githubactions&logoColor=white)](#)
+[![Pytest](https://img.shields.io/badge/Pytest-Tests-0A9EDC?logo=pytest&logoColor=white)](#)
+[![Ruff](https://img.shields.io/badge/Ruff-Lint%20%2B%20Format-000000?logo=ruff&logoColor=white)](#)
+[![CodeQL](https://img.shields.io/badge/CodeQL-Security-1F2937?logo=github&logoColor=white)](#)
+[![Renovate](https://img.shields.io/badge/Renovate-Deps-1A1F6C?logo=renovatebot&logoColor=white)](#)
+<!-- Build & Tools -->
+[![Makefile](https://img.shields.io/badge/Makefile-Build-000000?logo=make&logoColor=white)](#)
+[![Just](https://img.shields.io/badge/Just-Runner-6E4C13?logo=rust&logoColor=white)](#)
+[![Shell](https://img.shields.io/badge/Shell-Scripts-4EAA25?logo=gnu-bash&logoColor=white)](#)
+[![pre-commit](https://img.shields.io/badge/pre--commit-Hooks-F7B93E?logo=precommit&logoColor=black)](#)
+<!-- Client SDKs -->
+[![TypeScript](https://img.shields.io/badge/TypeScript-Client%20SDK-3178C6?logo=typescript&logoColor=white)](#)
+[![.NET](https://img.shields.io/badge/.NET%208-Client%20SDK-512BD4?logo=dotnet&logoColor=white)](#)
+<!-- Social Media -->
+[![Twitter](https://img.shields.io/badge/Twitter%2FX-API-000000?logo=x&logoColor=white)](#)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-API-0A66C2?logo=linkedin&logoColor=white)](#)
+[![Facebook](https://img.shields.io/badge/Facebook-API-1877F2?logo=facebook&logoColor=white)](#)
+<!-- Meta -->
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](#)
+[![Open Source](https://img.shields.io/badge/Open%20Source-Community-FF5722?logo=open-source-initiative&logoColor=white)](#)
 
 A **full‑fledged, multi‑stage, agentic chatbot** that **plans → discovers → reasons → uses tools → learns**.
 The reference task baked into this repo is a **Research & Outreach Agent** (“**DossierOutreachAgent**”): given a topic/company, it builds a **compact, cited briefing** and (optionally) **drafts an outreach email**, saving artifacts to disk.
@@ -74,8 +109,8 @@ The reference task baked into this repo is a **Research & Outreach Agent** (“*
 * **Batteries‑included tests** (unit + smoke), lint, formatting, and ready Makefile targets.
 * **Opinionated architecture**: 7‑layer separation, single action per step, reflect‑first finalization.
 * **Extensible**: add new tools, nodes, or agent profiles without breaking the core.
-* **
-* **Production ready**: designed for real‑world use with security, observability, and extensibility in mind.
+* **Docker-ready**: multi-stage Dockerfile, Docker Compose with app + MCP services, non-root user, health checks.
+* **Production ready**: designed for real-world use with security, observability, and extensibility in mind.
 * **Open Source**: Apache licensed, built with community contributions in mind.
 
 ---
@@ -251,39 +286,58 @@ This design ensures that each step is clear and focused, allowing for easy debug
 ## Repository Layout
 
 ```
-Agentic-RAG-Pipeline/     # Bonus: full agentic RAG pipeline in addition to this bot
-Agentic-Coding-Pipeline/  # Bonus: autonomous coding assistant pipeline
-Makefile                  # Common tasks (setup, ingest, run, test)
-requirements.txt          # Python dependencies
+Agentic-RAG-Pipeline/     # Agentic RAG pipeline (Gemini + FAISS)
+Agentic-Coding-Pipeline/  # Autonomous coding assistant (GPT + Claude + Gemini QA)
+mcp/                      # Model Context Protocol server
+  server.py               # FastAPI MCP dispatcher
+  tools/                  # Web search, KB, sandboxed file I/O
+  schemas.py              # Pydantic request models
+clients/
+  python/                 # Python async client SDK
+  ts/                     # TypeScript/Node client SDK
+  dotnet/                 # .NET 8 client SDK (C#)
 src/
   agentic_ai/
-    app.py                # FastAPI app (Experience)
-    graph.py              # LangGraph runner
+    app.py                # FastAPI app (Experience) + /health
+    graph.py              # LangGraph runner (lazy init)
     cli.py                # CLI utilities (ingest/demo)
-    config.py             # Pydantic settings
+    config.py             # Pydantic Settings (.env)
     infra/
-      logging.py          # Rotating logs
-      rate_limit.py       # Token bucket
+      logging.py          # Rotating file + console logger
+      rate_limit.py       # Token-bucket rate limiter
     memory/
       sql_store.py        # SQLite conversation store
-      vector_store.py     # ChromaDB KB
+      vector_store.py     # ChromaDB vector KB
     layers/
-      composition.py      # Agent profile
-      reasoning.py        # Plan→Decide→Act→Reflect graph
-      memory.py           # Memory orchestrator helpers
+      composition.py      # Agent profile (DossierOutreachAgent)
+      reasoning.py        # Plan→Decide→Act→Reflect→Finalize graph
+      memory.py           # Memory orchestrator facade
       tools.py            # Tool registry
     tools/
       webtools.py         # DuckDuckGo search + URL fetch & extract
-      ops.py              # Calculator, FileWrite, Emailer (mock)
+      ops.py              # Calculator, FileWrite, Emailer
       knowledge.py        # KB add/search tools
+      social_media_tools.py  # Social media platform tools
+      content_generation.py  # AI content generation tools
+    llm/
+      clients.py          # Lightweight OpenAI/Claude/Gemini HTTP clients
+      client.py           # LangChain ChatModel factory
+    agents/
+      social_media_agent.py  # Social media automation agent
+    social_media_api.py   # /api/social/* router
+    social_media_scheduler.py  # Campaign scheduler
 web/
-  index.html styles.css app.js
+  index.html styles.css app.js  # Main chat UI
+  social_media.html             # Social media dashboard
+Dockerfile                # Multi-stage production build
+compose.yaml              # Docker Compose (app + MCP)
+.env.example              # Environment template
+Makefile / Justfile       # Build targets
+tests/                    # Unit + integration tests (8 tests)
 data/
-  seed/                   # Non-empty RAG seeds
-  agent_output/          # FileWrite artifacts
-  emails/                # Emailer artifacts
-tests/
-  ... (unit & smoke)
+  seed/                   # Knowledge base seed documents
+  agent_output/           # Generated artifacts
+  emails/                 # Email drafts
 ```
 
 > [!IMPORTANT]
@@ -350,13 +404,24 @@ python run.py "Add pagination support to the API client"
 
 This repository includes **production-grade deployment strategies** and **DevOps automation** for zero-downtime deployments, progressive rollouts, and GitOps-driven continuous delivery.
 
+### Multi-Cloud & On-Prem Support
+
+| Provider | Service | IaC Module |
+|----------|---------|------------|
+| **AWS** | ECS Fargate + ALB + CodeDeploy | `hashicorp/terraform/modules/ecs_fargate/` |
+| **GCP** | Cloud Run + Artifact Registry | `hashicorp/terraform/modules/gcp_cloud_run/` |
+| **Azure** | Container Apps + ACR | `hashicorp/terraform/modules/azure_container_apps/` |
+| **OCI** | Container Instances + OCIR + LB | `hashicorp/terraform/modules/oci_container_instances/` |
+| **Kubernetes** | Any cluster (EKS/GKE/AKS/OKE) | `k8s/` manifests |
+| **On-Prem** | Nomad, Ansible, Docker Compose | `hashicorp/nomad/`, `ansible/`, `compose.yaml` |
+
 ### Deployment Strategies
 
-* **Blue/Green Deployments**: Zero-downtime deployments with instant rollback capability (Kubernetes + AWS ECS)
+* **Blue/Green Deployments**: Zero-downtime deployments with instant rollback (Kubernetes + AWS ECS)
 * **Canary Deployments**: Progressive traffic shifting with automated health checks and metrics analysis
 * **GitOps**: Declarative deployments with ArgoCD and Flux v2, including image automation
 * **Automated Monitoring**: Continuous health checks with auto-rollback on failures
-* **Infrastructure as Code**: Terraform modules for AWS ECS with CodeDeploy integration
+* **Infrastructure as Code**: Multi-provider Terraform (`terraform apply -var="cloud_provider=aws|gcp|azure|oci"`)
 
 ### Quick Examples
 
@@ -396,23 +461,21 @@ ROLLBACK_ENABLED=true ./scripts/deployment_monitor.sh agentic-ai
 To quickly get started with the Agentic AI bot, follow these steps:
 
 ```bash
-# 1) Create venv & install
-python -m venv .venv
-. .venv/bin/activate
-pip install -U pip
-pip install -r requirements.txt
+# 1) Setup (venv + deps + .env)
+make setup
+# Edit .env with your OPENAI_API_KEY (or ANTHROPIC_API_KEY)
 
-# 2) Configure model keys
-cp .env.example .env
-# Edit .env with your OPENAI_API_KEY (or ANTHROPIC_API_KEY) and preferences
-
-# 3) Ingest seed knowledge into vector store
+# 2) Ingest seed knowledge into vector store
 make ingest
 
-# 4) Run the server
+# 3) Run the server
 make run
 # Open http://localhost:8000 and ask:
 # "Build a competitive briefing on ACME Robotics and draft a short outreach email."
+
+# -- OR with Docker --
+docker compose up --build -d
+# Open http://localhost:8000
 ```
 
 **CLI demo (streams to stdout)**
@@ -423,6 +486,108 @@ python -m agentic_ai.cli demo "Summarize top AMR vendors for grocery DCs with ci
 ```
 
 This will start the agent, which will plan, search, and reflect on the topic, providing a compact briefing with citations. You can also use the CLI to ingest additional documents into the vector knowledge base.
+
+## System Topology
+
+The full monorepo connects multiple services, pipelines, and client SDKs through a unified FastAPI gateway and a shared MCP control plane:
+
+```mermaid
+flowchart TB
+    subgraph Clients["Client SDKs"]
+        direction LR
+        PY["Python Client"]
+        TS["TypeScript Client"]
+        NET[".NET Client"]
+        WEB["Web UI (Vue.js)"]
+    end
+
+    subgraph Gateway["FastAPI Gateway :8000"]
+        direction TB
+        HEALTH["/health"]
+        CHAT["/api/chat (SSE)"]
+        INGEST["/api/ingest*"]
+        SOCIAL["/api/social/*"]
+        CODING["/api/coding/*"]
+        RAG["/api/rag/*"]
+        DATA["/api/data/*"]
+    end
+
+    subgraph Core["Core Agent (LangGraph)"]
+        direction LR
+        PLAN["Plan"] --> DECIDE["Decide"]
+        DECIDE --> ACT["Act"]
+        ACT --> TOOLS["ToolNode"]
+        TOOLS --> REFLECT["Reflect"]
+        REFLECT -->|loop| DECIDE
+        REFLECT -->|done| FINAL["Finalize"]
+    end
+
+    subgraph MCP["MCP Server :8001"]
+        direction TB
+        PIPE["/pipeline/*"]
+        LLM["/llm/*"]
+        SEARCH["/search, /browse"]
+        KB["/kb/add, /kb/search"]
+        FS["/fs/read, /fs/write"]
+    end
+
+    subgraph Pipelines["Sub-Pipelines"]
+        direction LR
+        ACP["Agentic Coding\n(GPT + Claude + Gemini QA)"]
+        ARP["Agentic RAG\n(Gemini + FAISS)"]
+    end
+
+    subgraph Storage["Persistence"]
+        direction LR
+        CHROMA[("ChromaDB\nVector KB")]
+        SQLITE[("SQLite\nConversations")]
+        FILES["data/agent_output/"]
+    end
+
+    subgraph Infra["Infrastructure"]
+        direction LR
+        DOCKER["Docker\nMulti-Stage"]
+        K8S["Kubernetes\nBlue/Green + Canary"]
+        GHACTIONS["GitHub Actions\nCI/CD"]
+        TERRAFORM["Terraform\nAWS ECS"]
+    end
+
+    Clients --> Gateway
+    CHAT --> Core
+    CODING --> ACP
+    RAG --> ARP
+    Gateway --> MCP
+    Core --> Storage
+    MCP --> Storage
+    ACP --> MCP
+    ARP --> MCP
+```
+
+## Docker
+
+The project ships with a **production-grade, multi-stage Dockerfile** and Docker Compose setup:
+
+```bash
+# Build and run with Docker Compose (app + MCP server)
+docker compose up --build -d
+
+# Verify health
+curl http://localhost:8000/health
+curl http://localhost:8001/status
+
+# View logs
+docker compose logs -f app
+
+# Tear down
+docker compose down -v
+```
+
+| Service | Port | Health Check | Purpose |
+|---------|------|-------------|---------|
+| `app` | 8000 | `/health` | Main FastAPI gateway + Web UI |
+| `mcp` | 8001 | `/status` | MCP control plane |
+
+Both services share persistent volumes for ChromaDB and SQLite. The development override (`compose.override.yaml`) mounts source code for hot-reload.
 
 ## Configuration
 
@@ -437,14 +602,19 @@ OPENAI_MODEL_EMBED=text-embedding-3-small
 ANTHROPIC_API_KEY=sk-ant-...   # required if MODEL_PROVIDER=anthropic
 ANTHROPIC_MODEL_CHAT=claude-3-5-sonnet-latest
 
+GOOGLE_API_KEY=                # optional, used by MCP server Gemini adapter
+
 CHROMA_DIR=.chroma
 SQLITE_PATH=.sqlite/agent.db
 
 APP_HOST=0.0.0.0
 APP_PORT=8000
+
+LOG_LEVEL=INFO                 # DEBUG | INFO | WARNING | ERROR
+LOG_DIR=.logs
 ```
 
-> You can switch providers at runtime by changing `MODEL_PROVIDER` and the corresponding keys/models.
+> You can switch providers at runtime by changing `MODEL_PROVIDER` and the corresponding keys/models. Copy `.env.example` to `.env` to get started.
 
 ## Running
 
@@ -452,20 +622,28 @@ We recommend using a **virtual environment** to isolate dependencies. The provid
 
 **Makefile targets**
 
-* `make setup` – create venv, install deps, copy `.env.example`
-* `make ingest` – add files under `data/seed/` to the vector KB
-* `make run` – launch **FastAPI** on configured host/port
-* `make test` – run unit tests
-* `make format` / `make lint` – apply/check `ruff` (imports + formatting)
+| Target | Description |
+|--------|-------------|
+| `make setup` | Create venv, install deps, copy `.env.example` → `.env` |
+| `make run` | Launch FastAPI with hot-reload |
+| `make test` | Run pytest (8 tests) |
+| `make lint` | Check with ruff |
+| `make format` | Auto-fix imports + formatting |
+| `make ingest` | Seed `data/seed/` into vector KB |
+| `make demo` | Run CLI demo prompt |
+| `make health` | Curl the `/health` endpoint |
+| `make docker-build` | Build production Docker image |
+| `make compose-up` | `docker compose up --build -d` |
 
 **Run the server**
 
 ```bash
-. .venv/bin/activate
-uvicorn src.agentic_ai.app:app --host
+make run
+# or directly:
+PYTHONPATH=src uvicorn agentic_ai.app:app --reload --host 0.0.0.0 --port 8000
 ```
 
-This will start the FastAPI server on `http://localhost:8000`, where you can interact with the agent via the web UI or API.
+Open `http://localhost:8000` to interact with the agent via the web UI.
 
 ## Web UI
 
@@ -515,6 +693,10 @@ The CLI allows you to quickly test the agent's capabilities without needing to s
 
 A simple HTTP API is provided for programmatic access to the agent's capabilities. It supports both synchronous and streaming interactions:
 
+### `GET /health`
+
+Lightweight health probe for load balancers and orchestrators. Returns `{"status": "ok", "version": "0.4.0"}`.
+
 ### `GET /api/new_chat`
 
 Returns a new `chat_id`.
@@ -556,10 +738,11 @@ Form fields: `file`, `id?`, `tags?`
 
 ## Client SDKs
 
-Two SDKs live under `clients/` to integrate with this server and the sibling pipelines:
+Three SDKs live under `clients/` to integrate with this server and the sibling pipelines:
 
-- TypeScript (Node/Browser): `clients/ts`
-- Python (async): `clients/python`
+- **TypeScript** (Node/Browser): `clients/ts`
+- **Python** (async): `clients/python`
+- **.NET 8** (C#): `clients/dotnet` — see [`clients/dotnet/README.md`](clients/dotnet/README.md) for full docs and Mermaid architecture diagrams
 
 TypeScript usage (Node 18+)
 
@@ -744,23 +927,22 @@ This repository includes a comprehensive suite of tests to ensure code quality a
 **Run all tests**
 
 ```bash
-. .venv/bin/activate
-pytest -q
+make test        # or: PYTHONPATH=src pytest -q --tb=short
 ```
 
-**What’s covered**
+**What’s covered (8 tests)**
 
-* Memory round‑trips (SQLite + ChromaDB).
-* Tool smoke tests (calculator/file/email/KB).
-* API endpoint sanity (new\_chat/ingest/feedback).
-* Registry integrity.
-* Graph reasoning with a **Fake LLM** (if available in `langchain_core`) to avoid API keys during CI.
+* Memory round-trips (SQLite + ChromaDB vector store).
+* Tool smoke tests (calculator, file write, email draft, KB add/search).
+* MCP server endpoints (pipeline dispatch, web search, LLM proxy, KB, status).
+* Agentic Coding Pipeline orchestration.
+* All tests run **without real API keys** — network calls are mocked in CI.
 
 **Lint & Format**
 
 ```bash
-make format
-make lint
+make lint        # ruff check + format --check
+make format      # ruff auto-fix + format
 ```
 
 <!-- runledger:note:start -->

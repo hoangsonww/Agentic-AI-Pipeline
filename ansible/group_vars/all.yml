@@ -7,7 +7,7 @@ app_home: /opt/agentic-ai
 data_dir: /var/lib/agentic-ai
 logs_dir: /var/log/agentic-ai
 venv_dir: "{{ app_home }}/.venv"
-repo_url: "https://github.com/your-org/agentic-ai.git"   # set if you deploy from Git
+repo_url: "https://github.com/hoangsonww/Agentic-AI-Pipeline.git"   # set if you deploy from Git
 repo_version: "main"
 
 app_host: "0.0.0.0"
@@ -26,7 +26,7 @@ env_vars:
 
 # ====== Docker deployment ======
 docker_enabled: false
-docker_image: "your-registry/agentic-ai"
+docker_image: "ghcr.io/hoangsonww/agentic-ai"
 docker_tag: "latest"
 docker_container_name: "agentic-ai"
 docker_ports:

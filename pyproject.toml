@@ -4,15 +4,14 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "agentic-multistage-bot"
-version = "0.3.0"
+version = "0.4.0"
 description = "Full-fledged multi-stage agentic chatbot with 7-layer architecture (experience, discovery, composition, reasoning & planning, tools, memory & feedback, infrastructure)."
-authors = ["Your Name <you@example.com>"]
+authors = ["Son Nguyen <hoangsonww@gmail.com>"]
 readme = "README.md"
 license = "MIT"
 packages = [{ include = "agentic_ai", from = "src" }, { include = "mcp" }]
 keywords = ["agents", "langgraph", "langchain", "fastapi", "rag", "chromadb", "sqlite", "sse", "tool-chaining"]
 
-# Console entry points
 [tool.poetry.scripts]
 agentic-ai = "agentic_ai.cli:main"
 
@@ -21,7 +20,7 @@ python = ">=3.10,<3.13"
 
 # Web API
 fastapi = ">=0.112.0"
-uvicorn = {version = ">=0.30.0", extras=["standard"]}
+uvicorn = { version = ">=0.30.0", extras = ["standard"] }
 sse-starlette = ">=2.1.0"
 pydantic = ">=2.8.0"
 pydantic-settings = ">=2.3.4"
@@ -51,22 +50,35 @@ chromadb = ">=0.5.5"
 SQLAlchemy = ">=2.0.32"
 aiosqlite = ">=0.20.0"
 
+# Social Media Automation
+tweepy = ">=4.14.0"
+python-linkedin-v2 = ">=0.9.4"
+facebook-sdk = ">=3.1.0"
+pillow = ">=10.0.0"
+schedule = ">=1.2.0"
+
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.2.0"
 ruff = ">=0.6.2"
 
-# -------- Optional metadata / config in pyproject --------
+# -------- Tooling config --------
 
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-extend-select = ["I"]  # isort
-src = ["src", "tests"]
+src = ["src", "tests", "mcp"]
 
 [tool.ruff.lint]
-select = ["E","F","I"]
+select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# LLM prompt strings and tool descriptions often exceed line length
+"src/agentic_ai/layers/reasoning.py" = ["E501"]
+"src/agentic_ai/layers/composition.py" = ["E501"]
+"src/agentic_ai/tools/social_media_tools.py" = ["E501"]
+"src/agentic_ai/tools/content_generation.py" = ["E501"]
+"src/agentic_ai/agents/social_media_agent.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
-
+addopts = "-q --tb=short"

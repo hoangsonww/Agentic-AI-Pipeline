@@ -253,8 +253,8 @@ flux install
 
 # Bootstrap with GitHub
 flux bootstrap github \
-  --owner=your-org \
-  --repository=Research-Outreach-Agentic-AI \
+  --owner=hoangsonww \
+  --repository=Agentic-AI-Pipeline \
   --branch=main \
   --path=gitops/flux \
   --personal

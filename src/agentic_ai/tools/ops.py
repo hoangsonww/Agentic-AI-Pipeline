@@ -1,11 +1,18 @@
 from __future__ import annotations
+
+import json
+import math
+import pathlib
+
 from langchain.tools import BaseTool
-import json, math, pathlib
 
 
 class Calculator(BaseTool):
-    name = "calculator"
-    description = "Evaluate a safe math expression using Python math. Input: expression string. Output: result string."
+    name: str = "calculator"
+    description: str = (
+        "Evaluate a safe math expression using Python math. "
+        "Input: expression string. Output: result string."
+    )
 
     def _run(self, expression: str) -> str:
         allowed = {k: getattr(math, k) for k in dir(math) if not k.startswith("_")}
@@ -17,9 +24,12 @@ class Calculator(BaseTool):
 
 
 class FileWrite(BaseTool):
-    name = "file_write"
-    description = "Write content to a relative path under ./data/agent_output. Input JSON {path, content}. Output: absolute path."
-    base = pathlib.Path("data/agent_output").absolute()
+    name: str = "file_write"
+    description: str = (
+        "Write content to a relative path under ./data/agent_output. "
+        "Input JSON {path, content}. Output: absolute path."
+    )
+    base: pathlib.Path = pathlib.Path("data/agent_output").absolute()
 
     def _run(self, spec: str) -> str:
         obj = json.loads(spec)
@@ -30,14 +40,18 @@ class FileWrite(BaseTool):
 
 
 class Emailer(BaseTool):
-    name = "emailer"
-    description = "Draft + queue an email (mock). Input JSON {to, subject, body}. Output: stored .eml path."
-    out = pathlib.Path("data/emails").absolute()
+    name: str = "emailer"
+    description: str = (
+        "Draft + queue an email (mock). Input JSON {to, subject, body}. Output: stored .eml path."
+    )
+    out: pathlib.Path = pathlib.Path("data/emails").absolute()
 
     def _run(self, spec: str) -> str:
         self.out.mkdir(parents=True, exist_ok=True)
         obj = json.loads(spec)
         fn = (obj.get("subject", "email").strip().replace(" ", "_"))[:60] + ".eml"
         p = self.out / fn
-        p.write_text(f"To: {obj[to]}\nSubject: {obj[subject]}\n\n{obj[body]}", encoding="utf-8")
+        p.write_text(
+            f"To: {obj['to']}\nSubject: {obj['subject']}\n\n{obj['body']}", encoding="utf-8"
+        )
         return str(p)

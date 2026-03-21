@@ -6,23 +6,20 @@ addition to the ability for pipelines to register task handlers, it provides
 utility endpoints for web search, page browsing, lightweight research workflows
 and direct LLM access so pipelines share a common toolbox.
 """
+
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
-import httpx
-import trafilatura
-from bs4 import BeautifulSoup
-from duckduckgo_search import DDGS
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import Body, FastAPI, HTTPException
 from sse_starlette.sse import EventSourceResponse
-from pydantic import BaseModel
 
 from agentic_ai.llm import ClaudeClient, GeminiClient, OpenAIClient
-from .schemas import PipelineRequest, LLMRequest, SummarizeRequest, KBAddRequest, FileWriteRequest
-from .tools import web as webtools
-from .tools import kb as kbtools
+
+from .schemas import FileWriteRequest, KBAddRequest, LLMRequest, PipelineRequest, SummarizeRequest
 from .tools import files as filestools
+from .tools import kb as kbtools
+from .tools import web as webtools
 
 PipelineHandler = Callable[[str], Dict[str, Any]]
 
@@ -123,6 +120,7 @@ class MCPServer:
         async def coding_stream(payload: dict = Body(...)):
             root = __import__("pathlib").Path(__file__).resolve().parents[1]
             import sys as _sys
+
             _sys.path.append(str(root / "Agentic-Coding-Pipeline"))
             try:
                 from services import run_pipeline_stream as _coding_stream  # type: ignore
@@ -131,18 +129,24 @@ class MCPServer:
 
             def gen():
                 for ev, data in _coding_stream(
-                    repo_input=payload.get("repo"), jira=payload.get("jira"), github=payload.get("github"), text=payload.get("task")
+                    repo_input=payload.get("repo"),
+                    jira=payload.get("jira"),
+                    github=payload.get("github"),
+                    text=payload.get("task"),
                 ):
                     yield {"event": ev, "data": data}
+
             return EventSourceResponse(gen())
 
         @self.app.post("/pipeline/rag/ask")
         async def rag_stream(payload: dict = Body(...)):
             root = __import__("pathlib").Path(__file__).resolve().parents[1]
             import sys as _sys
+
             _sys.path.append(str(root / "Agentic-RAG-Pipeline"))
             try:
-                from services import run_rag_stream as _rag_stream, new_session as _rag_new_session  # type: ignore
+                from services import new_session as _rag_new_session
+                from services import run_rag_stream as _rag_stream  # type: ignore
             except Exception as e:  # pragma: no cover
                 raise HTTPException(status_code=500, detail=f"rag services unavailable: {e}")
             session_id = payload.get("session_id") or _rag_new_session()
@@ -153,12 +157,14 @@ class MCPServer:
             def gen():
                 for ev, data in _rag_stream(session_id=session_id, query=question):
                     yield {"event": ev, "data": data}
+
             return EventSourceResponse(gen())
 
         @self.app.post("/pipeline/data/analyze")
         async def data_stream(payload: dict = Body(...)):
             root = __import__("pathlib").Path(__file__).resolve().parents[1]
             import sys as _sys
+
             _sys.path.append(str(root / "Agentic-Data-Pipeline"))
             try:
                 from services import run_data_stream as _data_stream  # type: ignore
@@ -169,9 +175,11 @@ class MCPServer:
             task = payload.get("task")
             if not dataset:
                 raise HTTPException(status_code=400, detail="dataset required")
+
             def gen():
                 for ev, data in _data_stream(source=source, dataset=dataset, task=task):
                     yield {"event": ev, "data": data}
+
             return EventSourceResponse(gen())
 
         @self.app.get("/status")

@@ -7,14 +7,14 @@ Thanks for your interest in contributing! Please take a moment to read this guid
 1. Fork the repository and clone your fork (adjust the URL to your fork as needed):
 
    ```bash
-   git clone <git@github.com:your-username/Agentic AI.git>
-   cd Agentic AI
+   git clone git@github.com:<your-fork>/Agentic-AI-Pipeline.git
+   cd Agentic-AI-Pipeline
    ```
 
 2. Install dependencies:
 
    ```bash
-   npm ci
+   make setup
    ```
 
 3. Create a new branch from `develop`:

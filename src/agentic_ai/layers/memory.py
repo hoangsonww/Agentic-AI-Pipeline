@@ -1,6 +1,6 @@
 from __future__ import annotations
+
 from ..config import settings
-from ..infra.logging import logger
 from ..memory.sql_store import SQLStore
 from ..memory.vector_store import VectorStore
 

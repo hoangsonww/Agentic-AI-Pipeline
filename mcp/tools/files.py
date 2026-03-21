@@ -25,4 +25,3 @@ def read_file(path: str) -> dict:
     if not p.exists():
         return {"ok": False, "error": "not found"}
     return {"ok": True, "path": str(p), "content": p.read_text(encoding="utf-8", errors="ignore")}
-

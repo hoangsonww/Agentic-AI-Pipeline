@@ -6,13 +6,12 @@ content generation, and analytics across multiple platforms including Twitter,
 LinkedIn, Instagram, and Facebook.
 """
 
-import asyncio
 import json
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import httpx
 from langchain.tools import BaseTool
@@ -23,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class SocialPlatform(str, Enum):
     """Supported social media platforms"""
+
     TWITTER = "twitter"
     LINKEDIN = "linkedin"
     INSTAGRAM = "instagram"
@@ -31,6 +31,7 @@ class SocialPlatform(str, Enum):
 
 class PostType(str, Enum):
     """Types of social media posts"""
+
     TEXT = "text"
     IMAGE = "image"
     VIDEO = "video"
@@ -41,6 +42,7 @@ class PostType(str, Enum):
 
 class PostSchedule(BaseModel):
     """Schedule information for a social media post"""
+
     platform: SocialPlatform
     content: str
     media_urls: List[str] = Field(default_factory=list)
@@ -84,14 +86,20 @@ class TwitterAPI:
         self.base_url = "https://api.twitter.com/2"
         self.headers = {
             "Authorization": f"Bearer {config.twitter_bearer_token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
-    async def post_tweet(self, content: str, media_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+    async def post_tweet(
+        self, content: str, media_ids: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
         """Post a tweet to Twitter"""
         if not self.config.twitter_bearer_token:
             logger.warning("Twitter API credentials not configured")
-            return {"status": "error", "message": "API credentials not configured", "simulated": True}
+            return {
+                "status": "error",
+                "message": "API credentials not configured",
+                "simulated": True,
+            }
 
         payload = {"text": content}
         if media_ids:
@@ -100,10 +108,7 @@ class TwitterAPI:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"{self.base_url}/tweets",
-                    headers=self.headers,
-                    json=payload,
-                    timeout=30.0
+                    f"{self.base_url}/tweets", headers=self.headers, json=payload, timeout=30.0
                 )
                 response.raise_for_status()
                 return response.json()
@@ -113,7 +118,7 @@ class TwitterAPI:
             return {
                 "status": "simulated",
                 "message": f"Tweet simulated (not actually posted): {content[:50]}...",
-                "data": {"id": f"sim_{datetime.now().timestamp()}", "text": content}
+                "data": {"id": f"sim_{datetime.now().timestamp()}", "text": content},
             }
 
     async def post_thread(self, tweets: List[str]) -> List[Dict[str, Any]]:
@@ -129,10 +134,7 @@ class TwitterAPI:
             try:
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
-                        f"{self.base_url}/tweets",
-                        headers=self.headers,
-                        json=payload,
-                        timeout=30.0
+                        f"{self.base_url}/tweets", headers=self.headers, json=payload, timeout=30.0
                     )
                     response.raise_for_status()
                     result = response.json()
@@ -140,10 +142,9 @@ class TwitterAPI:
                     previous_tweet_id = result.get("data", {}).get("id")
             except Exception as e:
                 logger.error(f"Error posting tweet in thread: {e}")
-                results.append({
-                    "status": "simulated",
-                    "message": f"Tweet simulated: {tweet_content[:50]}..."
-                })
+                results.append(
+                    {"status": "simulated", "message": f"Tweet simulated: {tweet_content[:50]}..."}
+                )
 
         return results
 
@@ -155,7 +156,7 @@ class TwitterAPI:
             {"name": "#MachineLearning", "tweet_volume": 89000},
             {"name": "#Automation", "tweet_volume": 67000},
             {"name": "#TechNews", "tweet_volume": 54000},
-            {"name": "#Innovation", "tweet_volume": 43000}
+            {"name": "#Innovation", "tweet_volume": 43000},
         ]
 
     async def search_tweets(self, query: str, max_results: int = 10) -> List[Dict[str, Any]]:
@@ -167,7 +168,7 @@ class TwitterAPI:
             params = {
                 "query": query,
                 "max_results": max_results,
-                "tweet.fields": "created_at,public_metrics,author_id"
+                "tweet.fields": "created_at,public_metrics,author_id",
             }
 
             async with httpx.AsyncClient() as client:
@@ -175,7 +176,7 @@ class TwitterAPI:
                     f"{self.base_url}/tweets/search/recent",
                     headers=self.headers,
                     params=params,
-                    timeout=30.0
+                    timeout=30.0,
                 )
                 response.raise_for_status()
                 return response.json().get("data", [])
@@ -192,7 +193,7 @@ class LinkedInAPI:
         self.base_url = "https://api.linkedin.com/v2"
         self.headers = {
             "Authorization": f"Bearer {config.linkedin_access_token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
     async def post_update(self, content: str, media_url: Optional[str] = None) -> Dict[str, Any]:
@@ -202,22 +203,24 @@ class LinkedInAPI:
             return {
                 "status": "simulated",
                 "message": f"LinkedIn post simulated: {content[:50]}...",
-                "data": {"id": f"sim_linkedin_{datetime.now().timestamp()}"}
+                "data": {"id": f"sim_linkedin_{datetime.now().timestamp()}"},
             }
 
         # Simulated response for demo
         return {
             "status": "simulated",
             "message": f"LinkedIn post simulated: {content[:50]}...",
-            "data": {"id": f"sim_linkedin_{datetime.now().timestamp()}", "content": content}
+            "data": {"id": f"sim_linkedin_{datetime.now().timestamp()}", "content": content},
         }
 
-    async def post_article(self, title: str, content: str, image_url: Optional[str] = None) -> Dict[str, Any]:
+    async def post_article(
+        self, title: str, content: str, image_url: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Post an article to LinkedIn"""
         return {
             "status": "simulated",
             "message": f"LinkedIn article simulated: {title}",
-            "data": {"id": f"sim_article_{datetime.now().timestamp()}", "title": title}
+            "data": {"id": f"sim_article_{datetime.now().timestamp()}", "title": title},
         }
 
 
@@ -235,13 +238,13 @@ class InstagramAPI:
             return {
                 "status": "simulated",
                 "message": f"Instagram photo post simulated: {caption[:50]}...",
-                "data": {"id": f"sim_instagram_{datetime.now().timestamp()}"}
+                "data": {"id": f"sim_instagram_{datetime.now().timestamp()}"},
             }
 
         return {
             "status": "simulated",
             "message": f"Instagram photo simulated: {caption[:50]}...",
-            "data": {"id": f"sim_instagram_{datetime.now().timestamp()}"}
+            "data": {"id": f"sim_instagram_{datetime.now().timestamp()}"},
         }
 
     async def post_carousel(self, image_urls: List[str], caption: str) -> Dict[str, Any]:
@@ -249,7 +252,7 @@ class InstagramAPI:
         return {
             "status": "simulated",
             "message": f"Instagram carousel simulated with {len(image_urls)} images",
-            "data": {"id": f"sim_carousel_{datetime.now().timestamp()}"}
+            "data": {"id": f"sim_carousel_{datetime.now().timestamp()}"},
         }
 
 
@@ -328,11 +331,14 @@ class SocialMediaThreadTool(BaseTool):
             twitter_api = TwitterAPI(self.config)
             results = await twitter_api.post_thread(tweets)
 
-            return json.dumps({
-                "status": "success",
-                "message": f"Posted thread with {len(results)} tweets",
-                "results": results
-            }, indent=2)
+            return json.dumps(
+                {
+                    "status": "success",
+                    "message": f"Posted thread with {len(results)} tweets",
+                    "results": results,
+                },
+                indent=2,
+            )
         except Exception as e:
             logger.error(f"Error posting thread: {e}")
             return json.dumps({"status": "error", "message": str(e)})
@@ -361,22 +367,23 @@ class SocialMediaTrendingTool(BaseTool):
             if platform == SocialPlatform.TWITTER:
                 twitter_api = TwitterAPI(self.config)
                 trends = await twitter_api.get_trending_topics()
-                return json.dumps({
-                    "status": "success",
-                    "platform": "twitter",
-                    "trends": trends
-                }, indent=2)
+                return json.dumps(
+                    {"status": "success", "platform": "twitter", "trends": trends}, indent=2
+                )
             else:
                 # Simulate trends for other platforms
-                return json.dumps({
-                    "status": "success",
-                    "platform": platform.value,
-                    "trends": [
-                        {"name": "#Innovation", "engagement": 50000},
-                        {"name": "#Technology", "engagement": 45000},
-                        {"name": "#Business", "engagement": 38000}
-                    ]
-                }, indent=2)
+                return json.dumps(
+                    {
+                        "status": "success",
+                        "platform": platform.value,
+                        "trends": [
+                            {"name": "#Innovation", "engagement": 50000},
+                            {"name": "#Technology", "engagement": 45000},
+                            {"name": "#Business", "engagement": 38000},
+                        ],
+                    },
+                    indent=2,
+                )
         except Exception as e:
             logger.error(f"Error getting trending topics: {e}")
             return json.dumps({"status": "error", "message": str(e)})
@@ -408,17 +415,22 @@ class SocialMediaSearchTool(BaseTool):
             if platform == SocialPlatform.TWITTER:
                 twitter_api = TwitterAPI(self.config)
                 results = await twitter_api.search_tweets(search_query, max_results)
-                return json.dumps({
-                    "status": "success",
-                    "platform": "twitter",
-                    "query": search_query,
-                    "results": results
-                }, indent=2)
+                return json.dumps(
+                    {
+                        "status": "success",
+                        "platform": "twitter",
+                        "query": search_query,
+                        "results": results,
+                    },
+                    indent=2,
+                )
             else:
-                return json.dumps({
-                    "status": "simulated",
-                    "message": f"Search on {platform.value} not yet implemented"
-                })
+                return json.dumps(
+                    {
+                        "status": "simulated",
+                        "message": f"Search on {platform.value} not yet implemented",
+                    }
+                )
         except Exception as e:
             logger.error(f"Error searching social media: {e}")
             return json.dumps({"status": "error", "message": str(e)})
@@ -455,7 +467,7 @@ class SocialMediaAnalyticsTool(BaseTool):
                     "comments": 85,
                     "reach": 45000,
                     "engagement_rate": 3.7,
-                    "clicks": 890
+                    "clicks": 890,
                 }
             else:
                 # Account-level analytics
@@ -465,14 +477,12 @@ class SocialMediaAnalyticsTool(BaseTool):
                     "total_posts": 450,
                     "avg_engagement_rate": 4.2,
                     "total_reach_30d": 250000,
-                    "top_performing_post": "post_12345"
+                    "top_performing_post": "post_12345",
                 }
 
-            return json.dumps({
-                "status": "success",
-                "platform": platform.value,
-                "analytics": analytics
-            }, indent=2)
+            return json.dumps(
+                {"status": "success", "platform": platform.value, "analytics": analytics}, indent=2
+            )
         except Exception as e:
             logger.error(f"Error getting analytics: {e}")
             return json.dumps({"status": "error", "message": str(e)})
@@ -486,5 +496,5 @@ def get_social_media_tools() -> List[BaseTool]:
         SocialMediaThreadTool(),
         SocialMediaTrendingTool(),
         SocialMediaSearchTool(),
-        SocialMediaAnalyticsTool()
+        SocialMediaAnalyticsTool(),
     ]

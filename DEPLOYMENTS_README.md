@@ -143,7 +143,7 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 kubectl apply -f gitops/argocd/application.yaml
 
 # Flux
-flux bootstrap github --owner=your-org --repository=Research-Outreach-Agentic-AI
+flux bootstrap github --owner=hoangsonww --repository=Agentic-AI-Pipeline
 kubectl apply -f gitops/flux/gotk-sync.yaml
 ```
 
@@ -315,6 +315,114 @@ kubectl logs -f deployment/agentic-ai
 ./scripts/rollback.sh <strategy> <target>
 ```
 
+## Multi-Cloud Provider Support
+
+This project supports deployment to **any major cloud provider** or on-premises infrastructure:
+
+```mermaid
+flowchart LR
+    subgraph TF["Terraform (IaC)"]
+        direction TB
+        ROOT["main.tf\ncloud_provider = ?"]
+    end
+
+    ROOT -->|aws| AWS["AWS\nECS Fargate + ALB\nCodeDeploy"]
+    ROOT -->|gcp| GCP["GCP\nCloud Run + LB\nArtifact Registry"]
+    ROOT -->|azure| AZ["Azure\nContainer Apps\nACR"]
+    ROOT -->|oci| OCI["OCI\nContainer Instances\nOCIR + LB"]
+
+    subgraph K8S["Kubernetes (any cloud)"]
+        direction TB
+        EKS["AWS EKS"]
+        GKE["GCP GKE"]
+        AKS["Azure AKS"]
+        OKE["OCI OKE"]
+        ONPREM["On-Prem K8s"]
+    end
+
+    subgraph ONPREM_STACK["On-Premises"]
+        NOMAD["HashiCorp Nomad"]
+        ANSIBLE["Ansible\nSystemd / Docker"]
+        COMPOSE["Docker Compose"]
+    end
+```
+
+### Cloud Provider Quick Start
+
+| Provider | Command | Module |
+|----------|---------|--------|
+| **AWS** | `terraform apply -var="cloud_provider=aws"` | `modules/ecs_fargate/` |
+| **GCP** | `terraform apply -var="cloud_provider=gcp"` | `modules/gcp_cloud_run/` |
+| **Azure** | `terraform apply -var="cloud_provider=azure"` | `modules/azure_container_apps/` |
+| **OCI** | `terraform apply -var="cloud_provider=oci"` | `modules/oci_container_instances/` |
+| **K8s** | `kubectl apply -f k8s/` | Any K8s cluster (EKS/GKE/AKS/OKE/on-prem) |
+| **Nomad** | `nomad job run hashicorp/nomad/agentic-ai.nomad` | HashiCorp Nomad |
+| **On-prem** | `ansible-playbook ansible/playbooks/site.yml` | Ansible + systemd |
+| **Docker** | `docker compose up -d` | Docker Compose |
+
+### Terraform Multi-Provider Usage
+
+```bash
+cd hashicorp/terraform
+
+# AWS deployment
+terraform init
+terraform plan -var="cloud_provider=aws" -var="vpc_id=vpc-xxx" -var="public_subnets=[\"subnet-a\",\"subnet-b\"]"
+terraform apply
+
+# GCP deployment
+terraform plan -var="cloud_provider=gcp" -var="gcp_project_id=my-project"
+terraform apply
+
+# Azure deployment
+terraform plan -var="cloud_provider=azure" -var="azure_resource_group=agentic-ai-rg"
+terraform apply
+
+# OCI deployment
+terraform plan -var="cloud_provider=oci" -var="oci_compartment_id=ocid1.compartment..."
+terraform apply
+```
+
+### On-Premises Deployment
+
+```bash
+# Option 1: Ansible (systemd service on bare metal)
+cd ansible
+ansible-playbook -i inventories/prod/hosts.ini playbooks/site.yml
+
+# Option 2: Ansible (Docker on bare metal)
+ansible-playbook -i inventories/prod/hosts.ini playbooks/docker.yml
+
+# Option 3: HashiCorp Nomad
+nomad job run hashicorp/nomad/agentic-ai.nomad
+
+# Option 4: Docker Compose (simplest)
+docker compose up -d
+```
+
+### Security: HashiCorp Vault Integration
+
+```bash
+# Write secrets
+vault kv put secret/agentic-ai/api-keys \
+  openai_api_key=sk-... \
+  anthropic_api_key=sk-ant-... \
+  google_api_key=AIza...
+
+# Apply policy
+vault policy write agentic-ai hashicorp/vault/agentic-ai-policy.hcl
+```
+
+### Kubernetes Security (all providers)
+
+```bash
+# Apply namespace with pod security standards
+kubectl apply -f k8s/pod-security.yaml
+
+# Apply network policies
+kubectl apply -f k8s/network-policy.yaml
+```
+
 ## Support and Resources
 
 - **Kubernetes Docs**: https://kubernetes.io/docs/
@@ -322,3 +430,8 @@ kubectl logs -f deployment/agentic-ai
 - **Flux**: https://fluxcd.io/docs/
 - **Flagger**: https://docs.flagger.app/
 - **Terraform AWS**: https://registry.terraform.io/providers/hashicorp/aws/
+- **Terraform GCP**: https://registry.terraform.io/providers/hashicorp/google/
+- **Terraform Azure**: https://registry.terraform.io/providers/hashicorp/azurerm/
+- **Terraform OCI**: https://registry.terraform.io/providers/oracle/oci/
+- **HashiCorp Nomad**: https://developer.hashicorp.com/nomad/docs
+- **HashiCorp Vault**: https://developer.hashicorp.com/vault/docs

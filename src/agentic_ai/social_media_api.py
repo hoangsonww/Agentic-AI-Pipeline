@@ -4,25 +4,22 @@ FastAPI endpoints for Social Media Automation
 This module provides REST API endpoints for social media automation features.
 """
 
-import asyncio
-import json
 import logging
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel, Field
 
 from .agents.social_media_agent import SocialMediaAgent, create_social_media_agent
-from .social_media_scheduler import (
-    SocialMediaScheduler,
-    ScheduledPost,
-    Campaign,
-    PostStatus,
-    CampaignStatus,
-    SchedulerService
-)
 from .llm.client import get_llm
+from .social_media_scheduler import (
+    CampaignStatus,
+    PostStatus,
+    ScheduledPost,
+    SchedulerService,
+    SocialMediaScheduler,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +51,7 @@ def init_social_media_services():
 # Request/Response Models
 class PostRequest(BaseModel):
     """Request model for posting to social media"""
+
     platform: str
     content: str
     media_urls: List[str] = Field(default_factory=list)
@@ -63,6 +61,7 @@ class PostRequest(BaseModel):
 
 class ContentGenerationRequest(BaseModel):
     """Request model for content generation"""
+
     topic: str
     platform: str
     tone: str = "professional"
@@ -71,6 +70,7 @@ class ContentGenerationRequest(BaseModel):
 
 class ThreadGenerationRequest(BaseModel):
     """Request model for thread generation"""
+
     topic: str
     num_tweets: int = 5
     tone: str = "professional"
@@ -78,6 +78,7 @@ class ThreadGenerationRequest(BaseModel):
 
 class CampaignCreationRequest(BaseModel):
     """Request model for campaign creation"""
+
     name: str
     description: str
     platforms: List[str]
@@ -88,11 +89,13 @@ class CampaignCreationRequest(BaseModel):
 
 class AgentQueryRequest(BaseModel):
     """Request model for agent queries"""
+
     query: str
     chat_history: List[Dict[str, str]] = Field(default_factory=list)
 
 
 # API Endpoints
+
 
 @router.get("/health")
 async def health_check():
@@ -100,7 +103,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "social_media_automation",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
@@ -117,7 +120,9 @@ async def create_post(request: PostRequest):
             try:
                 scheduled_time = datetime.fromisoformat(request.scheduled_time)
             except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid datetime format. Use ISO format.")
+                raise HTTPException(
+                    status_code=400, detail="Invalid datetime format. Use ISO format."
+                )
 
         # Create scheduled post
         post = ScheduledPost(
@@ -126,7 +131,7 @@ async def create_post(request: PostRequest):
             media_urls=request.media_urls,
             hashtags=request.hashtags,
             scheduled_time=scheduled_time or datetime.now(),
-            status=PostStatus.SCHEDULED if scheduled_time else PostStatus.SCHEDULED
+            status=PostStatus.SCHEDULED if scheduled_time else PostStatus.SCHEDULED,
         )
 
         post_id = scheduler.schedule_post(post)
@@ -135,7 +140,7 @@ async def create_post(request: PostRequest):
             "status": "success",
             "post_id": post_id,
             "message": f"Post {'scheduled' if scheduled_time else 'queued'} for {request.platform}",
-            "scheduled_time": post.scheduled_time.isoformat()
+            "scheduled_time": post.scheduled_time.isoformat(),
         }
 
     except Exception as e:
@@ -151,9 +156,7 @@ async def generate_content(request: ContentGenerationRequest):
             raise HTTPException(status_code=500, detail="Social media agent not initialized")
 
         suggestions = await social_media_agent.get_content_suggestions(
-            platform=request.platform,
-            topic=request.topic,
-            count=request.count
+            platform=request.platform, topic=request.topic, count=request.count
         )
 
         return suggestions
@@ -172,18 +175,17 @@ async def generate_thread(request: ThreadGenerationRequest):
 
         # Use the agent's LLM to generate thread
         from .tools.content_generation import ContentGenerator
+
         generator = ContentGenerator(social_media_agent.llm)
         tweets = await generator.generate_thread(
-            topic=request.topic,
-            num_tweets=request.num_tweets,
-            tone=request.tone
+            topic=request.topic, num_tweets=request.num_tweets, tone=request.tone
         )
 
         return {
             "status": "success",
             "topic": request.topic,
             "num_tweets": len(tweets),
-            "tweets": tweets
+            "tweets": tweets,
         }
 
     except Exception as e:
@@ -202,7 +204,7 @@ async def create_campaign(request: CampaignCreationRequest):
             topic=request.topic,
             platforms=request.platforms,
             duration_days=request.duration_days,
-            posts_per_day=request.posts_per_day
+            posts_per_day=request.posts_per_day,
         )
 
         if result["status"] == "error":
@@ -237,10 +239,10 @@ async def list_campaigns(status: Optional[str] = None):
                     "start_date": c.start_date.isoformat(),
                     "end_date": c.end_date.isoformat() if c.end_date else None,
                     "status": c.status.value,
-                    "created_at": c.created_at.isoformat()
+                    "created_at": c.created_at.isoformat(),
                 }
                 for c in campaigns
-            ]
+            ],
         }
 
     except Exception as e:
@@ -272,7 +274,7 @@ async def list_posts(
     campaign_id: Optional[str] = None,
     status: Optional[str] = None,
     platform: Optional[str] = None,
-    limit: int = 50
+    limit: int = 50,
 ):
     """List scheduled posts"""
     try:
@@ -281,10 +283,7 @@ async def list_posts(
 
         post_status = PostStatus(status) if status else None
         posts = scheduler.list_posts(
-            campaign_id=campaign_id,
-            status=post_status,
-            platform=platform,
-            limit=limit
+            campaign_id=campaign_id, status=post_status, platform=platform, limit=limit
         )
 
         return {
@@ -299,10 +298,10 @@ async def list_posts(
                     "scheduled_time": p.scheduled_time.isoformat(),
                     "status": p.status.value,
                     "campaign_id": p.campaign_id,
-                    "published_at": p.published_at.isoformat() if p.published_at else None
+                    "published_at": p.published_at.isoformat() if p.published_at else None,
                 }
                 for p in posts
-            ]
+            ],
         }
 
     except Exception as e:
@@ -323,10 +322,7 @@ async def delete_post(post_id: str):
 
         scheduler.delete_post(post_id)
 
-        return {
-            "status": "success",
-            "message": f"Post {post_id} deleted"
-        }
+        return {"status": "success", "message": f"Post {post_id} deleted"}
 
     except Exception as e:
         logger.error(f"Error deleting post: {e}")
@@ -344,11 +340,7 @@ async def get_trending(platform: str):
             api = TwitterAPI(config)
             trends = await api.get_trending_topics()
 
-            return {
-                "status": "success",
-                "platform": platform,
-                "trends": trends
-            }
+            return {"status": "success", "platform": platform, "trends": trends}
         else:
             # Simulated trends for other platforms
             return {
@@ -357,8 +349,8 @@ async def get_trending(platform: str):
                 "trends": [
                     {"name": "#Innovation", "engagement": 50000},
                     {"name": "#Technology", "engagement": 45000},
-                    {"name": "#AI", "engagement": 40000}
-                ]
+                    {"name": "#AI", "engagement": 40000},
+                ],
             }
 
     except Exception as e:
@@ -373,10 +365,7 @@ async def get_analytics(platform: Optional[str] = None, days: int = 30):
         if not social_media_agent:
             raise HTTPException(status_code=500, detail="Social media agent not initialized")
 
-        analytics = await social_media_agent.analyze_performance(
-            platform=platform,
-            days=days
-        )
+        analytics = await social_media_agent.analyze_performance(platform=platform, days=days)
 
         return analytics
 
@@ -394,11 +383,7 @@ async def get_optimal_times(platform: str):
 
         times = scheduler.get_optimal_posting_times(platform)
 
-        return {
-            "status": "success",
-            "platform": platform,
-            "optimal_times": times
-        }
+        return {"status": "success", "platform": platform, "optimal_times": times}
 
     except Exception as e:
         logger.error(f"Error getting optimal times: {e}")
@@ -413,8 +398,7 @@ async def query_agent(request: AgentQueryRequest):
             raise HTTPException(status_code=500, detail="Social media agent not initialized")
 
         result = await social_media_agent.process_request(
-            request=request.query,
-            chat_history=request.chat_history
+            request=request.query, chat_history=request.chat_history
         )
 
         return result
@@ -433,15 +417,9 @@ async def start_scheduler(background_tasks: BackgroundTasks):
 
         if not scheduler_service.running:
             background_tasks.add_task(scheduler_service.start)
-            return {
-                "status": "success",
-                "message": "Scheduler service started"
-            }
+            return {"status": "success", "message": "Scheduler service started"}
         else:
-            return {
-                "status": "info",
-                "message": "Scheduler service already running"
-            }
+            return {"status": "info", "message": "Scheduler service already running"}
 
     except Exception as e:
         logger.error(f"Error starting scheduler: {e}")
@@ -457,15 +435,9 @@ async def stop_scheduler():
 
         if scheduler_service.running:
             scheduler_service.stop()
-            return {
-                "status": "success",
-                "message": "Scheduler service stopped"
-            }
+            return {"status": "success", "message": "Scheduler service stopped"}
         else:
-            return {
-                "status": "info",
-                "message": "Scheduler service not running"
-            }
+            return {"status": "info", "message": "Scheduler service not running"}
 
     except Exception as e:
         logger.error(f"Error stopping scheduler: {e}")

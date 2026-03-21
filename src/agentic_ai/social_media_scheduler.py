@@ -10,9 +10,9 @@ import json
 import logging
 import sqlite3
 from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class PostStatus(str, Enum):
     """Status of a scheduled post"""
+
     DRAFT = "draft"
     SCHEDULED = "scheduled"
     PUBLISHED = "published"
@@ -30,6 +31,7 @@ class PostStatus(str, Enum):
 
 class CampaignStatus(str, Enum):
     """Status of a campaign"""
+
     ACTIVE = "active"
     PAUSED = "paused"
     COMPLETED = "completed"
@@ -38,6 +40,7 @@ class CampaignStatus(str, Enum):
 
 class ScheduledPost(BaseModel):
     """Model for a scheduled social media post"""
+
     id: Optional[str] = None
     platform: str
     content: str
@@ -54,6 +57,7 @@ class ScheduledPost(BaseModel):
 
 class Campaign(BaseModel):
     """Model for a social media campaign"""
+
     id: Optional[str] = None
     name: str
     description: str
@@ -146,25 +150,28 @@ class SocialMediaScheduler:
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO campaigns (
                     id, name, description, platforms, start_date, end_date,
                     status, budget, target_audience, goals, created_at, metadata
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                campaign.id,
-                campaign.name,
-                campaign.description,
-                json.dumps(campaign.platforms),
-                campaign.start_date.isoformat(),
-                campaign.end_date.isoformat() if campaign.end_date else None,
-                campaign.status.value,
-                campaign.budget,
-                campaign.target_audience,
-                json.dumps(campaign.goals),
-                campaign.created_at.isoformat(),
-                json.dumps(campaign.metadata)
-            ))
+            """,
+                (
+                    campaign.id,
+                    campaign.name,
+                    campaign.description,
+                    json.dumps(campaign.platforms),
+                    campaign.start_date.isoformat(),
+                    campaign.end_date.isoformat() if campaign.end_date else None,
+                    campaign.status.value,
+                    campaign.budget,
+                    campaign.target_audience,
+                    json.dumps(campaign.goals),
+                    campaign.created_at.isoformat(),
+                    json.dumps(campaign.metadata),
+                ),
+            )
             conn.commit()
 
         logger.info(f"Created campaign: {campaign.id} - {campaign.name}")
@@ -192,7 +199,7 @@ class SocialMediaScheduler:
                 target_audience=row[8],
                 goals=json.loads(row[9]),
                 created_at=datetime.fromisoformat(row[10]),
-                metadata=json.loads(row[11]) if row[11] else {}
+                metadata=json.loads(row[11]) if row[11] else {},
             )
 
     def list_campaigns(self, status: Optional[CampaignStatus] = None) -> List[Campaign]:
@@ -201,26 +208,31 @@ class SocialMediaScheduler:
             cursor = conn.cursor()
 
             if status:
-                cursor.execute("SELECT * FROM campaigns WHERE status = ? ORDER BY created_at DESC", (status.value,))
+                cursor.execute(
+                    "SELECT * FROM campaigns WHERE status = ? ORDER BY created_at DESC",
+                    (status.value,),
+                )
             else:
                 cursor.execute("SELECT * FROM campaigns ORDER BY created_at DESC")
 
             campaigns = []
             for row in cursor.fetchall():
-                campaigns.append(Campaign(
-                    id=row[0],
-                    name=row[1],
-                    description=row[2],
-                    platforms=json.loads(row[3]),
-                    start_date=datetime.fromisoformat(row[4]),
-                    end_date=datetime.fromisoformat(row[5]) if row[5] else None,
-                    status=CampaignStatus(row[6]),
-                    budget=row[7],
-                    target_audience=row[8],
-                    goals=json.loads(row[9]),
-                    created_at=datetime.fromisoformat(row[10]),
-                    metadata=json.loads(row[11]) if row[11] else {}
-                ))
+                campaigns.append(
+                    Campaign(
+                        id=row[0],
+                        name=row[1],
+                        description=row[2],
+                        platforms=json.loads(row[3]),
+                        start_date=datetime.fromisoformat(row[4]),
+                        end_date=datetime.fromisoformat(row[5]) if row[5] else None,
+                        status=CampaignStatus(row[6]),
+                        budget=row[7],
+                        target_audience=row[8],
+                        goals=json.loads(row[9]),
+                        created_at=datetime.fromisoformat(row[10]),
+                        metadata=json.loads(row[11]) if row[11] else {},
+                    )
+                )
 
             return campaigns
 
@@ -231,25 +243,28 @@ class SocialMediaScheduler:
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO scheduled_posts (
                     id, platform, content, media_urls, hashtags, scheduled_time,
                     status, campaign_id, created_at, published_at, error_message, metadata
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                post.id,
-                post.platform,
-                post.content,
-                json.dumps(post.media_urls),
-                json.dumps(post.hashtags),
-                post.scheduled_time.isoformat(),
-                post.status.value,
-                post.campaign_id,
-                post.created_at.isoformat(),
-                post.published_at.isoformat() if post.published_at else None,
-                post.error_message,
-                json.dumps(post.metadata)
-            ))
+            """,
+                (
+                    post.id,
+                    post.platform,
+                    post.content,
+                    json.dumps(post.media_urls),
+                    json.dumps(post.hashtags),
+                    post.scheduled_time.isoformat(),
+                    post.status.value,
+                    post.campaign_id,
+                    post.created_at.isoformat(),
+                    post.published_at.isoformat() if post.published_at else None,
+                    post.error_message,
+                    json.dumps(post.metadata),
+                ),
+            )
             conn.commit()
 
         logger.info(f"Scheduled post: {post.id} for {post.scheduled_time}")
@@ -277,14 +292,11 @@ class SocialMediaScheduler:
                 created_at=datetime.fromisoformat(row[8]),
                 published_at=datetime.fromisoformat(row[9]) if row[9] else None,
                 error_message=row[10],
-                metadata=json.loads(row[11]) if row[11] else {}
+                metadata=json.loads(row[11]) if row[11] else {},
             )
 
     def update_post_status(
-        self,
-        post_id: str,
-        status: PostStatus,
-        error_message: Optional[str] = None
+        self, post_id: str, status: PostStatus, error_message: Optional[str] = None
     ):
         """Update the status of a scheduled post"""
         with sqlite3.connect(self.db_path) as conn:
@@ -292,11 +304,14 @@ class SocialMediaScheduler:
 
             published_at = datetime.now().isoformat() if status == PostStatus.PUBLISHED else None
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE scheduled_posts
                 SET status = ?, published_at = ?, error_message = ?
                 WHERE id = ?
-            """, (status.value, published_at, error_message, post_id))
+            """,
+                (status.value, published_at, error_message, post_id),
+            )
             conn.commit()
 
         logger.info(f"Updated post {post_id} status to {status.value}")
@@ -308,30 +323,35 @@ class SocialMediaScheduler:
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT * FROM scheduled_posts
                 WHERE status = 'scheduled'
                 AND scheduled_time <= ?
                 AND scheduled_time >= ?
                 ORDER BY scheduled_time ASC
-            """, (due_time.isoformat(), now.isoformat()))
+            """,
+                (due_time.isoformat(), now.isoformat()),
+            )
 
             posts = []
             for row in cursor.fetchall():
-                posts.append(ScheduledPost(
-                    id=row[0],
-                    platform=row[1],
-                    content=row[2],
-                    media_urls=json.loads(row[3]),
-                    hashtags=json.loads(row[4]),
-                    scheduled_time=datetime.fromisoformat(row[5]),
-                    status=PostStatus(row[6]),
-                    campaign_id=row[7],
-                    created_at=datetime.fromisoformat(row[8]),
-                    published_at=datetime.fromisoformat(row[9]) if row[9] else None,
-                    error_message=row[10],
-                    metadata=json.loads(row[11]) if row[11] else {}
-                ))
+                posts.append(
+                    ScheduledPost(
+                        id=row[0],
+                        platform=row[1],
+                        content=row[2],
+                        media_urls=json.loads(row[3]),
+                        hashtags=json.loads(row[4]),
+                        scheduled_time=datetime.fromisoformat(row[5]),
+                        status=PostStatus(row[6]),
+                        campaign_id=row[7],
+                        created_at=datetime.fromisoformat(row[8]),
+                        published_at=datetime.fromisoformat(row[9]) if row[9] else None,
+                        error_message=row[10],
+                        metadata=json.loads(row[11]) if row[11] else {},
+                    )
+                )
 
             return posts
 
@@ -340,7 +360,7 @@ class SocialMediaScheduler:
         campaign_id: Optional[str] = None,
         status: Optional[PostStatus] = None,
         platform: Optional[str] = None,
-        limit: int = 100
+        limit: int = 100,
     ) -> List[ScheduledPost]:
         """List scheduled posts with optional filters"""
         with sqlite3.connect(self.db_path) as conn:
@@ -368,20 +388,22 @@ class SocialMediaScheduler:
 
             posts = []
             for row in cursor.fetchall():
-                posts.append(ScheduledPost(
-                    id=row[0],
-                    platform=row[1],
-                    content=row[2],
-                    media_urls=json.loads(row[3]),
-                    hashtags=json.loads(row[4]),
-                    scheduled_time=datetime.fromisoformat(row[5]),
-                    status=PostStatus(row[6]),
-                    campaign_id=row[7],
-                    created_at=datetime.fromisoformat(row[8]),
-                    published_at=datetime.fromisoformat(row[9]) if row[9] else None,
-                    error_message=row[10],
-                    metadata=json.loads(row[11]) if row[11] else {}
-                ))
+                posts.append(
+                    ScheduledPost(
+                        id=row[0],
+                        platform=row[1],
+                        content=row[2],
+                        media_urls=json.loads(row[3]),
+                        hashtags=json.loads(row[4]),
+                        scheduled_time=datetime.fromisoformat(row[5]),
+                        status=PostStatus(row[6]),
+                        campaign_id=row[7],
+                        created_at=datetime.fromisoformat(row[8]),
+                        published_at=datetime.fromisoformat(row[9]) if row[9] else None,
+                        error_message=row[10],
+                        metadata=json.loads(row[11]) if row[11] else {},
+                    )
+                )
 
             return posts
 
@@ -404,19 +426,25 @@ class SocialMediaScheduler:
             cursor = conn.cursor()
 
             # Count posts by status
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT status, COUNT(*)
                 FROM scheduled_posts
                 WHERE campaign_id = ?
                 GROUP BY status
-            """, (campaign_id,))
+            """,
+                (campaign_id,),
+            )
 
             status_counts = {row[0]: row[1] for row in cursor.fetchall()}
 
             # Get total posts
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT COUNT(*) FROM scheduled_posts WHERE campaign_id = ?
-            """, (campaign_id,))
+            """,
+                (campaign_id,),
+            )
             total_posts = cursor.fetchone()[0]
 
             return {
@@ -426,7 +454,7 @@ class SocialMediaScheduler:
                 "published": status_counts.get("published", 0),
                 "scheduled": status_counts.get("scheduled", 0),
                 "failed": status_counts.get("failed", 0),
-                "draft": status_counts.get("draft", 0)
+                "draft": status_counts.get("draft", 0),
             }
 
     def get_optimal_posting_times(self, platform: str) -> List[Dict[str, str]]:
@@ -452,7 +480,7 @@ class SocialMediaScheduler:
                 {"day": "Tuesday-Thursday", "time": "1:00 PM", "timezone": "Local"},
                 {"day": "Tuesday-Thursday", "time": "3:00 PM", "timezone": "Local"},
                 {"day": "Wednesday", "time": "11:00 AM", "timezone": "Local"},
-            ]
+            ],
         }
 
         return optimal_times.get(platform.lower(), optimal_times["twitter"])
@@ -492,20 +520,25 @@ class SchedulerService:
         try:
             # Here you would integrate with the actual social media APIs
             # For now, we'll simulate publishing
-            from .tools.social_media_tools import SocialMediaConfig, TwitterAPI, LinkedInAPI, InstagramAPI
+            from .tools.social_media_tools import (
+                InstagramAPI,
+                LinkedInAPI,
+                SocialMediaConfig,
+                TwitterAPI,
+            )
 
             config = SocialMediaConfig()
 
             if post.platform == "twitter":
                 api = TwitterAPI(config)
-                result = await api.post_tweet(post.content)
+                await api.post_tweet(post.content)
             elif post.platform == "linkedin":
                 api = LinkedInAPI(config)
-                result = await api.post_update(post.content)
+                await api.post_update(post.content)
             elif post.platform == "instagram":
                 api = InstagramAPI(config)
                 if post.media_urls:
-                    result = await api.post_photo(post.media_urls[0], post.content)
+                    await api.post_photo(post.media_urls[0], post.content)
                 else:
                     raise ValueError("Instagram requires media URLs")
             else:

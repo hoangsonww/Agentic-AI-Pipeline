@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import asyncio
-import os
 import sys
-import json
 from pathlib import Path
 from typing import Iterable
 
@@ -40,7 +37,8 @@ def cmd_ingest(path: str) -> None:
 
 async def cmd_demo(prompt: str, base_url: str = "http://127.0.0.1:8000") -> None:
     async with httpx.AsyncClient(timeout=60.0) as client:
-        r = await client.get(f"{base_url}/api/new_chat"); r.raise_for_status()
+        r = await client.get(f"{base_url}/api/new_chat")
+        r.raise_for_status()
         chat_id = r.json()["chat_id"]
         r = await client.post(f"{base_url}/api/chat", json={"chat_id": chat_id, "message": prompt})
         r.raise_for_status()
@@ -48,7 +46,8 @@ async def cmd_demo(prompt: str, base_url: str = "http://127.0.0.1:8000") -> None
             for block in chunk.split("\n\n"):
                 if not block.strip():
                     continue
-                ev = None; data = None
+                ev = None
+                data = None
                 for line in block.splitlines():
                     if line.startswith("event:"):
                         ev = line[6:].strip()
@@ -72,7 +71,10 @@ def main() -> None:
             sys.exit(2)
         cmd_ingest(sys.argv[2])
     elif cmd == "demo":
-        prompt = " ".join(sys.argv[2:]) or "Build a competitive briefing on ACME Robotics and draft a short outreach email."
+        prompt = (
+            " ".join(sys.argv[2:])
+            or "Build a competitive briefing on ACME Robotics and draft a short outreach email."
+        )
         anyio.run(cmd_demo, prompt)
     else:
         print(f"unknown command: {cmd}")
@@ -81,4 +83,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -82,8 +82,8 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 ```bash
 # 1. Bootstrap Flux
 flux bootstrap github \
-  --owner=your-org \
-  --repository=Research-Outreach-Agentic-AI \
+  --owner=hoangsonww \
+  --repository=Agentic-AI-Pipeline \
   --branch=main \
   --path=gitops/flux
 

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12.0</LangVersion>
+    <RootNamespace>AgenticAI.Client.Examples</RootNamespace>
+    <AssemblyName>AgenticAI.Client.Examples</AssemblyName>
+    <!-- Prevent XML doc warnings on the example project itself -->
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference the SDK library directly (no NuGet packaging needed for samples) -->
+    <ProjectReference Include="..\AgenticAI.Client.csproj" />
+    <!-- DI + IHttpClientFactory support -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http"                Version="8.0.0" />
+  </ItemGroup>
+
+</Project>

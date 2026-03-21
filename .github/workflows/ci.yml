@@ -2,67 +2,105 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
 
 permissions:
   contents: read
 
 jobs:
-  build-test:
-    name: Lint & Test (Python ${{ matrix.python-version }} on ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install ruff
+      - name: Ruff check
+        run: ruff check src tests mcp
+      - name: Ruff format check
+        run: ruff format --check src tests mcp
+
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: lint
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
-        python-version: [ "3.10", "3.11" ]
-
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
+          cache: pip
 
-      - name: Install system deps (if needed for lxml/etc.)
+      - name: Install system deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential
+          sudo apt-get install -y --no-install-recommends build-essential libxml2-dev libxslt1-dev
 
       - name: Install dependencies
         run: |
           python -m pip install -U pip
           pip install -r requirements.txt
 
-      - name: Lint (ruff)
-        run: |
-          ruff check src tests Agentic-Coding-Pipeline Agentic-RAG-Pipeline || true
-          ruff format --check src tests || true
-
       - name: Run tests
         env:
-          # Avoid accidental real LLM calls in CI
           MODEL_PROVIDER: openai
           OPENAI_API_KEY: "not-needed-for-tests"
           CHROMA_DIR: .chroma
           SQLITE_PATH: .sqlite/agent.db
+          PYTHONPATH: src
         run: |
           mkdir -p reports
-          pytest -q --junitxml=reports/junit.xml
+          pytest -q --tb=short --junitxml=reports/junit.xml
 
-      - name: Upload test reports (always)
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: junit-${{ matrix.os }}-py${{ matrix.python-version }}
+          name: junit-py${{ matrix.python-version }}
           path: reports/junit.xml
 
-      - name: Upload logs (on failure)
+      - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: logs-${{ matrix.os }}-py${{ matrix.python-version }}
+          name: logs-py${{ matrix.python-version }}
           path: .logs/
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t agentic-ai:ci --target runtime .
+
+      - name: Smoke-test container health
+        run: |
+          docker run -d --name smoke \
+            -e MODEL_PROVIDER=openai \
+            -e OPENAI_API_KEY=ci-test \
+            -e PYTHONPATH=/app/src \
+            -p 8000:8000 \
+            agentic-ai:ci
+          # Wait for startup
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:8000/health; then
+              echo "Health OK"
+              break
+            fi
+            sleep 2
+          done
+          # Verify health endpoint
+          curl -f http://127.0.0.1:8000/health
+          docker stop smoke

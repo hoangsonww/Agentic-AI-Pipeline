@@ -14,21 +14,23 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from langchain.agents import AgentExecutor, create_openai_functions_agent
+try:
+    from langchain.agents import AgentExecutor, create_openai_functions_agent
+except ImportError:
+    from langchain_classic.agents import AgentExecutor, create_openai_functions_agent
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from pydantic import BaseModel, Field
 
-from ..tools.social_media_tools import get_social_media_tools
-from ..tools.content_generation import get_content_generation_tools
 from ..social_media_scheduler import (
-    SocialMediaScheduler,
-    ScheduledPost,
     Campaign,
+    CampaignStatus,
     PostStatus,
-    CampaignStatus
+    ScheduledPost,
+    SocialMediaScheduler,
 )
+from ..tools.content_generation import get_content_generation_tools
+from ..tools.social_media_tools import get_social_media_tools
 
 logger = logging.getLogger(__name__)
 
@@ -87,11 +89,7 @@ Use these tools to help users manage their social media presence effectively."""
 class SocialMediaAgent:
     """Intelligent agent for social media automation"""
 
-    def __init__(
-        self,
-        llm: BaseChatModel,
-        scheduler: Optional[SocialMediaScheduler] = None
-    ):
+    def __init__(self, llm: BaseChatModel, scheduler: Optional[SocialMediaScheduler] = None):
         self.llm = llm
         self.scheduler = scheduler or SocialMediaScheduler()
 
@@ -108,13 +106,15 @@ class SocialMediaAgent:
         profile = SocialMediaAgentProfile()
 
         # Create prompt template
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", profile.system_prompt),
-            ("system", profile.tools_description),
-            MessagesPlaceholder(variable_name="chat_history", optional=True),
-            ("human", "{input}"),
-            MessagesPlaceholder(variable_name="agent_scratchpad"),
-        ])
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", profile.system_prompt),
+                ("system", profile.tools_description),
+                MessagesPlaceholder(variable_name="chat_history", optional=True),
+                ("human", "{input}"),
+                MessagesPlaceholder(variable_name="agent_scratchpad"),
+            ]
+        )
 
         # Create agent
         agent = create_openai_functions_agent(self.llm, self.tools, prompt)
@@ -123,41 +123,31 @@ class SocialMediaAgent:
             tools=self.tools,
             verbose=True,
             handle_parsing_errors=True,
-            max_iterations=10
+            max_iterations=10,
         )
 
         return agent_executor
 
     async def process_request(
-        self,
-        request: str,
-        chat_history: Optional[List] = None
+        self, request: str, chat_history: Optional[List] = None
     ) -> Dict[str, Any]:
         """Process a user request"""
         try:
-            result = await self.agent.ainvoke({
-                "input": request,
-                "chat_history": chat_history or []
-            })
+            result = await self.agent.ainvoke(
+                {"input": request, "chat_history": chat_history or []}
+            )
 
             return {
                 "status": "success",
                 "response": result.get("output", ""),
-                "intermediate_steps": result.get("intermediate_steps", [])
+                "intermediate_steps": result.get("intermediate_steps", []),
             }
         except Exception as e:
             logger.error(f"Error processing request: {e}")
-            return {
-                "status": "error",
-                "message": str(e)
-            }
+            return {"status": "error", "message": str(e)}
 
     async def create_content_campaign(
-        self,
-        topic: str,
-        platforms: List[str],
-        duration_days: int = 7,
-        posts_per_day: int = 2
+        self, topic: str, platforms: List[str], duration_days: int = 7, posts_per_day: int = 2
     ) -> Dict[str, Any]:
         """Create a complete content campaign with scheduled posts"""
         try:
@@ -169,7 +159,7 @@ class SocialMediaAgent:
                 start_date=datetime.now(),
                 end_date=datetime.now() + timedelta(days=duration_days),
                 status=CampaignStatus.ACTIVE,
-                goals=["engagement", "reach", "brand_awareness"]
+                goals=["engagement", "reach", "brand_awareness"],
             )
 
             campaign_id = self.scheduler.create_campaign(campaign)
@@ -187,8 +177,10 @@ class SocialMediaAgent:
                         Make it engaging and relevant."""
 
                         messages = [
-                            SystemMessage(content="You are an expert social media content creator."),
-                            HumanMessage(content=content_prompt)
+                            SystemMessage(
+                                content="You are an expert social media content creator."
+                            ),
+                            HumanMessage(content=content_prompt),
                         ]
 
                         response = await self.llm.ainvoke(messages)
@@ -199,9 +191,13 @@ class SocialMediaAgent:
 
                         # Calculate optimal posting time
                         optimal_times = self.scheduler.get_optimal_posting_times(platform)
-                        hour = int(optimal_times[post_num % len(optimal_times)]["time"].split(":")[0])
+                        hour = int(
+                            optimal_times[post_num % len(optimal_times)]["time"].split(":")[0]
+                        )
 
-                        scheduled_time = current_date.replace(hour=hour, minute=0) + timedelta(days=day)
+                        scheduled_time = current_date.replace(hour=hour, minute=0) + timedelta(
+                            days=day
+                        )
 
                         # Create scheduled post
                         post = ScheduledPost(
@@ -210,42 +206,45 @@ class SocialMediaAgent:
                             hashtags=hashtags,
                             scheduled_time=scheduled_time,
                             campaign_id=campaign_id,
-                            status=PostStatus.SCHEDULED
+                            status=PostStatus.SCHEDULED,
                         )
 
                         post_id = self.scheduler.schedule_post(post)
-                        posts_created.append({
-                            "post_id": post_id,
-                            "platform": platform,
-                            "scheduled_time": scheduled_time.isoformat()
-                        })
+                        posts_created.append(
+                            {
+                                "post_id": post_id,
+                                "platform": platform,
+                                "scheduled_time": scheduled_time.isoformat(),
+                            }
+                        )
 
             return {
                 "status": "success",
                 "campaign_id": campaign_id,
                 "posts_created": len(posts_created),
                 "posts": posts_created[:10],  # Return first 10 as preview
-                "message": f"Created campaign with {len(posts_created)} scheduled posts"
+                "message": f"Created campaign with {len(posts_created)} scheduled posts",
             }
 
         except Exception as e:
             logger.error(f"Error creating campaign: {e}")
-            return {
-                "status": "error",
-                "message": str(e)
-            }
+            return {"status": "error", "message": str(e)}
 
     async def _generate_hashtags(self, content: str, platform: str, count: int = 3) -> List[str]:
         """Generate hashtags for content"""
         try:
             prompt = f"Generate {count} relevant hashtags for this {platform} post: {content}"
             messages = [
-                SystemMessage(content="Generate only hashtag words without # symbol, one per line."),
-                HumanMessage(content=prompt)
+                SystemMessage(
+                    content="Generate only hashtag words without # symbol, one per line."
+                ),
+                HumanMessage(content=prompt),
             ]
 
             response = await self.llm.ainvoke(messages)
-            hashtags = [line.strip().replace("#", "") for line in response.content.strip().split("\n")]
+            hashtags = [
+                line.strip().replace("#", "") for line in response.content.strip().split("\n")
+            ]
             return [tag for tag in hashtags if tag][:count]
 
         except Exception as e:
@@ -253,10 +252,7 @@ class SocialMediaAgent:
             return ["Innovation", "Technology", "Business"]
 
     async def get_content_suggestions(
-        self,
-        platform: str,
-        topic: Optional[str] = None,
-        count: int = 5
+        self, platform: str, topic: Optional[str] = None, count: int = 5
     ) -> Dict[str, Any]:
         """Get content suggestions based on trends and best practices"""
         try:
@@ -273,18 +269,14 @@ Format as JSON array with keys: title, content, reasoning"""
 
             messages = [
                 SystemMessage(content="You are a social media strategist."),
-                HumanMessage(content=prompt)
+                HumanMessage(content=prompt),
             ]
 
             response = await self.llm.ainvoke(messages)
 
             try:
                 suggestions = json.loads(response.content)
-                return {
-                    "status": "success",
-                    "platform": platform,
-                    "suggestions": suggestions
-                }
+                return {"status": "success", "platform": platform, "suggestions": suggestions}
             except json.JSONDecodeError:
                 # Fallback if JSON parsing fails
                 return {
@@ -294,27 +286,21 @@ Format as JSON array with keys: title, content, reasoning"""
                         {
                             "title": "Industry Insight",
                             "content": f"Share your perspective on the latest trends in {topic or 'your industry'}",
-                            "reasoning": "Educational content performs well and establishes thought leadership"
+                            "reasoning": "Educational content performs well and establishes thought leadership",
                         }
-                    ]
+                    ],
                 }
 
         except Exception as e:
             logger.error(f"Error getting suggestions: {e}")
-            return {
-                "status": "error",
-                "message": str(e)
-            }
+            return {"status": "error", "message": str(e)}
 
     def get_campaign_overview(self, campaign_id: str) -> Dict[str, Any]:
         """Get comprehensive overview of a campaign"""
         try:
             campaign = self.scheduler.get_campaign(campaign_id)
             if not campaign:
-                return {
-                    "status": "error",
-                    "message": "Campaign not found"
-                }
+                return {"status": "error", "message": "Campaign not found"}
 
             stats = self.scheduler.get_campaign_stats(campaign_id)
             posts = self.scheduler.list_posts(campaign_id=campaign_id, limit=50)
@@ -328,48 +314,40 @@ Format as JSON array with keys: title, content, reasoning"""
                     "platforms": campaign.platforms,
                     "start_date": campaign.start_date.isoformat(),
                     "end_date": campaign.end_date.isoformat() if campaign.end_date else None,
-                    "status": campaign.status.value
+                    "status": campaign.status.value,
                 },
                 "stats": stats,
                 "recent_posts": [
                     {
                         "id": post.id,
                         "platform": post.platform,
-                        "content": post.content[:100] + "..." if len(post.content) > 100 else post.content,
+                        "content": post.content[:100] + "..."
+                        if len(post.content) > 100
+                        else post.content,
                         "scheduled_time": post.scheduled_time.isoformat(),
-                        "status": post.status.value
+                        "status": post.status.value,
                     }
                     for post in posts[:10]
-                ]
+                ],
             }
 
         except Exception as e:
             logger.error(f"Error getting campaign overview: {e}")
-            return {
-                "status": "error",
-                "message": str(e)
-            }
+            return {"status": "error", "message": str(e)}
 
     async def analyze_performance(
-        self,
-        platform: Optional[str] = None,
-        days: int = 30
+        self, platform: Optional[str] = None, days: int = 30
     ) -> Dict[str, Any]:
         """Analyze social media performance"""
         try:
             # Get published posts from the last N days
             cutoff_date = datetime.now() - timedelta(days=days)
             posts = self.scheduler.list_posts(
-                status=PostStatus.PUBLISHED,
-                platform=platform,
-                limit=1000
+                status=PostStatus.PUBLISHED, platform=platform, limit=1000
             )
 
             # Filter by date
-            recent_posts = [
-                p for p in posts
-                if p.published_at and p.published_at >= cutoff_date
-            ]
+            recent_posts = [p for p in posts if p.published_at and p.published_at >= cutoff_date]
 
             # Calculate metrics
             total_posts = len(recent_posts)
@@ -385,7 +363,7 @@ Format as JSON array with keys: title, content, reasoning"""
             platform_summary = {
                 platform: {
                     "posts": len(posts),
-                    "percentage": (len(posts) / total_posts * 100) if total_posts > 0 else 0
+                    "percentage": (len(posts) / total_posts * 100) if total_posts > 0 else 0,
                 }
                 for platform, posts in by_platform.items()
             }
@@ -396,15 +374,12 @@ Format as JSON array with keys: title, content, reasoning"""
                 "total_posts": total_posts,
                 "platforms_used": platforms_used,
                 "platform_breakdown": platform_summary,
-                "avg_posts_per_day": total_posts / days if days > 0 else 0
+                "avg_posts_per_day": total_posts / days if days > 0 else 0,
             }
 
         except Exception as e:
             logger.error(f"Error analyzing performance: {e}")
-            return {
-                "status": "error",
-                "message": str(e)
-            }
+            return {"status": "error", "message": str(e)}
 
 
 # Convenience function to create agent
