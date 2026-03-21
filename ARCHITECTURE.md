@@ -1,6 +1,6 @@
 # Architecture — Agentic Multi-Stage Bot
 
-> A comprehensive guide to the system design, data flows, deployment topology, and extension points of the Agentic AI monorepo.
+A comprehensive guide to the system design, data flows, deployment topology, and extension points of the Agentic AI monorepo.
 
 ---
 
@@ -636,77 +636,494 @@ classDiagram
 
 ### Agentic Coding Pipeline
 
+**Location**: `Agentic-Coding-Pipeline/`
+
+A multi-LLM pair-programming system that generates code, formats it, writes tests, runs them, and passes QA review — all autonomously with iterative retry.
+
+#### Orchestration Flow
+
 ```mermaid
 flowchart TD
-    TASK["Developer Task"] --> ORCH["AgenticCodingPipeline\n(Orchestrator)"]
-    ORCH --> GPT["GPT Coding Agent"]
-    ORCH --> CLAUDE["Claude Coding Agent"]
-    GPT --> ORCH
-    CLAUDE --> ORCH
-    ORCH --> RUFF["Ruff Formatter"]
-    RUFF --> ORCH
-    ORCH --> TEST["Claude Test Author\n+ Pytest Runner"]
-    TEST --> ORCH
-    ORCH --> QA["Gemini QA Reviewer"]
-    QA -->|PASS| OUT["Ready-to-commit Patch"]
-    QA -->|FAIL| ORCH
+    INPUT["Task Input\n(text / GitHub issue / Jira ticket)"] --> RESOLVE["resolve_task()\nGitHub API / Jira API / text"]
+    RESOLVE --> REPO["analyze_repo()\nClone or read local\nDetect languages\nRead key files"]
+    REPO --> COMPOSE["compose_task_for_pipeline()\nBuild prompt with repo context"]
+    COMPOSE --> PIPELINE["AgenticCodingPipeline.run()"]
+
+    subgraph LOOP["Retry Loop (max 3 iterations)"]
+        direction TB
+        CODERS["Code Generation\nGPT Coder → Claude Coder"]
+        FORMAT["Formatting\nRuff --fix"]
+        TEST["Testing\nClaude writes tests\nPytest runner"]
+        QA["QA Review\nGemini evaluator"]
+
+        CODERS --> FORMAT
+        FORMAT --> TEST
+        TEST -->|"tests_passed=false"| CODERS
+        TEST -->|"tests_passed=true"| QA
+        QA -->|"qa_passed=false"| CODERS
+        QA -->|"qa_passed=true"| DONE["status=completed"]
+    end
+
+    PIPELINE --> LOOP
+    LOOP -->|"max iterations"| FAIL["status=failed"]
 ```
 
-**State keys**: `task`, `repo`, `jira`, `github`, `gpt_patch`, `claude_patch`, `chosen_patch`, `formatted_code`, `test_code`, `test_result`, `qa_verdict`, `iteration`, `status`
+#### Agent Classes
+
+```mermaid
+classDiagram
+    class Agent {
+        <<Protocol>>
+        +name: str
+        +run(state: Dict) Dict
+    }
+    class CodingAgent {
+        +name: str
+        +llm: LLMClient
+        +run(state) Dict
+    }
+    class FormattingAgent {
+        +name: str
+        +run(state) Dict
+    }
+    class TestingAgent {
+        +name: str
+        +llm: LLMClient
+        +run(state) Dict
+    }
+    class QAAgent {
+        +name: str
+        +llm: LLMClient
+        +run(state) Dict
+    }
+
+    Agent <|.. CodingAgent : "GPT-4o / Claude"
+    Agent <|.. FormattingAgent : "Ruff subprocess"
+    Agent <|.. TestingAgent : "Claude → pytest"
+    Agent <|.. QAAgent : "Gemini reviewer"
+```
+
+| Agent | LLM | Purpose | Input | Output |
+|-------|-----|---------|-------|--------|
+| `CodingAgent("gpt-coder")` | OpenAI GPT-4o | Generate/improve code | `task`, `proposed_code?` | `proposed_code` |
+| `CodingAgent("claude-coder")` | Claude | Generate/improve code | `task`, `proposed_code?` | `proposed_code` |
+| `FormattingAgent("formatter")` | None (subprocess) | Ruff `--fix` formatting | `proposed_code` | `proposed_code` (formatted) |
+| `TestingAgent("tester")` | Claude | Write + run pytest | `proposed_code` | `tests_passed`, `test_output` |
+| `QAAgent("qa")` | Gemini | Code review: PASS/FAIL | `proposed_code` | `qa_passed`, `qa_output` |
+
+#### Pipeline State
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `task` | `str` | The original task prompt (enriched with repo context) |
+| `proposed_code` | `str` | Current code solution (mutated by each agent) |
+| `status` | `str` | `"completed"` or `"failed"` |
+| `reason` | `str` | Failure reason (if failed) |
+| `feedback` | `str` | Accumulated test/QA feedback for retry |
+| `tests_passed` | `bool` | Whether pytest passed |
+| `test_output` | `str` | Full pytest stdout+stderr |
+| `qa_passed` | `bool` | Whether Gemini QA approved |
+| `qa_output` | `str` | QA review text |
+
+#### Task Resolution
+
+The pipeline resolves tasks from multiple sources in priority order:
+
+```mermaid
+flowchart LR
+    GH["GitHub Issue\nowner/repo#123\nor full URL"] -->|GITHUB_TOKEN| API_GH["GitHub API\n/repos/.../issues/N"]
+    JIRA["Jira Ticket\nKEY-123\nor full URL"] -->|JIRA_EMAIL\nJIRA_API_TOKEN| API_JIRA["Jira REST API\n/rest/api/3/issue/KEY"]
+    TEXT["Plain Text\n'Add pagination'"] --> DIRECT["Direct prompt"]
+
+    API_GH --> TC["TaskContext\n(source, title, description)"]
+    API_JIRA --> TC
+    DIRECT --> TC
+```
+
+#### Streaming API
+
+```
+POST /api/coding/stream → SSE events:
+  event: log    data: "Analyzing repo..."
+  event: log    data: "GPT coder generating..."
+  event: log    data: "Formatting with Ruff..."
+  event: log    data: "Running pytest..."
+  event: log    data: "Gemini QA reviewing..."
+  event: done   data: {"status":"completed","task":{...},"proposed_code":"..."}
+```
+
+---
 
 ### Agentic RAG Pipeline
 
+**Location**: `Agentic-RAG-Pipeline/`
+
+A multi-agent retrieval-augmented generation system built on Google Gemini with FAISS vector search, intent classification, query decomposition, dual retrieval (vector + web), iterative critique, and guardrails.
+
+#### Orchestration Flow
+
 ```mermaid
 flowchart TD
-    USER["User Query"] --> IR["Intent Router\n(Gemini Flash)"]
-    IR --> PLAN["Planner\n(Gemini Pro)"]
-    PLAN --> RP["Retrieval Planner"]
-    RP --> VR["Vector Retriever\n(FAISS)"]
-    RP --> WR["Web Retriever\n(Google CSE)"]
-    VR --> WRITER["Writer\n(Gemini Pro)"]
-    WR --> WRITER
-    WRITER --> CRITIC["Critic\n(Gemini Pro)"]
-    CRITIC -->|"follow-ups"| RP
-    WRITER --> GUARD["Guardrails"]
-    GUARD --> ANSWER["Answer + Evidence"]
-    PLAN -.->|"session"| MEM[("File-backed\nMemory")]
+    USER["User Query"] --> MEM_SAVE["Memory: save(user, query)"]
+    MEM_SAVE --> INTENT["IntentAgent\n(Gemini Flash)\nClassify: answer|summarize|\ntroubleshoot|plan|code"]
+
+    INTENT --> PLANNER["PlannerAgent\n(Gemini Pro)\nDecompose into sub-goals"]
+
+    PLANNER --> SUBTASK_LOOP
+
+    subgraph SUBTASK_LOOP["For Each Sub-Goal"]
+        direction TB
+        RET_PLAN["RetrievalPlannerAgent\nGenerate 3-8 search queries\nSet k (4-12)"]
+        RET_PLAN --> QUERY_LOOP
+
+        subgraph QUERY_LOOP["For Each Query"]
+            direction LR
+            VEC["VectorRetriever\n(FAISS cosine sim)\nk/2 results"]
+            WEB["WebRetriever\n(Google CSE + fetch)\nk - k/2 results"]
+        end
+
+        QUERY_LOOP --> DEDUPE_LOCAL["Dedupe evidence\n(by uri+chunk_id)\nmax 20 per subtask"]
+    end
+
+    SUBTASK_LOOP --> DEDUPE_GLOBAL["Global dedupe\nmax 50 chunks"]
+    DEDUPE_GLOBAL --> WRITER["WriterAgent\n(Gemini Pro)\nGrounded answer with [#N] citations"]
+
+    WRITER --> CRITIC["CriticAgent\n(Gemini Pro)\nFind unsupported claims"]
+
+    CRITIC -->|"ok=true"| GUARD["GuardrailsAgent\nPII masking\n(email, phone)"]
+    CRITIC -->|"ok=false\nfollowup_queries"| FOLLOWUP["Run 4 more\nvec+web searches"]
+    FOLLOWUP --> DEDUPE2["Re-dedupe\nmax 60 chunks"]
+    DEDUPE2 --> WRITER2["Re-run Writer"]
+    WRITER2 --> GUARD
+
+    GUARD --> MEM_SAVE2["Memory: save(assistant, answer)"]
+    MEM_SAVE2 --> OUTPUT["Return: answer + citations"]
 ```
+
+#### Agent Details
+
+| Agent | Model | Temperature | Max Tokens | Purpose |
+|-------|-------|-------------|------------|---------|
+| `IntentAgent` | Gemini Flash | 0.1 | 256 | Classify intent, urgency, safety flags |
+| `PlannerAgent` | Gemini Pro | 0.2 | 512 | Decompose into ordered sub-goals |
+| `RetrievalPlannerAgent` | Gemini Pro | 0.2 | 256 | Generate 3-8 diverse search queries |
+| `VectorRetriever` | — (FAISS) | — | — | Cosine similarity on 768-d embeddings |
+| `WebRetriever` | — (Google CSE) | — | — | Search + fetch + extract (2000 chars) |
+| `WriterAgent` | Gemini Pro | 0.2 | 1200 | Grounded answer with `[#N]` citations |
+| `CriticAgent` | Gemini Pro | 0.1 | 512 | Find unsupported claims, suggest follow-ups |
+| `GuardrailsAgent` | — (regex) | — | — | Mask PII (emails → `[redacted-email]`, phones → `[redacted-phone]`) |
+
+#### RAG State / Evidence Model
+
+```mermaid
+classDiagram
+    class Evidence {
+        +doc_id: str
+        +chunk_id: str
+        +text: str
+        +meta: Dict
+    }
+    class AgentResult {
+        +output: Any
+        +evidence: List~Evidence~
+        +cost: Dict
+    }
+    class FAISSIndex {
+        +dim: int = 768
+        +docs: List~Tuple~
+        +add(chunks) void
+        +search(query, k) List~Dict~
+    }
+    class SessionMemory {
+        +base_dir: str
+        +append(session_id, role, content)
+        +load(session_id, limit) List~Dict~
+    }
+
+    AgentResult --> Evidence
+    FAISSIndex --> Evidence
+```
+
+#### Intent Classification Output
+
+```json
+{
+  "intents": ["answer"],
+  "safety": [],
+  "urgency": "low",
+  "notes": "factual question about technology"
+}
+```
+
+Possible intents: `answer`, `summarize`, `troubleshoot`, `plan`, `code`, `search_only`, `tool_only`
+
+#### Streaming API
+
+```
+POST /api/rag/ask → SSE events:
+  event: log      data: "Classifying intent..."
+  event: log      data: "Planning retrieval..."
+  event: log      data: "Retrieving 12 chunks..."
+  event: log      data: "Writing grounded answer..."
+  event: answer   data: "The answer is... [#1] [#2]..."
+  event: sources  data: [{"doc_id":"...","text":"...","meta":{}}]
+  event: done     data: {"session_id":"...","chunks":12}
+```
+
+#### FAISS Vector Store
+
+- **Embedding model**: `text-embedding-004` (768 dimensions)
+- **Index type**: `IndexFlatIP` (inner product on unit vectors = cosine similarity)
+- **Ingestion**: Recursive file walker → char-based chunking (1200 chars, 200 overlap) → embed → normalize → add
+- **Query**: Embed query with `retrieval_query` task type → normalize → search top-k
+
+---
+
+### Agentic Data Pipeline
+
+**Location**: Referenced in `app.py` as `Agentic-Data-Pipeline/` (lazy import).
+
+Exposed via:
+- `POST /api/data/stream` — SSE streaming analysis
+- `POST /api/data/run` — synchronous analysis returning final report
+
+State: `source` (text/csv/url), `dataset` (content), `task` (analysis goal).
 
 ---
 
 ## Social Media Automation
 
-Integrated directly into the FastAPI app at `/api/social/*` with 15 endpoints:
+**Location**: `src/agentic_ai/social_media_api.py`, `social_media_scheduler.py`, `agents/social_media_agent.py`, `tools/social_media_tools.py`, `tools/content_generation.py`
+
+Integrated directly into the FastAPI app at `/api/social/*` with **15 endpoints**.
+
+#### Architecture
+
+```mermaid
+flowchart TB
+    subgraph API["REST API — /api/social/*"]
+        direction TB
+        HEALTH_S["GET /health"]
+        POST_EP["POST /post"]
+        GEN_EP["POST /generate-content"]
+        THREAD_EP["POST /generate-thread"]
+        CAMP_EP["POST+GET /campaigns"]
+        POST_LIST["GET+DELETE /posts"]
+        TREND_EP["GET /trending/{platform}"]
+        ANALYTICS_EP["GET /analytics"]
+        OPTIMAL_EP["GET /optimal-times/{platform}"]
+        QUERY_EP["POST /agent/query"]
+        SCHED_EP["POST /scheduler/start|stop"]
+    end
+
+    subgraph Agent["SocialMediaAgent"]
+        direction TB
+        EXECUTOR["AgentExecutor\n(LangChain)\nmax 10 iterations"]
+        PROFILE_SM["SocialMediaAgentProfile\npersona + system prompt"]
+        TOOL_SET["12 Tools\n(5 social + 5 content + 2 util)"]
+    end
+
+    subgraph Scheduler["SocialMediaScheduler"]
+        direction TB
+        SCHED_DB[("SQLite\nsocial_media.db")]
+        CAMPAIGNS["campaigns table"]
+        POSTS["scheduled_posts table"]
+        SERVICE["SchedulerService\n(background loop)"]
+    end
+
+    subgraph Platforms["Platform APIs"]
+        direction LR
+        TW["TwitterAPI\nPOST /tweets\nThreads\nTrending"]
+        LI["LinkedInAPI\nPOST updates\nArticles"]
+        IG["InstagramAPI\nPhotos\nCarousels"]
+        FB["FacebookAPI\nPosts"]
+    end
+
+    subgraph Content["Content Generation"]
+        direction TB
+        GEN["ContentGenerator"]
+        GEN_POST["generate_post_content()"]
+        GEN_HASH["generate_hashtags()"]
+        GEN_THR["generate_thread()"]
+        GEN_OPT["optimize_content()"]
+        GEN_CAP["generate_caption()"]
+    end
+
+    API --> Agent
+    API --> Scheduler
+    Agent --> TOOL_SET
+    TOOL_SET --> Platforms
+    TOOL_SET --> Content
+    Scheduler --> Platforms
+    SERVICE --> POSTS
+```
+
+#### Tool Registry (12 Tools)
+
+| # | Tool | Type | Input |
+|---|------|------|-------|
+| 1 | `social_media_post` | Platform | `{platform, content, media_urls?, hashtags?}` |
+| 2 | `social_media_thread` | Platform | `{tweets: ["...", "..."]}` |
+| 3 | `social_media_trending` | Platform | platform name |
+| 4 | `social_media_search` | Platform | `{platform, query, max_results?}` |
+| 5 | `social_media_analytics` | Platform | `{platform, post_id?}` |
+| 6 | `generate_social_content` | Content | `{topic, platform, tone?, max_length?}` |
+| 7 | `generate_hashtags` | Content | `{content, platform, count?}` |
+| 8 | `generate_twitter_thread` | Content | `{topic, num_tweets?, tone?}` |
+| 9 | `optimize_social_content` | Content | `{content, platform, goal?}` |
+| 10 | `generate_image_caption` | Content | `{image_description, platform, tone?}` |
+
+Platform character limits enforced: Twitter 280, LinkedIn 3000, Instagram 2200, Facebook 63206.
+
+#### Campaign Creation Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client
+    participant API as /api/social/campaigns
+    participant Agent as SocialMediaAgent
+    participant LLM as LLM Provider
+    participant Sched as Scheduler
+    participant DB as SQLite
+
+    Client->>API: POST {name, topic, platforms, duration_days, posts_per_day}
+    API->>Agent: create_content_campaign()
+    Agent->>DB: create_campaign()
+
+    loop For each day × post × platform
+        Agent->>LLM: Generate content for (day, platform, topic)
+        LLM-->>Agent: Post content
+        Agent->>LLM: Generate hashtags
+        LLM-->>Agent: Hashtags
+        Agent->>Sched: get_optimal_posting_times(platform)
+        Sched-->>Agent: Optimal time slots
+        Agent->>DB: schedule_post(ScheduledPost)
+    end
+
+    Agent-->>API: {campaign_id, posts_created}
+    API-->>Client: Response
+```
+
+#### Scheduler Database Schema
+
+```sql
+CREATE TABLE campaigns (
+    id TEXT PRIMARY KEY,
+    name TEXT, description TEXT,
+    platforms TEXT,              -- JSON array
+    start_date TEXT, end_date TEXT,
+    status TEXT DEFAULT 'draft', -- active|paused|completed|draft
+    budget REAL, target_audience TEXT,
+    goals TEXT,                  -- JSON array
+    created_at TEXT, metadata TEXT
+);
+
+CREATE TABLE scheduled_posts (
+    id TEXT PRIMARY KEY,
+    platform TEXT, content TEXT,
+    media_urls TEXT,             -- JSON array
+    hashtags TEXT,               -- JSON array
+    scheduled_time TEXT,
+    status TEXT DEFAULT 'scheduled', -- draft|scheduled|published|failed|cancelled
+    campaign_id TEXT, created_at TEXT,
+    published_at TEXT, error_message TEXT,
+    metadata TEXT
+);
+
+CREATE INDEX idx_posts_scheduled_time ON scheduled_posts(scheduled_time);
+CREATE INDEX idx_posts_status ON scheduled_posts(status);
+CREATE INDEX idx_posts_campaign ON scheduled_posts(campaign_id);
+```
+
+#### Background Scheduler Service
+
+The `SchedulerService` runs as a background async loop:
+1. Every 60 seconds, query posts due within 5 minutes
+2. For each post, call the platform API (Twitter/LinkedIn/Instagram/Facebook)
+3. On success: update status to `published`, set `published_at`
+4. On failure: update status to `failed`, store `error_message`
 
 ```mermaid
 flowchart LR
-    subgraph API["Social Media API (/api/social/*)"]
-        HEALTH_S["GET /health"]
-        POST_S["POST /post"]
-        GENERATE["POST /generate-content"]
-        THREAD["POST /generate-thread"]
-        CAMPAIGN["POST /campaigns"]
-        ANALYTICS["GET /analytics"]
-        TRENDING["GET /trending/{platform}"]
-        SCHEDULER["POST /scheduler/start|stop"]
-    end
-
-    subgraph Platforms["Platforms"]
-        TW["Twitter/X\n(Tweepy)"]
-        LI["LinkedIn\n(python-linkedin-v2)"]
-        IG["Instagram"]
-        FB["Facebook\n(facebook-sdk)"]
-    end
-
-    subgraph Backend["Backend"]
-        AGENT["SocialMediaAgent\n(LangChain AgentExecutor)"]
-        SCHED["SocialMediaScheduler\n(SQLite-backed)"]
-        CONTENT["ContentGenerator"]
-    end
-
-    API --> Backend
-    Backend --> Platforms
+    TIMER["60s Loop"] --> QUERY["get_posts_due(5min)"]
+    QUERY --> PUBLISH["_publish_post()"]
+    PUBLISH -->|success| OK["status=published"]
+    PUBLISH -->|error| FAIL["status=failed\nerror_message stored"]
 ```
+
+---
+
+## Cross-Pipeline Integration
+
+All pipelines share infrastructure through the MCP server and common data layer:
+
+```mermaid
+flowchart TB
+    subgraph Pipelines["Pipelines"]
+        CORE["Core Agent\n(LangGraph)"]
+        CODING["Coding Pipeline\n(GPT + Claude + Gemini)"]
+        RAG["RAG Pipeline\n(Gemini + FAISS)"]
+        SOCIAL["Social Media\n(AgentExecutor)"]
+    end
+
+    subgraph Shared["Shared Infrastructure"]
+        LLM_CLIENTS["LLM Clients\nOpenAI / Claude / Gemini\n.complete(prompt) → str"]
+        MCP_BUS["MCP Server\n/search /browse /kb/* /fs/*"]
+        MEMORY["Memory Layer\nSQLite + ChromaDB"]
+        CONFIG_S["Config\nPydantic Settings\n(.env)"]
+    end
+
+    CORE --> LLM_CLIENTS
+    CORE --> MEMORY
+    CODING --> LLM_CLIENTS
+    CODING --> MCP_BUS
+    RAG --> LLM_CLIENTS
+    RAG --> MCP_BUS
+    SOCIAL --> LLM_CLIENTS
+    SOCIAL --> MEMORY
+    MCP_BUS --> MEMORY
+```
+
+### State Key Summary (All Pipelines)
+
+| Pipeline | Key | Type | Description |
+|----------|-----|------|-------------|
+| **Core** | `messages` | `list` | LangChain message history |
+| | `plan` | `str` | Current action plan |
+| | `next_action` | `str` | `search\|fetch\|kb_search\|calculate\|write_file\|draft_email\|finalize` |
+| | `citations` | `list[str]` | Collected URLs |
+| | `done` | `bool` | Completion flag |
+| **Coding** | `task` | `str` | Task prompt (with repo context) |
+| | `proposed_code` | `str` | Current code solution |
+| | `status` | `str` | `completed\|failed` |
+| | `tests_passed` | `bool` | Pytest result |
+| | `test_output` | `str` | Pytest stdout+stderr |
+| | `qa_passed` | `bool` | Gemini QA verdict |
+| | `qa_output` | `str` | QA review text |
+| | `feedback` | `str` | Error feedback for retry |
+| **RAG** | `intents` | `list[str]` | `answer\|summarize\|troubleshoot\|plan\|code` |
+| | `urgency` | `str` | `low\|medium\|high` |
+| | `plan` | `list[dict]` | Ordered sub-goals with `{id, goal, sources, done_test}` |
+| | `queries` | `list[str]` | 3-8 diverse search queries per sub-goal |
+| | `evidence` | `list[Evidence]` | Deduped chunks (max 50 global) |
+| | `draft` | `str` | Writer output with `[#N]` citations |
+| | `ok` | `bool` | Critic verdict |
+| | `followup_queries` | `list[str]` | Critic-suggested additional searches |
+| **Social** | `platform` | `str` | `twitter\|linkedin\|instagram\|facebook` |
+| | `content` | `str` | Post content |
+| | `status` | `PostStatus` | `draft\|scheduled\|published\|failed\|cancelled` |
+| | `campaign_id` | `str` | Parent campaign reference |
+| | `hashtags` | `list[str]` | Generated tags |
+| | `scheduled_time` | `datetime` | When to publish |
+
+### Error Handling Pattern
+
+All pipelines follow the same pattern:
+1. **Agent-level**: exceptions caught, error stored in state (`qa_output`, `error_message`, etc.)
+2. **Service-level**: SSE stream yields `("log", error_msg)` then `("done", {"status":"failed"})`
+3. **API-level**: `HTTPException` with appropriate status code (400/429/500/503)
+4. **Non-fatal init**: social media, sub-pipelines gracefully degrade if missing (logged as warning)
 
 ---
 
