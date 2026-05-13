@@ -4,6 +4,7 @@ from typing import List, Dict, Optional
 import httpx
 import requests
 from bs4 import BeautifulSoup
+from tavily import TavilyClient
 
 class WebSearch:
     """
@@ -28,6 +29,25 @@ class WebSearch:
                     "snippet": it.get("snippet", "")
                 })
             return out
+
+class TavilyWebSearch:
+    """
+    Tavily Search API wrapper, matching the WebSearch interface.
+    """
+    def __init__(self, api_key: str):
+        self.client = TavilyClient(api_key=api_key)
+
+    def search(self, q: str, num: int = 5) -> List[Dict]:
+        response = self.client.search(query=q, max_results=num)
+        out = []
+        for it in response.get("results", []):
+            out.append({
+                "title": it.get("title"),
+                "url": it.get("url"),
+                "snippet": it.get("content", "")
+            })
+        return out
+
 
 def fetch_page_text(url: str, timeout: int = 20) -> Optional[str]:
     """

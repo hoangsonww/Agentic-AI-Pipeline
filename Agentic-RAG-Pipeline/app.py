@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 from core.vector import FAISSIndex, ingest_corpus
 from core.memory import SessionMemory
-from core.tools import WebSearch
+from core.tools import WebSearch, TavilyWebSearch
 from graph.orchestrator import Orchestrator
 
 def ensure_env(var):
@@ -32,12 +32,18 @@ def main():
         print("[ingest] No corpus/ directory found. Running with empty vector store.")
 
     # --- Web search (optional) ---
+    search_provider = os.getenv("SEARCH_PROVIDER", "google_cse").lower()
+    tavily_key = os.getenv("TAVILY_API_KEY")
+
     web = None
-    if cse_key and cse_engine:
+    if search_provider == "tavily" and tavily_key:
+        web = TavilyWebSearch(api_key=tavily_key)
+        print("[web] Tavily Search enabled.")
+    elif cse_key and cse_engine:
         web = WebSearch(api_key=cse_key, engine_id=cse_engine)
         print("[web] Google Programmable Search enabled.")
     else:
-        print("[web] Web search disabled (set CSE_API_KEY & CSE_ENGINE_ID to enable).")
+        print("[web] Web search disabled (set CSE_API_KEY & CSE_ENGINE_ID, or TAVILY_API_KEY to enable).")
 
     # --- Memory ---
     memory = SessionMemory()  # in-process JSONL-style memory
