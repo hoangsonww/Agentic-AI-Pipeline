@@ -17,6 +17,7 @@ typing-extensions>=4.12.2
 
 # Discovery
 duckduckgo-search>=6.2.10
+tavily-python>=0.3.0
 httpx>=0.27.0
 trafilatura>=1.10.0
 beautifulsoup4>=4.12.3
