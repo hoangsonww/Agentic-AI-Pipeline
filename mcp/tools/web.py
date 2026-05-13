@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import httpx
 import trafilatura
 from bs4 import BeautifulSoup
@@ -12,6 +14,33 @@ async def search_ddg(q: str, max_results: int = 5):
             return list(ddgs.text(q, max_results=max_results))
         except Exception:
             return []
+
+
+async def search_tavily(q: str, max_results: int = 5):
+    """Search using the Tavily API, returning results normalised to {title, href, body}."""
+    from tavily import AsyncTavilyClient
+
+    try:
+        client = AsyncTavilyClient(api_key=os.environ.get("TAVILY_API_KEY", ""))
+        response = await client.search(query=q, max_results=max_results)
+    except Exception:
+        return []
+    results = []
+    for r in response.get("results", []):
+        results.append({
+            "title": r.get("title", ""),
+            "href": r.get("url", ""),
+            "body": r.get("content", ""),
+        })
+    return results
+
+
+async def search_web(q: str, max_results: int = 5):
+    """Dispatch to the configured search provider (duckduckgo or tavily)."""
+    provider = os.environ.get("SEARCH_PROVIDER", "duckduckgo").lower()
+    if provider == "tavily":
+        return await search_tavily(q, max_results=max_results)
+    return await search_ddg(q, max_results=max_results)
 
 
 async def fetch_page(url: str) -> str:

@@ -71,8 +71,8 @@ class MCPServer:
 
         @self.app.get("/search")
         async def search(q: str, max_results: int = 5) -> Dict[str, Any]:
-            """Perform a web search using DuckDuckGo."""
-            results = await webtools.search_ddg(q, max_results=max_results)
+            """Perform a web search."""
+            results = await webtools.search_web(q, max_results=max_results)
             return {"query": q, "results": results}
 
         @self.app.get("/browse")
@@ -84,7 +84,7 @@ class MCPServer:
         @self.app.get("/research")
         async def research(q: str, max_results: int = 3) -> Dict[str, Any]:
             """Conduct a search and fetch the contents of top results."""
-            results = await webtools.search_ddg(q, max_results=max_results)
+            results = await webtools.search_web(q, max_results=max_results)
             pages: List[Dict[str, str]] = []
             for res in results:
                 url = res.get("href") or res.get("url")
