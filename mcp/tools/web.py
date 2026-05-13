@@ -18,11 +18,11 @@ async def search_ddg(q: str, max_results: int = 5):
 
 async def search_tavily(q: str, max_results: int = 5):
     """Search using the Tavily API, returning results normalised to {title, href, body}."""
-    from tavily import TavilyClient
+    from tavily import AsyncTavilyClient
 
-    client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
     try:
-        response = client.search(query=q, max_results=max_results)
+        client = AsyncTavilyClient(api_key=os.environ.get("TAVILY_API_KEY", ""))
+        response = await client.search(query=q, max_results=max_results)
     except Exception:
         return []
     results = []
