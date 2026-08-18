@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import sys
 import uuid
 from contextlib import asynccontextmanager
@@ -10,6 +11,8 @@ from typing import Optional
 
 from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from maping import Recorder
+from maping.asgi import MapingMiddleware
 from sse_starlette.sse import EventSourceResponse
 
 from .config import settings
@@ -37,10 +40,14 @@ def _resolve_static(directory: Path, filename: str) -> Path:
 # ---------------------------------------------------------------------------
 # Lifespan (replaces deprecated @app.on_event)
 # ---------------------------------------------------------------------------
+recorder = Recorder(service="agentic_ai_pipeline")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup / shutdown lifecycle."""
     # --- startup ---
+    await recorder.start()
     try:
         from .social_media_api import init_social_media_services
 
@@ -51,6 +58,7 @@ async def lifespan(app: FastAPI):
     logger.info("Agentic AI server started on %s:%s", settings.APP_HOST, settings.APP_PORT)
     yield
     # --- shutdown ---
+    await recorder.shutdown()
     logger.info("Agentic AI server shutting down")
 
 
@@ -495,3 +503,7 @@ def api_data_run(payload: dict = Body(...)):
         if ev == "report":
             final_report = data
     return {"report": final_report or "", "ok": True}
+
+
+if os.environ.get("MAPING_KEY"):
+    app = MapingMiddleware(app, recorder=recorder)
