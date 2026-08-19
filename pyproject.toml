@@ -26,6 +26,7 @@ pydantic = ">=2.8.0"
 pydantic-settings = ">=2.3.4"
 python-dotenv = ">=1.0.1"
 orjson = ">=3.10.6"
+maping-client = ">=0.1.1,<0.2.0"
 
 # Agentic stack
 langchain = ">=0.2.14"
