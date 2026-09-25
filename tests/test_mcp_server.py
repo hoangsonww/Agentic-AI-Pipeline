@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Dict
 from unittest.mock import AsyncMock, patch
 
@@ -110,3 +111,55 @@ def test_kb_roundtrip() -> None:
     resp = client.get("/kb/search", params={"q": "hello world", "k": 3})
     assert resp.status_code == 200
     assert any("hello world" in r["text"] for r in resp.json()["results"])
+
+
+def test_youcom_search_provider() -> None:
+    """Test that SEARCH_PROVIDER=youcom routes through search_youcom."""
+    import os
+
+    os.environ["SEARCH_PROVIDER"] = "youcom"
+    os.environ["YOUCOM_API_KEY"] = ""
+
+    server = MCPServer()
+    client = TestClient(server.app)
+
+    # Mock response matching You.com MCP format
+    mcp_response = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {
+            "content": [
+                {
+                    "type": "text",
+                    "text": json.dumps([
+                        {"title": "You.com Search", "url": "https://example.com", "snippet": "A search result"},
+                        {"title": "Agentic AI", "url": "https://example.org", "snippet": "Agent pipelines"},
+                    ]),
+                }
+            ]
+        },
+    }
+
+    fake_resp = httpx.Response(200, json=mcp_response)
+
+    class FakeAsyncClient:
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *args):
+            return None
+        async def post(self, *args, **kwargs):
+            return fake_resp
+
+    with patch("mcp.tools.web.httpx.AsyncClient", return_value=FakeAsyncClient()):
+        search = client.get("/search", params={"q": "you.com", "max_results": 2})
+        assert search.status_code == 200
+        data = search.json()
+        assert "results" in data
+        results = data["results"]
+        assert len(results) == 2
+        assert results[0]["title"] == "You.com Search"
+        assert results[0]["href"] == "https://example.com"
+        assert results[1]["href"] == "https://example.org"
+
+    del os.environ["SEARCH_PROVIDER"]
+    del os.environ["YOUCOM_API_KEY"]
